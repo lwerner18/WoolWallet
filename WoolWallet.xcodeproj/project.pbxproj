@@ -7,13 +7,22 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		043C12B82B9BA6E7007CACC9 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043C12B72B9BA6E7007CACC9 /* ImagePicker.swift */; };
+		046A96422BA0A69000E83055 /* View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046A96412BA0A69000E83055 /* View.swift */; };
+		046A96442BA17B1C00E83055 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046A96432BA17B1C00E83055 /* Toast.swift */; };
+		047DE4B02B9EC45600F0A2D5 /* MyTextFieldStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4AF2B9EC45600F0A2D5 /* MyTextFieldStyle.swift */; };
+		047DE4CC2B9FF40600F0A2D5 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4CB2B9FF40600F0A2D5 /* PersistenceController.swift */; };
+		047DE4CF2B9FF78700F0A2D5 /* Data.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4CD2B9FF78700F0A2D5 /* Data.xcdatamodeld */; };
+		047DE4D52B9FFB6900F0A2D5 /* YarnList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4D42B9FFB6900F0A2D5 /* YarnList.swift */; };
 		04B74E752B9B6EFB00D19F52 /* WoolWalletApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B74E742B9B6EFB00D19F52 /* WoolWalletApp.swift */; };
-		04B74E772B9B6EFB00D19F52 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B74E762B9B6EFB00D19F52 /* ContentView.swift */; };
+		04B74E772B9B6EFB00D19F52 /* AddYarnForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B74E762B9B6EFB00D19F52 /* AddYarnForm.swift */; };
 		04B74E792B9B6EFE00D19F52 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 04B74E782B9B6EFE00D19F52 /* Assets.xcassets */; };
 		04B74E7C2B9B6EFE00D19F52 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 04B74E7B2B9B6EFE00D19F52 /* Preview Assets.xcassets */; };
 		04B74E862B9B6EFE00D19F52 /* WoolWalletTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B74E852B9B6EFE00D19F52 /* WoolWalletTests.swift */; };
 		04B74E902B9B6EFE00D19F52 /* WoolWalletUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B74E8F2B9B6EFE00D19F52 /* WoolWalletUITests.swift */; };
 		04B74E922B9B6EFE00D19F52 /* WoolWalletUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B74E912B9B6EFE00D19F52 /* WoolWalletUITestsLaunchTests.swift */; };
+		04D596012B9E9BE000E1913C /* ClearButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D596002B9E9BE000E1913C /* ClearButton.swift */; };
+		04D596032B9E9C2200E1913C /* AccessCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D596022B9E9C2200E1913C /* AccessCamera.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,9 +43,16 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		043C12B72B9BA6E7007CACC9 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
+		046A96412BA0A69000E83055 /* View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = View.swift; sourceTree = "<group>"; };
+		046A96432BA17B1C00E83055 /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
+		047DE4AF2B9EC45600F0A2D5 /* MyTextFieldStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyTextFieldStyle.swift; sourceTree = "<group>"; };
+		047DE4CB2B9FF40600F0A2D5 /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceController.swift; sourceTree = "<group>"; };
+		047DE4CE2B9FF78700F0A2D5 /* Data.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Data.xcdatamodel; sourceTree = "<group>"; };
+		047DE4D42B9FFB6900F0A2D5 /* YarnList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnList.swift; sourceTree = "<group>"; };
 		04B74E712B9B6EFB00D19F52 /* WoolWallet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WoolWallet.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		04B74E742B9B6EFB00D19F52 /* WoolWalletApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WoolWalletApp.swift; sourceTree = "<group>"; };
-		04B74E762B9B6EFB00D19F52 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		04B74E762B9B6EFB00D19F52 /* AddYarnForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddYarnForm.swift; sourceTree = "<group>"; };
 		04B74E782B9B6EFE00D19F52 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		04B74E7B2B9B6EFE00D19F52 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		04B74E812B9B6EFE00D19F52 /* WoolWalletTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WoolWalletTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -44,6 +60,8 @@
 		04B74E8B2B9B6EFE00D19F52 /* WoolWalletUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WoolWalletUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		04B74E8F2B9B6EFE00D19F52 /* WoolWalletUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WoolWalletUITests.swift; sourceTree = "<group>"; };
 		04B74E912B9B6EFE00D19F52 /* WoolWalletUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WoolWalletUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		04D596002B9E9BE000E1913C /* ClearButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClearButton.swift; sourceTree = "<group>"; };
+		04D596022B9E9C2200E1913C /* AccessCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessCamera.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +89,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		047DE4C02B9FEF7000F0A2D5 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				047DE4CB2B9FF40600F0A2D5 /* PersistenceController.swift */,
+			);
+			path = Controllers;
+			sourceTree = "<group>";
+		};
 		04B74E682B9B6EFB00D19F52 = {
 			isa = PBXGroup;
 			children = (
@@ -94,10 +120,17 @@
 		04B74E732B9B6EFB00D19F52 /* WoolWallet */ = {
 			isa = PBXGroup;
 			children = (
+				047DE4C02B9FEF7000F0A2D5 /* Controllers */,
+				04D595FF2B9E9BC400E1913C /* Helpers */,
 				04B74E742B9B6EFB00D19F52 /* WoolWalletApp.swift */,
-				04B74E762B9B6EFB00D19F52 /* ContentView.swift */,
+				04B74E762B9B6EFB00D19F52 /* AddYarnForm.swift */,
 				04B74E782B9B6EFE00D19F52 /* Assets.xcassets */,
 				04B74E7A2B9B6EFE00D19F52 /* Preview Content */,
+				043C12B72B9BA6E7007CACC9 /* ImagePicker.swift */,
+				047DE4CD2B9FF78700F0A2D5 /* Data.xcdatamodeld */,
+				047DE4D42B9FFB6900F0A2D5 /* YarnList.swift */,
+				046A96412BA0A69000E83055 /* View.swift */,
+				046A96432BA17B1C00E83055 /* Toast.swift */,
 			);
 			path = WoolWallet;
 			sourceTree = "<group>";
@@ -125,6 +158,16 @@
 				04B74E912B9B6EFE00D19F52 /* WoolWalletUITestsLaunchTests.swift */,
 			);
 			path = WoolWalletUITests;
+			sourceTree = "<group>";
+		};
+		04D595FF2B9E9BC400E1913C /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				04D596002B9E9BE000E1913C /* ClearButton.swift */,
+				04D596022B9E9C2200E1913C /* AccessCamera.swift */,
+				047DE4AF2B9EC45600F0A2D5 /* MyTextFieldStyle.swift */,
+			);
+			path = Helpers;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -257,8 +300,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				04B74E772B9B6EFB00D19F52 /* ContentView.swift in Sources */,
+				043C12B82B9BA6E7007CACC9 /* ImagePicker.swift in Sources */,
+				04B74E772B9B6EFB00D19F52 /* AddYarnForm.swift in Sources */,
+				046A96422BA0A69000E83055 /* View.swift in Sources */,
+				047DE4D52B9FFB6900F0A2D5 /* YarnList.swift in Sources */,
 				04B74E752B9B6EFB00D19F52 /* WoolWalletApp.swift in Sources */,
+				047DE4CC2B9FF40600F0A2D5 /* PersistenceController.swift in Sources */,
+				047DE4B02B9EC45600F0A2D5 /* MyTextFieldStyle.swift in Sources */,
+				04D596012B9E9BE000E1913C /* ClearButton.swift in Sources */,
+				046A96442BA17B1C00E83055 /* Toast.swift in Sources */,
+				047DE4CF2B9FF78700F0A2D5 /* Data.xcdatamodeld in Sources */,
+				04D596032B9E9C2200E1913C /* AccessCamera.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -412,16 +464,18 @@
 		04B74E962B9B6EFE00D19F52 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"WoolWallet/Preview Content\"";
+				DEVELOPMENT_TEAM = SSF9R779YZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs to capture images to show in the app";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -440,16 +494,18 @@
 		04B74E972B9B6EFE00D19F52 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"WoolWallet/Preview Content\"";
+				DEVELOPMENT_TEAM = SSF9R779YZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs to capture images to show in the app";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -577,6 +633,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		047DE4CD2B9FF78700F0A2D5 /* Data.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				047DE4CE2B9FF78700F0A2D5 /* Data.xcdatamodel */,
+			);
+			currentVersion = 047DE4CE2B9FF78700F0A2D5 /* Data.xcdatamodel */;
+			path = Data.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 04B74E692B9B6EFB00D19F52 /* Project object */;
 }

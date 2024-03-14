@@ -9,9 +9,25 @@ import SwiftUI
 
 @main
 struct WoolWalletApp: App {
+    let persistenceController = PersistenceController.shared
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            TabView {
+                YarnList()
+                    .tabItem {
+                        Image(systemName: "list.triangle")
+                        Text("My Yarn")
+                    }
+                AddYarnForm()
+                    .tabItem {
+                        Image(systemName: "plus")
+                        Text("Add Yarn")
+                    }
+            }
+            .colorScheme(.light) // Set color scheme to light mode
+            .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
+    
     }
 }
