@@ -10,6 +10,9 @@ import PhotosUI
 
 
 struct AddYarnForm: View {
+    @Binding var showSheet: Bool
+    @Binding var toast: Toast?
+    
     @State private var name: String = ""
     @State private var dyer: String = ""
     @State private var yards: Int = 1
@@ -23,13 +26,15 @@ struct AddYarnForm: View {
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var showCamera = false
     
+    @State private var formToast: Toast? = nil
+    
     @FocusState private var focusedField: Field?
     
     private enum Field: Int, Hashable {
         case name, dyer, weight, notes
     }
     
-    @State private var toast: Toast? = nil
+    
     
     @Environment(\.managedObjectContext) var managedObjectContext
         
@@ -285,14 +290,6 @@ struct AddYarnForm: View {
                     
                     Spacer()
                     
-                    Button {
-                        toast = Toast(style: .success, message: "Successfully saved yarn!")
-                    } label: {
-                        Text("Run (Success)")
-                    }
-                    
-                    Spacer()
-                    
                     Button("Create") {
                         let yarn = Yarn(context: managedObjectContext)
                         
@@ -315,14 +312,13 @@ struct AddYarnForm: View {
                         toast = Toast(style: .success, message: "Successfully saved Yarn!")
                         clearForm()
                         hideKeyboard()
+                        showSheet = false
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
                     .disabled(name == "" && image == nil)
                 }
                 .padding()
-           
-                
             }
             
             // Additional form elements can be added here
@@ -330,7 +326,7 @@ struct AddYarnForm: View {
         .onTapGesture() {
             hideKeyboard()
         }
-        .toastView(toast: $toast)
+        .toastView(toast: $formToast)
     }
     
     func clearForm() {
@@ -347,10 +343,11 @@ struct AddYarnForm: View {
 }
 
 
-
 struct AddYarnForm_Previews: PreviewProvider {
     static var previews: some View {
-        AddYarnForm()
+        let toast = Toast(style: ToastStyle.success, message: "test")
+        
+        AddYarnForm(showSheet : .constant(true), toast: .constant(toast))
     }
 }
 

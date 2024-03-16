@@ -10,6 +10,7 @@
 		043C12B82B9BA6E7007CACC9 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043C12B72B9BA6E7007CACC9 /* ImagePicker.swift */; };
 		046A96422BA0A69000E83055 /* View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046A96412BA0A69000E83055 /* View.swift */; };
 		046A96442BA17B1C00E83055 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046A96432BA17B1C00E83055 /* Toast.swift */; };
+		0473B97C2BA4021400595BE7 /* YarnInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0473B97B2BA4021400595BE7 /* YarnInfo.swift */; };
 		047DE4B02B9EC45600F0A2D5 /* MyTextFieldStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4AF2B9EC45600F0A2D5 /* MyTextFieldStyle.swift */; };
 		047DE4CC2B9FF40600F0A2D5 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4CB2B9FF40600F0A2D5 /* PersistenceController.swift */; };
 		047DE4CF2B9FF78700F0A2D5 /* Data.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4CD2B9FF78700F0A2D5 /* Data.xcdatamodeld */; };
@@ -46,6 +47,7 @@
 		043C12B72B9BA6E7007CACC9 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		046A96412BA0A69000E83055 /* View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = View.swift; sourceTree = "<group>"; };
 		046A96432BA17B1C00E83055 /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
+		0473B97B2BA4021400595BE7 /* YarnInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnInfo.swift; sourceTree = "<group>"; };
 		047DE4AF2B9EC45600F0A2D5 /* MyTextFieldStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyTextFieldStyle.swift; sourceTree = "<group>"; };
 		047DE4CB2B9FF40600F0A2D5 /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceController.swift; sourceTree = "<group>"; };
 		047DE4CE2B9FF78700F0A2D5 /* Data.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Data.xcdatamodel; sourceTree = "<group>"; };
@@ -131,6 +133,7 @@
 				047DE4D42B9FFB6900F0A2D5 /* YarnList.swift */,
 				046A96412BA0A69000E83055 /* View.swift */,
 				046A96432BA17B1C00E83055 /* Toast.swift */,
+				0473B97B2BA4021400595BE7 /* YarnInfo.swift */,
 			);
 			path = WoolWallet;
 			sourceTree = "<group>";
@@ -303,6 +306,7 @@
 				043C12B82B9BA6E7007CACC9 /* ImagePicker.swift in Sources */,
 				04B74E772B9B6EFB00D19F52 /* AddYarnForm.swift in Sources */,
 				046A96422BA0A69000E83055 /* View.swift in Sources */,
+				0473B97C2BA4021400595BE7 /* YarnInfo.swift in Sources */,
 				047DE4D52B9FFB6900F0A2D5 /* YarnList.swift in Sources */,
 				04B74E752B9B6EFB00D19F52 /* WoolWalletApp.swift in Sources */,
 				047DE4CC2B9FF40600F0A2D5 /* PersistenceController.swift in Sources */,

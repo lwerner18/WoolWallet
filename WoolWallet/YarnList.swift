@@ -14,6 +14,9 @@ struct YarnList: View {
     @Environment(\.managedObjectContext) var managedObjectContext
     
     @State var searchText: String = ""
+    @State private var selectedYarn: Yarn?
+    @State private var showAddYarnForm : Bool = false
+    @State private var toast: Toast? = nil
     
     private var filteredFetchRequest = FetchRequest<Yarn>(
         sortDescriptors: [SortDescriptor(\.name)],
@@ -35,31 +38,64 @@ struct YarnList: View {
             Text("No yarn")
         } else {
             NavigationStack {
-                List {
-                    ForEach(filteredYarn) { yarn in
-                        VStack {
-                            Image(uiImage: UIImage(data: yarn.image ?? Data()) ?? UIImage())
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .cardBackground()
-                         
-                            Text(yarn.name ?? "No Name")
-                            .font(.headline)
+                ScrollView {
+                    ForEach(0..<(filteredYarn.count + 1) / 2, id: \.self) { rowIndex in
+                        HStack(alignment : .top) {
+                            ForEach(0..<2, id: \.self) { columnIndex in
+                                // Calculate the index of the current item
+                                let itemIndex = rowIndex * 2 + columnIndex
+                                
+                                // Check if the itemIndex is within the bounds of the items array
+                                if itemIndex < filteredYarn.count {
+                                    let yarn = filteredYarn[itemIndex]
+                                    
+                                    Button(action: {
+                                        // Set the selected item and present the popup
+                                        self.selectedYarn = yarn
+                                    }) {
+                                        VStack {
+                                            Image(uiImage: UIImage(data: yarn.image ?? Data()) ?? UIImage())
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                                .frame(width: 170, height: 275) // Specify the frame of the image
+                                                .cardBackground()
+                                                
+                                            
+                                            Text(yarn.name ?? "No Name")
+                                                .foregroundStyle(Color.black)
+                                        }
+                                        .padding(.horizontal, 5)
+                                        
+                                    }
+                                    
+                                }
+                            }
                         }
-                        .listRowSeparator(.hidden, edges: .all)
-//                        .listRowInsets(EdgeInsets())
-                        .padding(.all, 16)
-                        
+                        .padding(.horizontal, 15)
+                        .padding(.vertical, 7)
                     }
-                    .onDelete(perform: removeYarn)
                 }
-                .listStyle(.plain)
                 .navigationTitle("My Yarn")
+                .navigationBarItems(trailing: Button(action: {
+                    showAddYarnForm = true
+                }) {
+                    Image(systemName: "plus") // Use a system icon
+                        .imageScale(.large)
+                })
             }
             .searchable(text: $searchText)
             .onTapGesture() {
                 hideKeyboard()
             }
+            .sheet(item: $selectedYarn) { yarn in
+                YarnInfo(yarn: yarn)
+            }
+            .sheet(isPresented: $showAddYarnForm) {
+                AddYarnForm(showSheet : $showAddYarnForm, toast : $toast)
+                    .preferredColorScheme(.light) // Force light mode
+            }
+            .toastView(toast: $toast)
+           
         }
     }
     

@@ -13,18 +13,19 @@ struct WoolWalletApp: App {
     
     var body: some Scene {
         WindowGroup {
-            TabView {
-                YarnList()
-                    .tabItem {
-                        Image(systemName: "list.triangle")
-                        Text("My Yarn")
-                    }
-                AddYarnForm()
-                    .tabItem {
-                        Image(systemName: "plus")
-                        Text("Add Yarn")
-                    }
-            }
+//            TabView {
+//                
+//                    .tabItem {
+//                        Image(systemName: "list.triangle")
+//                        Text("My Yarn")
+//                    }
+//                AddYarnForm()
+//                    .tabItem {
+//                        Image(systemName: "plus")
+//                        Text("Add Yarn")
+//                    }
+//            }
+            YarnList()
             .colorScheme(.light) // Set color scheme to light mode
             .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
