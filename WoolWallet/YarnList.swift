@@ -14,7 +14,6 @@ struct YarnList: View {
     @Environment(\.managedObjectContext) var managedObjectContext
     
     @State var searchText: String = ""
-    @State private var selectedYarn: Yarn?
     @State private var showAddYarnForm : Bool = false
     @State private var toast: Toast? = nil
     
@@ -49,23 +48,21 @@ struct YarnList: View {
                                 if itemIndex < filteredYarn.count {
                                     let yarn = filteredYarn[itemIndex]
                                     
-                                    Button(action: {
-                                        // Set the selected item and present the popup
-                                        self.selectedYarn = yarn
-                                    }) {
+                                    NavigationLink(
+                                        destination: YarnInfo(yarn: yarn, toast : $toast)
+                                    ) {
                                         VStack {
                                             Image(uiImage: UIImage(data: yarn.image ?? Data()) ?? UIImage())
                                                 .resizable()
                                                 .aspectRatio(contentMode: .fill)
                                                 .frame(width: 170, height: 275) // Specify the frame of the image
                                                 .cardBackground()
-                                                
+                                            
                                             
                                             Text(yarn.name ?? "No Name")
                                                 .foregroundStyle(Color.black)
                                         }
                                         .padding(.horizontal, 5)
-                                        
                                     }
                                     
                                 }
@@ -76,20 +73,18 @@ struct YarnList: View {
                     }
                 }
                 .navigationTitle("My Yarn")
-                .navigationBarItems(trailing: Button(action: {
-                    showAddYarnForm = true
-                }) {
-                    Image(systemName: "plus") // Use a system icon
-                        .imageScale(.large)
-                })
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: {
+                            showAddYarnForm = true
+                        }) {
+                            Image(systemName: "plus") // Use a system icon
+                                .imageScale(.large)
+                        }
+                    }
+                }
             }
             .searchable(text: $searchText)
-            .onTapGesture() {
-                hideKeyboard()
-            }
-            .sheet(item: $selectedYarn) { yarn in
-                YarnInfo(yarn: yarn)
-            }
             .sheet(isPresented: $showAddYarnForm) {
                 AddYarnForm(showSheet : $showAddYarnForm, toast : $toast)
                     .preferredColorScheme(.light) // Force light mode
@@ -97,15 +92,6 @@ struct YarnList: View {
             .toastView(toast: $toast)
            
         }
-    }
-    
-    func removeYarn(at offsets: IndexSet) {
-        for index in offsets {
-            let yarn = filteredYarn[index]
-            managedObjectContext.delete(yarn)
-        }
-        
-        PersistenceController.shared.save()
     }
 }
 

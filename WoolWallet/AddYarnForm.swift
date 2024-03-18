@@ -34,8 +34,6 @@ struct AddYarnForm: View {
         case name, dyer, weight, notes
     }
     
-    
-    
     @Environment(\.managedObjectContext) var managedObjectContext
         
     var body: some View {
@@ -309,7 +307,7 @@ struct AddYarnForm: View {
                         
                         PersistenceController.shared.save()
                         
-                        toast = Toast(style: .success, message: "Successfully saved Yarn!")
+                        toast = Toast(style: .success, message: "Successfully saved yarn!")
                         clearForm()
                         hideKeyboard()
                         showSheet = false
