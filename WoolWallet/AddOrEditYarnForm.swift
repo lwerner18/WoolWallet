@@ -15,13 +15,33 @@ struct AddYarnForm: View {
     
     @State private var name: String = ""
     @State private var dyer: String = ""
-    @State private var yards: Int = 1
-    @State private var grams: Int = 1
-    @State private var skeins: Int = 1
-    @State private var weight: String = ""
+    @State private var weight: String = "Select One"
+    @State private var unitOfMeasure: String = "yards"
+    @State private var length: Double = 0
+    @State private var grams: Int = 0
+    @State private var skeins: Double = 1
+    @State private var totalGrams: Int = 0
     @State private var notes: String = ""
     @State private var caked: Bool = false
     @State private var image: UIImage?
+    
+    // Computed property to calculate the totalLength
+    var totalLength: String {
+        let formatter = NumberFormatter()
+        formatter.minimumFractionDigits = 0 // Minimum number of digits after decimal
+        formatter.maximumFractionDigits = 2 // Maximum number of digits after decimal
+        formatter.numberStyle = .decimal // Set the number style
+        
+        var totalLength = 0.0
+        
+        if totalGrams != 0 {
+            totalLength = (length * Double(totalGrams)) / Double(grams)
+        } else {
+            totalLength = length * skeins
+        }
+        
+        return formatter.string(from: NSNumber(value: totalLength)) ?? ""
+    }
     
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var showCamera = false
@@ -31,8 +51,20 @@ struct AddYarnForm: View {
     @FocusState private var focusedField: Field?
     
     private enum Field: Int, Hashable {
-        case name, dyer, weight, notes
+        case name, dyer, length, grams, weight, notes, totalGrams, skeins
     }
+    
+    let weights = [
+        "Select One",
+        "0 - Lace",
+        "1 - Fingering",
+        "2 - Sport", 
+        "3 - DK",
+        "4 - Worsted",
+        "5 - Chunky",
+        "6 - Super Bulky",
+        "7 - Jumbo"
+    ]
     
     @Environment(\.managedObjectContext) var managedObjectContext
         
@@ -151,20 +183,85 @@ struct AddYarnForm: View {
                 
                 Divider()
                 
-//                HStack {
-//                    TextField("", value: $yards, format: .number)
-//                        .keyboardType(.numberPad)
-//                    Text("yards")
-//                    Spacer()
-//                    Text("/")
-//                    Spacer()
-//                    TextField("", value: $grams, format: .number)
-//                        .keyboardType(.numberPad)
-//                    Text("grams")
-//                }
-//                .padding()
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "scalemass.fill")
+                            .resizable()
+                            .frame(width: 20, height: 20)
+                            .padding(.trailing, 8)
+                        
+                        Text("Weight")
+                        
+                        Spacer()
+                        
+                        Picker("Weight", selection: $weight) {
+                            ForEach(weights, id: \.self) { weight in
+                                Text(weight).tag(weight)
+                            }
+                        }
+                        .foregroundStyle(Color.black)
+                        .pickerStyle(.menu)
+//                        .frame(width: 200, height: 75, alignment: .center) // Set your desired size
+//                        .clipped()
+                    }
+                }
+                .padding()
                 
-//                Divider()
+                Divider()
+                
+                HStack {
+                    TextField("", value: $length, format: .number)
+                        .keyboardType(.numberPad)
+                        .frame(height: 48)
+                        .textFieldStyle(
+                            MyTextFieldStyle()
+                        )
+                        .contentShape(RoundedRectangle(cornerRadius: 8))
+                        .focused($focusedField, equals: .length)
+                        .onTapGesture { focusedField = .length }
+                    
+                    Picker("Unit of Measure", selection: $unitOfMeasure) {
+                        Text("yards").tag("yards")
+                        Text("meters").tag("meters")
+                    }
+                    .onChange(of: unitOfMeasure) { newValue in
+                        let yardsToMeters = 0.9144
+                        if (newValue == "meters") {
+                            length = Double(String(format : "%.2f", yardsToMeters * length))!
+                        } else {
+                            length = Double(String(format : "%.2f", length / yardsToMeters))!
+                        }
+                    }
+                    .foregroundStyle(Color.black)
+                    .pickerStyle(.wheel)
+                    .frame(width: 100, height: 100, alignment: .center) // Set your desired size
+                    .clipped()
+                   
+                    
+                    Spacer()
+                    Text("/")
+                        .foregroundStyle(Color.black)
+                        .font(.system(size: 20))
+                        .padding(.trailing, 10)
+                    Spacer()
+                    
+                    TextField("", value: $grams, format: .number)
+                        .keyboardType(.numberPad)
+                        .frame(height: 48)
+                        .textFieldStyle(
+                            MyTextFieldStyle()
+                        )
+                        .focused($focusedField, equals: .grams)
+                        .contentShape(RoundedRectangle(cornerRadius: 8))
+                        .onTapGesture { focusedField = .grams }
+                    
+                    Text("grams")
+                        .foregroundStyle(Color.black)
+                        .font(.system(size: 20))
+                }
+                .padding()
+                
+                Divider()
                 
                 HStack(spacing : 8) {
                     Image(systemName: "number")
@@ -184,10 +281,24 @@ struct AddYarnForm: View {
                             .frame(width: 30, height: 30)
                     }
                     
-                    
-                    Text("\(skeins)")
-                        .padding(.horizontal, 20.0)
-                        .font(.headline)
+                    TextField("", value: $skeins, format: .number)
+                        .keyboardType(.decimalPad)
+                        .frame(width: 65, height: 48)
+                        .textFieldStyle(
+                            MyTextFieldStyle()
+                        )
+                        .contentShape(RoundedRectangle(cornerRadius: 8))
+                        .focused($focusedField, equals: .skeins)
+                        .onTapGesture { focusedField = .skeins }
+//                        .onChange(of: skeins) { newValue in
+//                            if length > 0 {
+//                                let newTotalGrams = length * newValue
+//                                if newTotalGrams - totalGrams == length {
+//                                    totalGrams = newTotalGrams
+//                                }
+//                            }
+//                        }
+                       
                     
                     Button(action: {
                         skeins = skeins + 1
@@ -201,35 +312,47 @@ struct AddYarnForm: View {
                 
                 Divider()
                 
-                VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing : 8) {
                     HStack {
-                        Image(systemName: "scalemass.fill")
+                        Image(systemName: "dumbbell.fill")
                             .resizable()
                             .frame(width: 20, height: 20)
                             .padding(.trailing, 8)
                         
-                        Text("Weight")
+                        Text("Total Grams")
                         
                         Spacer()
+                        
+                        TextField("", value: $totalGrams, format: .number)
+                            .keyboardType(.numberPad)
+                            .frame(width: 75, height: 48)
+                            .textFieldStyle(
+                                MyTextFieldStyle()
+                            )
+                            .contentShape(RoundedRectangle(cornerRadius: 8))
+                            .focused($focusedField, equals: .totalGrams)
+                            .onTapGesture { focusedField = .totalGrams }
                     }
-                    .padding(.bottom, 8)
-                 
-                    
-                    TextField("Enter text", text: $weight)
-                        .frame(height: 48)
-                        .textFieldStyle(
-                            MyTextFieldStyle()
-                        )
-                        .modifier(
-                            ClearButton(text: $weight)
-                        )
-                        .focused($focusedField, equals: .weight)
-                        .contentShape(RoundedRectangle(cornerRadius: 8))
-                        .onTapGesture { focusedField = .weight }
                 }
                 .padding()
                 
                 Divider()
+                
+                if length > 0 && grams > 0 {
+                    HStack(spacing : 8) {
+                        Image(systemName: "ruler.fill")
+                            .resizable()
+                            .frame(width: 20, height: 20)
+                            .padding(.trailing, 8)
+                        
+                        Text("Total Length")
+                        Spacer()
+                        Text("\(totalLength) \(unitOfMeasure)")
+                    }
+                    .padding()
+                    
+                    Divider()
+                }
                 
                 HStack(spacing : 8) {
                     Image(systemName: "birthday.cake.fill")
@@ -241,7 +364,6 @@ struct AddYarnForm: View {
                 }
                 .padding()
                
-                
                 Divider()
                 
                 VStack(alignment: .leading, spacing: 8) {
@@ -293,8 +415,13 @@ struct AddYarnForm: View {
                         
                         yarn.name = name
                         yarn.dyer = dyer
-                        yarn.skeins = Int16(skeins)
                         yarn.weight = weight
+                        yarn.unitOfMeasure = unitOfMeasure
+                        yarn.length = length
+                        yarn.grams = Int16(grams)
+                        yarn.skeins = skeins
+                        yarn.totalGrams = Int16(totalGrams)
+                        yarn.totalLength = totalLength
                         yarn.isCaked = caked
                         yarn.notes = notes
                         
@@ -330,10 +457,12 @@ struct AddYarnForm: View {
     func clearForm() {
         name = ""
         dyer = ""
-        yards = 1
-        grams = 1
-        skeins = 1
         weight = ""
+        unitOfMeasure = "yards"
+        length = 0
+        grams = 0
+        skeins = 1
+        totalGrams = 0
         notes = ""
         caked = false
         image = nil
@@ -341,13 +470,13 @@ struct AddYarnForm: View {
 }
 
 
-struct AddYarnForm_Previews: PreviewProvider {
-    static var previews: some View {
-        let toast = Toast(style: ToastStyle.success, message: "test")
-        
-        AddYarnForm(showSheet : .constant(true), toast: .constant(toast))
-    }
-}
+//struct AddYarnForm_Previews: PreviewProvider {
+//    static var previews: some View {
+//        let toast = Toast(style: ToastStyle.success, message: "test")
+//        
+//        AddYarnForm(showSheet : .constant(true), toast: .constant(toast))
+//    }
+//}
 
 
 
