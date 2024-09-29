@@ -17,6 +17,10 @@ extension View {
         modifier(CardBackground())
     }
     
+    func yarnDataRow() -> some View {
+        modifier(YarnDataRow())
+    }
+    
     func toastView(toast: Binding<Toast?>) -> some View {
         self.modifier(ToastModifier(toast: toast))
     }

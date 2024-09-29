@@ -13,7 +13,22 @@ struct WoolWalletApp: App {
     
     var body: some Scene {
         WindowGroup {
-            YarnList()
+            TabView {
+                YarnList()
+                    .tabItem {
+                        Label("My Stash", systemImage: "volleyball")
+                    }
+                
+                PatternList()
+                    .tabItem {
+                        Label("Patterns", systemImage: "newspaper")
+                    }
+                
+                ProjectList()
+                    .tabItem {
+                        Label("Projects", systemImage: "hammer")
+                    }
+            }
             .colorScheme(.light) // Set color scheme to light mode
             .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }

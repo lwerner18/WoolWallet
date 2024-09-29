@@ -7,23 +7,57 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		043C12B82B9BA6E7007CACC9 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043C12B72B9BA6E7007CACC9 /* ImagePicker.swift */; };
-		046A96422BA0A69000E83055 /* View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046A96412BA0A69000E83055 /* View.swift */; };
+		042BF1562CA61D9D008740FB /* TextFieldTypeahead.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042BF1552CA61D9D008740FB /* TextFieldTypeahead.swift */; };
+		042CC1E82BAB9BFF008DD2F6 /* ConditionalStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042CC1E72BAB9BFF008DD2F6 /* ConditionalStack.swift */; };
+		04421B592BAE25110034E16A /* Lato in Resources */ = {isa = PBXBuildFile; fileRef = 04421B582BAE25110034E16A /* Lato */; };
+		04421B602BAE7A050034E16A /* UIImageColors in Frameworks */ = {isa = PBXBuildFile; productRef = 04421B5F2BAE7A050034E16A /* UIImageColors */; };
+		04421B6B2BAF48B30034E16A /* OpenCVWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04421B6A2BAF48B30034E16A /* OpenCVWrapper.mm */; };
+		0462D00B2C7FBB7700EBB11C /* ButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0462D00A2C7FBB7700EBB11C /* ButtonStyles.swift */; };
 		046A96442BA17B1C00E83055 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046A96432BA17B1C00E83055 /* Toast.swift */; };
+		04726D992C9A98BC008769A3 /* Composition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04726D982C9A98BC008769A3 /* Composition.swift */; };
 		0473B97C2BA4021400595BE7 /* YarnInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0473B97B2BA4021400595BE7 /* YarnInfo.swift */; };
 		047DE4B02B9EC45600F0A2D5 /* MyTextFieldStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4AF2B9EC45600F0A2D5 /* MyTextFieldStyle.swift */; };
 		047DE4CC2B9FF40600F0A2D5 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4CB2B9FF40600F0A2D5 /* PersistenceController.swift */; };
 		047DE4CF2B9FF78700F0A2D5 /* Data.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4CD2B9FF78700F0A2D5 /* Data.xcdatamodeld */; };
 		047DE4D52B9FFB6900F0A2D5 /* YarnList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4D42B9FFB6900F0A2D5 /* YarnList.swift */; };
+		048D66052CA0E9890051D7A3 /* EditComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048D66042CA0E9890051D7A3 /* EditComposition.swift */; };
+		049FAA4F2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 049FAA4E2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage */; };
+		04A5C3DE2C4C1D4300CD5870 /* View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3DD2C4C1D4300CD5870 /* View.swift */; };
+		04A5C3E02C4C1D8300CD5870 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3DF2C4C1D8300CD5870 /* Color.swift */; };
+		04A5C3E22C4C1DA600CD5870 /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3E12C4C1DA600CD5870 /* UIColor.swift */; };
+		04A5C3E52C4C1DE600CD5870 /* ColorPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3E42C4C1DE600CD5870 /* ColorPickerView.swift */; };
+		04A5C3E72C4C1E1600CD5870 /* UIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3E62C4C1E1600CD5870 /* UIImage.swift */; };
+		04A5C3E92C4C1E3600CD5870 /* TextFieldLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3E82C4C1E3600CD5870 /* TextFieldLabel.swift */; };
+		04A5C3EB2C4C1E5200CD5870 /* FormRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3EA2C4C1E5200CD5870 /* FormRow.swift */; };
+		04A5C3ED2C4C1E8F00CD5870 /* AnalyzeColorUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3EC2C4C1E8F00CD5870 /* AnalyzeColorUtils.swift */; };
+		04A81CF32CA4743D00BF66CC /* StoredImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A81CF22CA4743D00BF66CC /* StoredImage.swift */; };
+		04A81CF52CA47C6100BF66CC /* ImageCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A81CF42CA47C6100BF66CC /* ImageCarousel.swift */; };
+		04A81CFA2CA47E2000BF66CC /* YarnEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A81CF92CA47E2000BF66CC /* YarnEnums.swift */; };
+		04A81D042CA4807D00BF66CC /* GlobalEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A81D032CA4807D00BF66CC /* GlobalEnums.swift */; };
+		04B15C5E2C74F6F900A03751 /* StoredColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B15C5D2C74F6F900A03751 /* StoredColor.swift */; };
+		04B15C602C76220300A03751 /* Yarn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B15C5F2C76220300A03751 /* Yarn.swift */; };
+		04B15C622C77BAF100A03751 /* FilterYarn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B15C612C77BAF100A03751 /* FilterYarn.swift */; };
+		04B710272CA1E76900D9292A /* AnyTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B710262CA1E76900D9292A /* AnyTransition.swift */; };
 		04B74E752B9B6EFB00D19F52 /* WoolWalletApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B74E742B9B6EFB00D19F52 /* WoolWalletApp.swift */; };
-		04B74E772B9B6EFB00D19F52 /* AddYarnForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B74E762B9B6EFB00D19F52 /* AddYarnForm.swift */; };
 		04B74E792B9B6EFE00D19F52 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 04B74E782B9B6EFE00D19F52 /* Assets.xcassets */; };
 		04B74E7C2B9B6EFE00D19F52 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 04B74E7B2B9B6EFE00D19F52 /* Preview Assets.xcassets */; };
 		04B74E862B9B6EFE00D19F52 /* WoolWalletTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B74E852B9B6EFE00D19F52 /* WoolWalletTests.swift */; };
 		04B74E902B9B6EFE00D19F52 /* WoolWalletUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B74E8F2B9B6EFE00D19F52 /* WoolWalletUITests.swift */; };
 		04B74E922B9B6EFE00D19F52 /* WoolWalletUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B74E912B9B6EFE00D19F52 /* WoolWalletUITestsLaunchTests.swift */; };
+		04BAC0C12BAE0D1D00C26CD8 /* GlobalSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04BAC0C02BAE0D1D00C26CD8 /* GlobalSettings.swift */; };
+		04BAC0C32BAE13E400C26CD8 /* YarnUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04BAC0C22BAE13E400C26CD8 /* YarnUtils.swift */; };
+		04D415122C9F61BD004E1AFD /* AddOrEditYarnForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D415112C9F61BD004E1AFD /* AddOrEditYarnForm.swift */; };
 		04D596012B9E9BE000E1913C /* ClearButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D596002B9E9BE000E1913C /* ClearButton.swift */; };
 		04D596032B9E9C2200E1913C /* AccessCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D596022B9E9C2200E1913C /* AccessCamera.swift */; };
+		04D5C44F2C87DFCD00DC9697 /* PatternList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D5C44E2C87DFCD00DC9697 /* PatternList.swift */; };
+		04D5C4512C87E01E00DC9697 /* ProjectList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D5C4502C87E01E00DC9697 /* ProjectList.swift */; };
+		04E2329B2C9FE802007C8863 /* Sequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E2329A2C9FE802007C8863 /* Sequence.swift */; };
+		04E6018A2CA89A2400865991 /* WeightAndYardageForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E601892CA89A2400865991 /* WeightAndYardageForm.swift */; };
+		04E6018C2CA8B40900865991 /* ViewWeightAndYardage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E6018B2CA8B40900865991 /* ViewWeightAndYardage.swift */; };
+		04E6018E2CA915C100865991 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 04E6018D2CA915C100865991 /* .gitignore */; };
+		974625F5C064D7615C374F39 /* Pods_WoolWalletTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CB342E0EDA72B2FE304CA5EF /* Pods_WoolWalletTests.framework */; };
+		D245718BC4A8FD5685EB8A47 /* Pods_WoolWallet_WoolWalletUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4405C73761C0C80F39C184FE /* Pods_WoolWallet_WoolWalletUITests.framework */; };
+		EAFBDCC3A5827221674ADABE /* Pods_WoolWallet.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1C7C36A3BFA48BBBF4CE9E3 /* Pods_WoolWallet.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,17 +78,41 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		043C12B72B9BA6E7007CACC9 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
-		046A96412BA0A69000E83055 /* View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = View.swift; sourceTree = "<group>"; };
+		042BF1552CA61D9D008740FB /* TextFieldTypeahead.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldTypeahead.swift; sourceTree = "<group>"; };
+		042CC1E72BAB9BFF008DD2F6 /* ConditionalStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConditionalStack.swift; sourceTree = "<group>"; };
+		04421B582BAE25110034E16A /* Lato */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Lato; sourceTree = "<group>"; };
+		04421B692BAF48B30034E16A /* OpenCVWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OpenCVWrapper.h; sourceTree = "<group>"; };
+		04421B6A2BAF48B30034E16A /* OpenCVWrapper.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = OpenCVWrapper.mm; sourceTree = "<group>"; };
+		04421B6C2BAF48E00034E16A /* WoolWallet-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "WoolWallet-Bridging-Header.h"; sourceTree = "<group>"; };
+		04421B6D2BAF491B0034E16A /* PrefixHeader.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrefixHeader.pch; sourceTree = "<group>"; };
+		0462D00A2C7FBB7700EBB11C /* ButtonStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonStyles.swift; sourceTree = "<group>"; };
 		046A96432BA17B1C00E83055 /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
+		04726D982C9A98BC008769A3 /* Composition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Composition.swift; sourceTree = "<group>"; };
 		0473B97B2BA4021400595BE7 /* YarnInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnInfo.swift; sourceTree = "<group>"; };
 		047DE4AF2B9EC45600F0A2D5 /* MyTextFieldStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyTextFieldStyle.swift; sourceTree = "<group>"; };
 		047DE4CB2B9FF40600F0A2D5 /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceController.swift; sourceTree = "<group>"; };
 		047DE4CE2B9FF78700F0A2D5 /* Data.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Data.xcdatamodel; sourceTree = "<group>"; };
 		047DE4D42B9FFB6900F0A2D5 /* YarnList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnList.swift; sourceTree = "<group>"; };
+		048D66042CA0E9890051D7A3 /* EditComposition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditComposition.swift; sourceTree = "<group>"; };
+		049FAA4E2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = yarn_segmentation_model.mlpackage; sourceTree = "<group>"; };
+		04A5C3DD2C4C1D4300CD5870 /* View.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = View.swift; path = WoolWallet/View.swift; sourceTree = SOURCE_ROOT; };
+		04A5C3DF2C4C1D8300CD5870 /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
+		04A5C3E12C4C1DA600CD5870 /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
+		04A5C3E42C4C1DE600CD5870 /* ColorPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerView.swift; sourceTree = "<group>"; };
+		04A5C3E62C4C1E1600CD5870 /* UIImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImage.swift; sourceTree = "<group>"; };
+		04A5C3E82C4C1E3600CD5870 /* TextFieldLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldLabel.swift; sourceTree = "<group>"; };
+		04A5C3EA2C4C1E5200CD5870 /* FormRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormRow.swift; sourceTree = "<group>"; };
+		04A5C3EC2C4C1E8F00CD5870 /* AnalyzeColorUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyzeColorUtils.swift; sourceTree = "<group>"; };
+		04A81CF22CA4743D00BF66CC /* StoredImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredImage.swift; sourceTree = "<group>"; };
+		04A81CF42CA47C6100BF66CC /* ImageCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCarousel.swift; sourceTree = "<group>"; };
+		04A81CF92CA47E2000BF66CC /* YarnEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnEnums.swift; sourceTree = "<group>"; };
+		04A81D032CA4807D00BF66CC /* GlobalEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalEnums.swift; sourceTree = "<group>"; };
+		04B15C5D2C74F6F900A03751 /* StoredColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredColor.swift; sourceTree = "<group>"; };
+		04B15C5F2C76220300A03751 /* Yarn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Yarn.swift; sourceTree = "<group>"; };
+		04B15C612C77BAF100A03751 /* FilterYarn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterYarn.swift; sourceTree = "<group>"; };
+		04B710262CA1E76900D9292A /* AnyTransition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnyTransition.swift; sourceTree = "<group>"; };
 		04B74E712B9B6EFB00D19F52 /* WoolWallet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WoolWallet.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		04B74E742B9B6EFB00D19F52 /* WoolWalletApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WoolWalletApp.swift; sourceTree = "<group>"; };
-		04B74E762B9B6EFB00D19F52 /* AddYarnForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddYarnForm.swift; sourceTree = "<group>"; };
 		04B74E782B9B6EFE00D19F52 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		04B74E7B2B9B6EFE00D19F52 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		04B74E812B9B6EFE00D19F52 /* WoolWalletTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WoolWalletTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -62,8 +120,27 @@
 		04B74E8B2B9B6EFE00D19F52 /* WoolWalletUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WoolWalletUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		04B74E8F2B9B6EFE00D19F52 /* WoolWalletUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WoolWalletUITests.swift; sourceTree = "<group>"; };
 		04B74E912B9B6EFE00D19F52 /* WoolWalletUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WoolWalletUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		04BAC0C02BAE0D1D00C26CD8 /* GlobalSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalSettings.swift; sourceTree = "<group>"; };
+		04BAC0C22BAE13E400C26CD8 /* YarnUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnUtils.swift; sourceTree = "<group>"; };
+		04BAC0C52BAE23C000C26CD8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		04D415112C9F61BD004E1AFD /* AddOrEditYarnForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddOrEditYarnForm.swift; sourceTree = "<group>"; };
 		04D596002B9E9BE000E1913C /* ClearButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClearButton.swift; sourceTree = "<group>"; };
 		04D596022B9E9C2200E1913C /* AccessCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessCamera.swift; sourceTree = "<group>"; };
+		04D5C44E2C87DFCD00DC9697 /* PatternList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternList.swift; sourceTree = "<group>"; };
+		04D5C4502C87E01E00DC9697 /* ProjectList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectList.swift; sourceTree = "<group>"; };
+		04E2329A2C9FE802007C8863 /* Sequence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sequence.swift; sourceTree = "<group>"; };
+		04E601892CA89A2400865991 /* WeightAndYardageForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightAndYardageForm.swift; sourceTree = "<group>"; };
+		04E6018B2CA8B40900865991 /* ViewWeightAndYardage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewWeightAndYardage.swift; sourceTree = "<group>"; };
+		04E6018D2CA915C100865991 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		05E59D743EE22A611AB12A69 /* Pods-WoolWallet-WoolWalletUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WoolWallet-WoolWalletUITests.debug.xcconfig"; path = "Target Support Files/Pods-WoolWallet-WoolWalletUITests/Pods-WoolWallet-WoolWalletUITests.debug.xcconfig"; sourceTree = "<group>"; };
+		4405C73761C0C80F39C184FE /* Pods_WoolWallet_WoolWalletUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WoolWallet_WoolWalletUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		7338B4F5185D3C1E765D3F2E /* Pods-WoolWalletTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WoolWalletTests.release.xcconfig"; path = "Target Support Files/Pods-WoolWalletTests/Pods-WoolWalletTests.release.xcconfig"; sourceTree = "<group>"; };
+		95AC5E60B07B5C18EEC548D0 /* Pods-WoolWalletTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WoolWalletTests.debug.xcconfig"; path = "Target Support Files/Pods-WoolWalletTests/Pods-WoolWalletTests.debug.xcconfig"; sourceTree = "<group>"; };
+		CA9ED2561CDE493CE7D6CA76 /* Pods-WoolWallet-WoolWalletUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WoolWallet-WoolWalletUITests.release.xcconfig"; path = "Target Support Files/Pods-WoolWallet-WoolWalletUITests/Pods-WoolWallet-WoolWalletUITests.release.xcconfig"; sourceTree = "<group>"; };
+		CB342E0EDA72B2FE304CA5EF /* Pods_WoolWalletTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WoolWalletTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		D1C7C36A3BFA48BBBF4CE9E3 /* Pods_WoolWallet.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WoolWallet.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		F74F68A142EF87440C101085 /* Pods-WoolWallet.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WoolWallet.release.xcconfig"; path = "Target Support Files/Pods-WoolWallet/Pods-WoolWallet.release.xcconfig"; sourceTree = "<group>"; };
+		FDA0566D778E92170B72CEA8 /* Pods-WoolWallet.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WoolWallet.debug.xcconfig"; path = "Target Support Files/Pods-WoolWallet/Pods-WoolWallet.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +148,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				04421B602BAE7A050034E16A /* UIImageColors in Frameworks */,
+				EAFBDCC3A5827221674ADABE /* Pods_WoolWallet.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +157,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				974625F5C064D7615C374F39 /* Pods_WoolWalletTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -85,12 +165,40 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D245718BC4A8FD5685EB8A47 /* Pods_WoolWallet_WoolWalletUITests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		04421B572BAE24E90034E16A /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				04421B582BAE25110034E16A /* Lato */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
+		04421B622BAE98680034E16A /* ObjectiveC */ = {
+			isa = PBXGroup;
+			children = (
+				04421B692BAF48B30034E16A /* OpenCVWrapper.h */,
+				04421B6A2BAF48B30034E16A /* OpenCVWrapper.mm */,
+				04421B6C2BAF48E00034E16A /* WoolWallet-Bridging-Header.h */,
+				04421B6D2BAF491B0034E16A /* PrefixHeader.pch */,
+			);
+			path = ObjectiveC;
+			sourceTree = "<group>";
+		};
+		0462D0092C7FBB5F00EBB11C /* Styles */ = {
+			isa = PBXGroup;
+			children = (
+				0462D00A2C7FBB7700EBB11C /* ButtonStyles.swift */,
+			);
+			path = Styles;
+			sourceTree = "<group>";
+		};
 		047DE4C02B9FEF7000F0A2D5 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
@@ -99,13 +207,140 @@
 			path = Controllers;
 			sourceTree = "<group>";
 		};
+		04A5C3D82C4C1A6A00CD5870 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				046A96432BA17B1C00E83055 /* Toast.swift */,
+				04A5C3DD2C4C1D4300CD5870 /* View.swift */,
+				04A5C3DF2C4C1D8300CD5870 /* Color.swift */,
+				04A5C3E12C4C1DA600CD5870 /* UIColor.swift */,
+				04A5C3E62C4C1E1600CD5870 /* UIImage.swift */,
+				04E2329A2C9FE802007C8863 /* Sequence.swift */,
+				04B710262CA1E76900D9292A /* AnyTransition.swift */,
+				04A81CF22CA4743D00BF66CC /* StoredImage.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		04A5C3E32C4C1DBA00CD5870 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		04A81CF62CA47D6900BF66CC /* Enums */ = {
+			isa = PBXGroup;
+			children = (
+				04A81CF92CA47E2000BF66CC /* YarnEnums.swift */,
+			);
+			path = Enums;
+			sourceTree = "<group>";
+		};
+		04A81CFB2CA47F2100BF66CC /* Yarn */ = {
+			isa = PBXGroup;
+			children = (
+				04A81D052CA480C100BF66CC /* MachineLearning */,
+				04A81CF62CA47D6900BF66CC /* Enums */,
+				04A81D012CA4802800BF66CC /* Extensions */,
+				04A81D002CA47FF600BF66CC /* Helpers */,
+				04A81CFF2CA47FC900BF66CC /* Utils */,
+				04D415112C9F61BD004E1AFD /* AddOrEditYarnForm.swift */,
+				048D66042CA0E9890051D7A3 /* EditComposition.swift */,
+				04B15C612C77BAF100A03751 /* FilterYarn.swift */,
+				0473B97B2BA4021400595BE7 /* YarnInfo.swift */,
+				047DE4D42B9FFB6900F0A2D5 /* YarnList.swift */,
+			);
+			path = Yarn;
+			sourceTree = "<group>";
+		};
+		04A81CFC2CA47F6C00BF66CC /* Pattern */ = {
+			isa = PBXGroup;
+			children = (
+				04D5C44E2C87DFCD00DC9697 /* PatternList.swift */,
+			);
+			path = Pattern;
+			sourceTree = "<group>";
+		};
+		04A81CFD2CA47F7D00BF66CC /* Project */ = {
+			isa = PBXGroup;
+			children = (
+				04D5C4502C87E01E00DC9697 /* ProjectList.swift */,
+			);
+			path = Project;
+			sourceTree = "<group>";
+		};
+		04A81CFE2CA47FA500BF66CC /* Global */ = {
+			isa = PBXGroup;
+			children = (
+				04BAC0C02BAE0D1D00C26CD8 /* GlobalSettings.swift */,
+				0462D0092C7FBB5F00EBB11C /* Styles */,
+				04421B572BAE24E90034E16A /* Fonts */,
+				047DE4C02B9FEF7000F0A2D5 /* Controllers */,
+				04A81D022CA4806D00BF66CC /* Enums */,
+				04A5C3D82C4C1A6A00CD5870 /* Extensions */,
+				04D595FF2B9E9BC400E1913C /* Helpers */,
+				04A5C3E32C4C1DBA00CD5870 /* Utils */,
+			);
+			path = Global;
+			sourceTree = "<group>";
+		};
+		04A81CFF2CA47FC900BF66CC /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				04A5C3EC2C4C1E8F00CD5870 /* AnalyzeColorUtils.swift */,
+				04BAC0C22BAE13E400C26CD8 /* YarnUtils.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		04A81D002CA47FF600BF66CC /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				04A5C3E42C4C1DE600CD5870 /* ColorPickerView.swift */,
+				04E601892CA89A2400865991 /* WeightAndYardageForm.swift */,
+				04E6018B2CA8B40900865991 /* ViewWeightAndYardage.swift */,
+			);
+			path = Helpers;
+			sourceTree = "<group>";
+		};
+		04A81D012CA4802800BF66CC /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				04726D982C9A98BC008769A3 /* Composition.swift */,
+				04B15C5D2C74F6F900A03751 /* StoredColor.swift */,
+				04B15C5F2C76220300A03751 /* Yarn.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		04A81D022CA4806D00BF66CC /* Enums */ = {
+			isa = PBXGroup;
+			children = (
+				04A81D032CA4807D00BF66CC /* GlobalEnums.swift */,
+			);
+			path = Enums;
+			sourceTree = "<group>";
+		};
+		04A81D052CA480C100BF66CC /* MachineLearning */ = {
+			isa = PBXGroup;
+			children = (
+				04421B622BAE98680034E16A /* ObjectiveC */,
+				049FAA4E2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage */,
+			);
+			path = MachineLearning;
+			sourceTree = "<group>";
+		};
 		04B74E682B9B6EFB00D19F52 = {
 			isa = PBXGroup;
 			children = (
+				04E6018D2CA915C100865991 /* .gitignore */,
 				04B74E732B9B6EFB00D19F52 /* WoolWallet */,
 				04B74E842B9B6EFE00D19F52 /* WoolWalletTests */,
 				04B74E8E2B9B6EFE00D19F52 /* WoolWalletUITests */,
 				04B74E722B9B6EFB00D19F52 /* Products */,
+				0CB11331B70CA05194C0223A /* Pods */,
+				C62C5484CEB78556C216125B /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -122,18 +357,14 @@
 		04B74E732B9B6EFB00D19F52 /* WoolWallet */ = {
 			isa = PBXGroup;
 			children = (
-				047DE4C02B9FEF7000F0A2D5 /* Controllers */,
-				04D595FF2B9E9BC400E1913C /* Helpers */,
+				04A81CFE2CA47FA500BF66CC /* Global */,
+				04A81CFD2CA47F7D00BF66CC /* Project */,
+				04A81CFC2CA47F6C00BF66CC /* Pattern */,
+				04A81CFB2CA47F2100BF66CC /* Yarn */,
 				04B74E742B9B6EFB00D19F52 /* WoolWalletApp.swift */,
-				04B74E762B9B6EFB00D19F52 /* AddYarnForm.swift */,
 				04B74E782B9B6EFE00D19F52 /* Assets.xcassets */,
 				04B74E7A2B9B6EFE00D19F52 /* Preview Content */,
-				043C12B72B9BA6E7007CACC9 /* ImagePicker.swift */,
 				047DE4CD2B9FF78700F0A2D5 /* Data.xcdatamodeld */,
-				047DE4D42B9FFB6900F0A2D5 /* YarnList.swift */,
-				046A96412BA0A69000E83055 /* View.swift */,
-				046A96432BA17B1C00E83055 /* Toast.swift */,
-				0473B97B2BA4021400595BE7 /* YarnInfo.swift */,
 			);
 			path = WoolWallet;
 			sourceTree = "<group>";
@@ -149,6 +380,7 @@
 		04B74E842B9B6EFE00D19F52 /* WoolWalletTests */ = {
 			isa = PBXGroup;
 			children = (
+				04BAC0C52BAE23C000C26CD8 /* Info.plist */,
 				04B74E852B9B6EFE00D19F52 /* WoolWalletTests.swift */,
 			);
 			path = WoolWalletTests;
@@ -169,8 +401,36 @@
 				04D596002B9E9BE000E1913C /* ClearButton.swift */,
 				04D596022B9E9C2200E1913C /* AccessCamera.swift */,
 				047DE4AF2B9EC45600F0A2D5 /* MyTextFieldStyle.swift */,
+				042CC1E72BAB9BFF008DD2F6 /* ConditionalStack.swift */,
+				04A5C3E82C4C1E3600CD5870 /* TextFieldLabel.swift */,
+				04A5C3EA2C4C1E5200CD5870 /* FormRow.swift */,
+				04A81CF42CA47C6100BF66CC /* ImageCarousel.swift */,
+				042BF1552CA61D9D008740FB /* TextFieldTypeahead.swift */,
 			);
 			path = Helpers;
+			sourceTree = "<group>";
+		};
+		0CB11331B70CA05194C0223A /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				FDA0566D778E92170B72CEA8 /* Pods-WoolWallet.debug.xcconfig */,
+				F74F68A142EF87440C101085 /* Pods-WoolWallet.release.xcconfig */,
+				05E59D743EE22A611AB12A69 /* Pods-WoolWallet-WoolWalletUITests.debug.xcconfig */,
+				CA9ED2561CDE493CE7D6CA76 /* Pods-WoolWallet-WoolWalletUITests.release.xcconfig */,
+				95AC5E60B07B5C18EEC548D0 /* Pods-WoolWalletTests.debug.xcconfig */,
+				7338B4F5185D3C1E765D3F2E /* Pods-WoolWalletTests.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		C62C5484CEB78556C216125B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D1C7C36A3BFA48BBBF4CE9E3 /* Pods_WoolWallet.framework */,
+				4405C73761C0C80F39C184FE /* Pods_WoolWallet_WoolWalletUITests.framework */,
+				CB342E0EDA72B2FE304CA5EF /* Pods_WoolWalletTests.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -180,15 +440,20 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 04B74E952B9B6EFE00D19F52 /* Build configuration list for PBXNativeTarget "WoolWallet" */;
 			buildPhases = (
+				645D2749E750772DAB74830C /* [CP] Check Pods Manifest.lock */,
 				04B74E6D2B9B6EFB00D19F52 /* Sources */,
 				04B74E6E2B9B6EFB00D19F52 /* Frameworks */,
 				04B74E6F2B9B6EFB00D19F52 /* Resources */,
+				1D4E16C01216C373C9D026BB /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = WoolWallet;
+			packageProductDependencies = (
+				04421B5F2BAE7A050034E16A /* UIImageColors */,
+			);
 			productName = WoolWallet;
 			productReference = 04B74E712B9B6EFB00D19F52 /* WoolWallet.app */;
 			productType = "com.apple.product-type.application";
@@ -197,6 +462,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 04B74E982B9B6EFE00D19F52 /* Build configuration list for PBXNativeTarget "WoolWalletTests" */;
 			buildPhases = (
+				17EA170940187FD28E3C03CC /* [CP] Check Pods Manifest.lock */,
 				04B74E7D2B9B6EFE00D19F52 /* Sources */,
 				04B74E7E2B9B6EFE00D19F52 /* Frameworks */,
 				04B74E7F2B9B6EFE00D19F52 /* Resources */,
@@ -215,9 +481,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 04B74E9B2B9B6EFE00D19F52 /* Build configuration list for PBXNativeTarget "WoolWalletUITests" */;
 			buildPhases = (
+				144F0031B410A0ABB7A11958 /* [CP] Check Pods Manifest.lock */,
 				04B74E872B9B6EFE00D19F52 /* Sources */,
 				04B74E882B9B6EFE00D19F52 /* Frameworks */,
 				04B74E892B9B6EFE00D19F52 /* Resources */,
+				BC1B404ED21A516BDC995A66 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -261,6 +529,9 @@
 				Base,
 			);
 			mainGroup = 04B74E682B9B6EFB00D19F52;
+			packageReferences = (
+				04421B5E2BAE7A050034E16A /* XCRemoteSwiftPackageReference "UIImageColors" */,
+			);
 			productRefGroup = 04B74E722B9B6EFB00D19F52 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -277,8 +548,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				04E6018E2CA915C100865991 /* .gitignore in Resources */,
 				04B74E7C2B9B6EFE00D19F52 /* Preview Assets.xcassets in Resources */,
 				04B74E792B9B6EFE00D19F52 /* Assets.xcassets in Resources */,
+				04421B592BAE25110034E16A /* Lato in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -298,23 +571,154 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		144F0031B410A0ABB7A11958 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-WoolWallet-WoolWalletUITests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		17EA170940187FD28E3C03CC /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-WoolWalletTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		1D4E16C01216C373C9D026BB /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-WoolWallet/Pods-WoolWallet-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-WoolWallet/Pods-WoolWallet-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-WoolWallet/Pods-WoolWallet-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		645D2749E750772DAB74830C /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-WoolWallet-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		BC1B404ED21A516BDC995A66 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-WoolWallet-WoolWalletUITests/Pods-WoolWallet-WoolWalletUITests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-WoolWallet-WoolWalletUITests/Pods-WoolWallet-WoolWalletUITests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-WoolWallet-WoolWalletUITests/Pods-WoolWallet-WoolWalletUITests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		04B74E6D2B9B6EFB00D19F52 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				043C12B82B9BA6E7007CACC9 /* ImagePicker.swift in Sources */,
-				04B74E772B9B6EFB00D19F52 /* AddYarnForm.swift in Sources */,
-				046A96422BA0A69000E83055 /* View.swift in Sources */,
+				04A81CFA2CA47E2000BF66CC /* YarnEnums.swift in Sources */,
+				04726D992C9A98BC008769A3 /* Composition.swift in Sources */,
+				04A81CF52CA47C6100BF66CC /* ImageCarousel.swift in Sources */,
+				04A5C3E92C4C1E3600CD5870 /* TextFieldLabel.swift in Sources */,
+				04A5C3EB2C4C1E5200CD5870 /* FormRow.swift in Sources */,
 				0473B97C2BA4021400595BE7 /* YarnInfo.swift in Sources */,
+				04B15C5E2C74F6F900A03751 /* StoredColor.swift in Sources */,
+				04D5C44F2C87DFCD00DC9697 /* PatternList.swift in Sources */,
+				04BAC0C32BAE13E400C26CD8 /* YarnUtils.swift in Sources */,
+				04A5C3ED2C4C1E8F00CD5870 /* AnalyzeColorUtils.swift in Sources */,
+				04A5C3E52C4C1DE600CD5870 /* ColorPickerView.swift in Sources */,
+				04A5C3DE2C4C1D4300CD5870 /* View.swift in Sources */,
+				04B15C622C77BAF100A03751 /* FilterYarn.swift in Sources */,
+				04A81CF32CA4743D00BF66CC /* StoredImage.swift in Sources */,
+				04A5C3E72C4C1E1600CD5870 /* UIImage.swift in Sources */,
+				049FAA4F2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage in Sources */,
 				047DE4D52B9FFB6900F0A2D5 /* YarnList.swift in Sources */,
+				04421B6B2BAF48B30034E16A /* OpenCVWrapper.mm in Sources */,
+				04A81D042CA4807D00BF66CC /* GlobalEnums.swift in Sources */,
+				048D66052CA0E9890051D7A3 /* EditComposition.swift in Sources */,
+				04A5C3E22C4C1DA600CD5870 /* UIColor.swift in Sources */,
 				04B74E752B9B6EFB00D19F52 /* WoolWalletApp.swift in Sources */,
 				047DE4CC2B9FF40600F0A2D5 /* PersistenceController.swift in Sources */,
+				04BAC0C12BAE0D1D00C26CD8 /* GlobalSettings.swift in Sources */,
+				04B710272CA1E76900D9292A /* AnyTransition.swift in Sources */,
+				04E2329B2C9FE802007C8863 /* Sequence.swift in Sources */,
 				047DE4B02B9EC45600F0A2D5 /* MyTextFieldStyle.swift in Sources */,
+				042BF1562CA61D9D008740FB /* TextFieldTypeahead.swift in Sources */,
 				04D596012B9E9BE000E1913C /* ClearButton.swift in Sources */,
 				046A96442BA17B1C00E83055 /* Toast.swift in Sources */,
+				04E6018A2CA89A2400865991 /* WeightAndYardageForm.swift in Sources */,
+				04D5C4512C87E01E00DC9697 /* ProjectList.swift in Sources */,
+				04E6018C2CA8B40900865991 /* ViewWeightAndYardage.swift in Sources */,
 				047DE4CF2B9FF78700F0A2D5 /* Data.xcdatamodeld in Sources */,
+				04D415122C9F61BD004E1AFD /* AddOrEditYarnForm.swift in Sources */,
+				042CC1E82BAB9BFF008DD2F6 /* ConditionalStack.swift in Sources */,
+				04B15C602C76220300A03751 /* Yarn.swift in Sources */,
+				0462D00B2C7FBB7700EBB11C /* ButtonStyles.swift in Sources */,
 				04D596032B9E9C2200E1913C /* AccessCamera.swift in Sources */,
+				04A5C3E02C4C1D8300CD5870 /* Color.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -467,6 +871,7 @@
 		};
 		04B74E962B9B6EFE00D19F52 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = FDA0566D778E92170B72CEA8 /* Pods-WoolWallet.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
@@ -474,6 +879,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"WoolWallet/Preview Content\"";
 				DEVELOPMENT_TEAM = SSF9R779YZ;
 				ENABLE_PREVIEWS = YES;
+				GCC_PREFIX_HEADER = WoolWallet/Yarn/MachineLearning/ObjectiveC/PrefixHeader.pch;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs to capture images to show in the app";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -482,14 +888,17 @@
 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = Logan.WoolWallet;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "WoolWallet/Yarn/MachineLearning/ObjectiveC/WoolWallet-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -497,6 +906,7 @@
 		};
 		04B74E972B9B6EFE00D19F52 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = F74F68A142EF87440C101085 /* Pods-WoolWallet.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
@@ -504,6 +914,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"WoolWallet/Preview Content\"";
 				DEVELOPMENT_TEAM = SSF9R779YZ;
 				ENABLE_PREVIEWS = YES;
+				GCC_PREFIX_HEADER = WoolWallet/Yarn/MachineLearning/ObjectiveC/PrefixHeader.pch;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs to capture images to show in the app";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -512,14 +923,17 @@
 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = Logan.WoolWallet;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "WoolWallet/Yarn/MachineLearning/ObjectiveC/WoolWallet-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -527,12 +941,14 @@
 		};
 		04B74E992B9B6EFE00D19F52 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 95AC5E60B07B5C18EEC548D0 /* Pods-WoolWalletTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WoolWalletTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = Logan.WoolWalletTests;
@@ -546,12 +962,14 @@
 		};
 		04B74E9A2B9B6EFE00D19F52 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7338B4F5185D3C1E765D3F2E /* Pods-WoolWalletTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WoolWalletTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = Logan.WoolWalletTests;
@@ -565,6 +983,7 @@
 		};
 		04B74E9C2B9B6EFE00D19F52 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 05E59D743EE22A611AB12A69 /* Pods-WoolWallet-WoolWalletUITests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -582,6 +1001,7 @@
 		};
 		04B74E9D2B9B6EFE00D19F52 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CA9ED2561CDE493CE7D6CA76 /* Pods-WoolWallet-WoolWalletUITests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -637,6 +1057,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		04421B5E2BAE7A050034E16A /* XCRemoteSwiftPackageReference "UIImageColors" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:jathu/UIImageColors.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		04421B5F2BAE7A050034E16A /* UIImageColors */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 04421B5E2BAE7A050034E16A /* XCRemoteSwiftPackageReference "UIImageColors" */;
+			productName = UIImageColors;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
 		047DE4CD2B9FF78700F0A2D5 /* Data.xcdatamodeld */ = {

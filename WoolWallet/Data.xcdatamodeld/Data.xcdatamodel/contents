@@ -1,12 +1,68 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22522" systemVersion="22G621" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
-    <entity name="Yarn" representedClassName="Yarn" syncable="YES" codeGenerationType="class">
-        <attribute name="dyer" optional="YES" attributeType="String"/>
+    <entity name="Composition" representedClassName="Composition" syncable="YES" codeGenerationType="class">
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="material" optional="YES" attributeType="String"/>
+        <attribute name="percentage" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="yarn" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Yarn" inverseName="composition" inverseEntity="Yarn"/>
+    </entity>
+    <entity name="Pattern" representedClassName="Pattern" syncable="YES" codeGenerationType="class">
+        <relationship name="images" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="StoredImage" inverseName="pattern" inverseEntity="StoredImage"/>
+    </entity>
+    <entity name="StoredColor" representedClassName="StoredColor" syncable="YES" codeGenerationType="class">
+        <attribute name="alpha" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="blue" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="green" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="red" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <relationship name="yarn" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Yarn" inverseName="colors" inverseEntity="Yarn"/>
+    </entity>
+    <entity name="StoredImage" representedClassName="StoredImage" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="image" optional="YES" attributeType="Binary"/>
+        <attribute name="order" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="pattern" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Pattern" inverseName="images" inverseEntity="Pattern"/>
+        <relationship name="yarn" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Yarn" inverseName="images" inverseEntity="Yarn"/>
+    </entity>
+    <entity name="Yarn" representedClassName="Yarn" syncable="YES" codeGenerationType="class">
+        <attribute name="approximateLength" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="dyer" optional="YES" attributeType="String"/>
+        <attribute name="exactLength" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="grams" optional="YES" attributeType="Integer 16" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="hasBeenWeighed" optional="YES" attributeType="Integer 16" usesScalarValueType="YES"/>
+        <attribute name="hasPartialSkein" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="hasTwoMinis" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isArchived" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isCaked" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isSockSet" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="length" optional="YES" attributeType="Double" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="mini1ApproximateLength" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="mini1ExactLength" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="mini1Grams" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="mini1HasBeenWeighed" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="mini1HasPartialSkein" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="mini1Length" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="mini1Skeins" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="mini1TotalGrams" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="mini1UnitOfMeasure" optional="YES" attributeType="String"/>
+        <attribute name="mini2ApproximateLength" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="mini2ExactLength" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="mini2Grams" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="mini2HasBeenWeighed" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="mini2HasPartialSkein" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="mini2Length" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="mini2Skeins" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="mini2TotalGrams" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="mini2UnitOfMeasure" optional="YES" attributeType="String"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="notes" optional="YES" attributeType="String"/>
-        <attribute name="skeins" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="skeins" optional="YES" attributeType="Double" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="totalGrams" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="unitOfMeasure" optional="YES" attributeType="String"/>
         <attribute name="weight" optional="YES" attributeType="String"/>
+        <relationship name="colors" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="StoredColor" inverseName="yarn" inverseEntity="StoredColor"/>
+        <relationship name="composition" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Composition" inverseName="yarn" inverseEntity="Composition"/>
+        <relationship name="images" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="StoredImage" inverseName="yarn" inverseEntity="StoredImage"/>
     </entity>
 </model>
