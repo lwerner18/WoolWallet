@@ -13,6 +13,7 @@
 		04421B602BAE7A050034E16A /* UIImageColors in Frameworks */ = {isa = PBXBuildFile; productRef = 04421B5F2BAE7A050034E16A /* UIImageColors */; };
 		04421B6B2BAF48B30034E16A /* OpenCVWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04421B6A2BAF48B30034E16A /* OpenCVWrapper.mm */; };
 		0462D00B2C7FBB7700EBB11C /* ButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0462D00A2C7FBB7700EBB11C /* ButtonStyles.swift */; };
+		0466F21B2CA919CE0094F3DA /* View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0466F21A2CA919CE0094F3DA /* View.swift */; };
 		046A96442BA17B1C00E83055 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046A96432BA17B1C00E83055 /* Toast.swift */; };
 		04726D992C9A98BC008769A3 /* Composition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04726D982C9A98BC008769A3 /* Composition.swift */; };
 		0473B97C2BA4021400595BE7 /* YarnInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0473B97B2BA4021400595BE7 /* YarnInfo.swift */; };
@@ -22,7 +23,6 @@
 		047DE4D52B9FFB6900F0A2D5 /* YarnList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4D42B9FFB6900F0A2D5 /* YarnList.swift */; };
 		048D66052CA0E9890051D7A3 /* EditComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048D66042CA0E9890051D7A3 /* EditComposition.swift */; };
 		049FAA4F2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 049FAA4E2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage */; };
-		04A5C3DE2C4C1D4300CD5870 /* View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3DD2C4C1D4300CD5870 /* View.swift */; };
 		04A5C3E02C4C1D8300CD5870 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3DF2C4C1D8300CD5870 /* Color.swift */; };
 		04A5C3E22C4C1DA600CD5870 /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3E12C4C1DA600CD5870 /* UIColor.swift */; };
 		04A5C3E52C4C1DE600CD5870 /* ColorPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3E42C4C1DE600CD5870 /* ColorPickerView.swift */; };
@@ -86,6 +86,7 @@
 		04421B6C2BAF48E00034E16A /* WoolWallet-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "WoolWallet-Bridging-Header.h"; sourceTree = "<group>"; };
 		04421B6D2BAF491B0034E16A /* PrefixHeader.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrefixHeader.pch; sourceTree = "<group>"; };
 		0462D00A2C7FBB7700EBB11C /* ButtonStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonStyles.swift; sourceTree = "<group>"; };
+		0466F21A2CA919CE0094F3DA /* View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = View.swift; sourceTree = "<group>"; };
 		046A96432BA17B1C00E83055 /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		04726D982C9A98BC008769A3 /* Composition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Composition.swift; sourceTree = "<group>"; };
 		0473B97B2BA4021400595BE7 /* YarnInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnInfo.swift; sourceTree = "<group>"; };
@@ -95,7 +96,6 @@
 		047DE4D42B9FFB6900F0A2D5 /* YarnList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnList.swift; sourceTree = "<group>"; };
 		048D66042CA0E9890051D7A3 /* EditComposition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditComposition.swift; sourceTree = "<group>"; };
 		049FAA4E2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = yarn_segmentation_model.mlpackage; sourceTree = "<group>"; };
-		04A5C3DD2C4C1D4300CD5870 /* View.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = View.swift; path = WoolWallet/View.swift; sourceTree = SOURCE_ROOT; };
 		04A5C3DF2C4C1D8300CD5870 /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
 		04A5C3E12C4C1DA600CD5870 /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
 		04A5C3E42C4C1DE600CD5870 /* ColorPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerView.swift; sourceTree = "<group>"; };
@@ -211,13 +211,13 @@
 			isa = PBXGroup;
 			children = (
 				046A96432BA17B1C00E83055 /* Toast.swift */,
-				04A5C3DD2C4C1D4300CD5870 /* View.swift */,
 				04A5C3DF2C4C1D8300CD5870 /* Color.swift */,
 				04A5C3E12C4C1DA600CD5870 /* UIColor.swift */,
 				04A5C3E62C4C1E1600CD5870 /* UIImage.swift */,
 				04E2329A2C9FE802007C8863 /* Sequence.swift */,
 				04B710262CA1E76900D9292A /* AnyTransition.swift */,
 				04A81CF22CA4743D00BF66CC /* StoredImage.swift */,
+				0466F21A2CA919CE0094F3DA /* View.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -690,7 +690,6 @@
 				04BAC0C32BAE13E400C26CD8 /* YarnUtils.swift in Sources */,
 				04A5C3ED2C4C1E8F00CD5870 /* AnalyzeColorUtils.swift in Sources */,
 				04A5C3E52C4C1DE600CD5870 /* ColorPickerView.swift in Sources */,
-				04A5C3DE2C4C1D4300CD5870 /* View.swift in Sources */,
 				04B15C622C77BAF100A03751 /* FilterYarn.swift in Sources */,
 				04A81CF32CA4743D00BF66CC /* StoredImage.swift in Sources */,
 				04A5C3E72C4C1E1600CD5870 /* UIImage.swift in Sources */,
@@ -698,6 +697,7 @@
 				047DE4D52B9FFB6900F0A2D5 /* YarnList.swift in Sources */,
 				04421B6B2BAF48B30034E16A /* OpenCVWrapper.mm in Sources */,
 				04A81D042CA4807D00BF66CC /* GlobalEnums.swift in Sources */,
+				0466F21B2CA919CE0094F3DA /* View.swift in Sources */,
 				048D66052CA0E9890051D7A3 /* EditComposition.swift in Sources */,
 				04A5C3E22C4C1DA600CD5870 /* UIColor.swift in Sources */,
 				04B74E752B9B6EFB00D19F52 /* WoolWalletApp.swift in Sources */,
