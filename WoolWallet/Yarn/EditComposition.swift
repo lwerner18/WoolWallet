@@ -197,8 +197,8 @@ struct EditComposition: View {
                         allResults: uniqueMaterials
                     )
                 }
-                .onChange(of: tempComposition) { newValue in
-                    if newValue.last?.percentage != 0 && newValue.last?.material != "" {
+                .onChange(of: tempComposition) {
+                    if tempComposition.last?.percentage != 0 && tempComposition.last?.material != "" {
                         withAnimation {
                             showComposition = true
                         }

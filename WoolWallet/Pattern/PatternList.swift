@@ -13,6 +13,16 @@ struct PatternList: View {
         NavigationStack {
             Text("Patterns")
                 .navigationTitle("Patterns")
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        NavigationLink(
+                            destination: AddOrEditPattern()
+                        ) {
+                            Image(systemName: "plus") // Use a system icon
+                                .imageScale(.large)
+                        }
+                    }
+                }
         }
     }
 }

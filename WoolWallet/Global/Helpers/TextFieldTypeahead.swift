@@ -23,12 +23,12 @@ struct TextFieldTypeahead: View {
     var body: some View {
         TextField(label, text: $field)
             .disableAutocorrection(true)
-            .onChange(of: field) { newValue in
+            .onChange(of: field) {
                 // Cancel previous timer if it exists
                 debounceTimer?.cancel()
                 
                 // Start a new timer
-                debounceTimer = Just(newValue)
+                debounceTimer = Just(field)
                     .delay(for: .milliseconds(300), scheduler: RunLoop.main) // Adjust the delay as needed
                     .sink { value in
                         // Update filtered dyers based on the input

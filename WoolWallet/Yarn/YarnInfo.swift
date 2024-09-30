@@ -15,12 +15,11 @@ struct YarnInfo: View {
     @Environment(\.managedObjectContext) var managedObjectContext
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.verticalSizeClass) var verticalSizeClass
+
     
-    var yarn : Yarn
+    @ObservedObject var yarn : Yarn
     @Binding var toast: Toast?
     @Binding var selectedTab: Int
-    
-    @State private var images = [UIImage]()
     
     init(yarn: Yarn, toast : Binding<Toast?>, selectedTab : Binding<Int>) {
         self.yarn = yarn
@@ -29,9 +28,8 @@ struct YarnInfo: View {
     }
     
     // Internal state trackers
-    @State private var showActionSheet : Bool = false
+    @State private var showEditYarnForm : Bool = false
     @State private var isImageMaximized = false
-    @State private var showEditMode : Bool = false
     @State private var yarnInfoToast: Toast? = nil
     @State private var showConfirmationDialog = false
     
@@ -42,7 +40,7 @@ struct YarnInfo: View {
     }
     
     var body: some View {
-        ScrollView(.vertical) {
+        ScrollView {
             ConditionalStack(useVerticalLayout: isPortraitMode) {
                 ImageCarousel(images : .constant(yarn.uiImages))
                 
@@ -88,8 +86,6 @@ struct YarnInfo: View {
                         }
                         
                         Spacer()
-                        
-                        
                     }
                 }
                 
@@ -195,7 +191,8 @@ struct YarnInfo: View {
                         ForEach(yarn.colorPickerItems) { colorPickerItem in
                             VStack {
                                 colorPickerItem.color
-                                    .frame(width: .infinity, height: 35, alignment: .center)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                                    .frame(height: 35)
                                     .clipShape(
                                         .rect(
                                             topLeadingRadius: 10,
@@ -225,70 +222,75 @@ struct YarnInfo: View {
                     }
                 }
                 .background(Color(UIColor.systemGray6))
+                
             }
-            
             .foregroundStyle(Color.black)
             .padding()
         }
+        .toastView(toast: $yarnInfoToast)
         .background(Color(UIColor.systemGray6))
-        .disabled(isImageMaximized)
         // Disable bounce if the content fits (optional)
         .scrollBounceBehavior(.basedOnSize)
-//        .background(Color.black.opacity(isImageMaximized ? 0.5 : 0.0))
-        .onTapGesture {
-            // Allows tapping on the background to reset the focus state
-            withAnimation {
-                isImageMaximized = false
-            }
-        }
+        //        .background(Color.black.opacity(isImageMaximized ? 0.5 : 0.0))
+        //        .onTapGesture {
+        //            // Allows tapping on the background to reset the focus state
+        //            withAnimation {
+        //                isImageMaximized = false
+        //            }
+        //        }
         .navigationTitle(yarn.name ?? "N/A")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            Menu {
-                NavigationLink {
-                    AddOrEditYarnForm(toast : $toast, yarnToEdit : yarn)
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    Button {
+                        showEditYarnForm = true
+                    } label : {
+                        Label("Edit", systemImage : "pencil")
+                    }
+                    
+                    Button {
+                        YarnUtils.shared.toggleYarnArchived(at: yarn)
+                        
+                        selectedTab = selectedTab == 0 ? 1 : 0
+                        
+                        dismiss()
+                        
+                        toast = Toast(style: .success, message: "Successfully \(yarn.isArchived ? "" : "un")archived yarn")
+                    } label: {
+                        Label(yarn.isArchived ? "Unarchive" : "Archive", systemImage : yarn.isArchived ? "tray.and.arrow.up" : "tray.and.arrow.down")
+                    }
+                    
+                    Button(role: .destructive) {
+                        showConfirmationDialog = true
+                    } label: {
+                        Label("Delete", systemImage : "trash")
+                    }
+                    
                 } label: {
-                    Label("Edit", systemImage : "pencil")
+                    Label("more", systemImage : "ellipsis")
                 }
-                
-                Button {
-                    YarnUtils.shared.toggleYarnArchived(at: yarn)
-                    
-                    selectedTab = selectedTab == 0 ? 1 : 0
-                    
-                    dismiss()
-                    
-                    toast = Toast(style: .success, message: "Successfully \(yarn.isArchived ? "" : "un")archived yarn")
-                } label: {
-                    Label(yarn.isArchived ? "Unarchive" : "Archive", systemImage : yarn.isArchived ? "tray.and.arrow.up" : "tray.and.arrow.down")
-                }
-                
-                Button(role: .destructive) {
-                    showConfirmationDialog = true
-                } label: {
-                    Label("Delete", systemImage : "trash")
-                }
-                
-            } label: {
-                Label("more", systemImage : "ellipsis")
-            }
-            .confirmationDialog(
-                "Are you sure you want to delete this yarn?",
-                isPresented: $showConfirmationDialog,
-                titleVisibility: .visible
-            ) {
-                Button("Delete", role: .destructive) {
-                    YarnUtils.shared.removeYarn(at: yarn, with: managedObjectContext)
-                    
-                    toast = Toast(style: .success, message: "Successfully deleted yarn!")
-                    
-                    dismiss()
-                }
-                Button("Cancel", role: .cancel) {}
             }
         }
-        .toastView(toast: $yarnInfoToast)
-       
+        .confirmationDialog(
+            "Are you sure you want to delete this yarn?",
+            isPresented: $showConfirmationDialog,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                YarnUtils.shared.removeYarn(at: yarn, with: managedObjectContext)
+                
+                toast = Toast(style: .success, message: "Successfully deleted yarn!")
+                
+                dismiss()
+            }
+            
+            Button("Cancel", role: .cancel) {}
+        }
+        .fullScreenCover(isPresented: $showEditYarnForm) {
+            AddOrEditYarnForm(toast : $toast, yarnToEdit : yarn)
+                .preferredColorScheme(.light) // Force light mode
+        }
     }
     
     // Function to join color names with commas

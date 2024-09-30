@@ -219,7 +219,7 @@ struct SquareColorPickerView: View {
     var body: some View {
         
         colorValue
-            .frame(width: .infinity, height: .infinity, alignment: .center)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             .clipShape(
                 .rect(
                     topLeadingRadius: 10,
@@ -278,9 +278,9 @@ struct ColorPickerView: View {
             SquareColorPickerView(colorValue: $colorPickerItem.color)
                 .listRowInsets(EdgeInsets())
                 .background(Color(UIColor.systemGroupedBackground))
-                .onChange(of: colorPickerItem.color) { newColor in
+                .onChange(of: colorPickerItem.color) {
                     // Update the closest color name when the color changes
-                    updateClosestColorName(with: UIColor(newColor))
+                    updateClosestColorName(with: UIColor(colorPickerItem.color))
                 }
                 .onAppear {
                     if colorPickerItem.name == "" {

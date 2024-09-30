@@ -11,6 +11,11 @@ import SwiftUI
 struct ViewWeightAndYardage: View {
     var weightAndYardage : WeightAndYardage
     
+    // init function
+    init(weightAndYardage : WeightAndYardage) {
+        self.weightAndYardage = weightAndYardage
+    }
+    
     // Computed property to format length to two decimal places if number is a fraction
     var formattedLength: String {
         if weightAndYardage.length != nil {

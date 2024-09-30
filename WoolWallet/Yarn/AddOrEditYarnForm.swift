@@ -26,9 +26,6 @@ struct AddOrEditYarnForm: View {
     @FetchRequest(entity: Yarn.entity(), sortDescriptors: [])
     var yarns: FetchedResults<Yarn>
     
-    @FetchRequest(entity: Composition.entity(), sortDescriptors: [])
-    var compositions: FetchedResults<Composition>
-    
     // Binding variables
     @Binding var toast: Toast?
     var yarnToEdit: Yarn?
@@ -36,30 +33,26 @@ struct AddOrEditYarnForm: View {
     // Internal state trackers
     @State private var images = [UIImage]()
     
-    @State private var formToast               : Toast? = nil
     @State private var showExistingYarnAlert   : Bool = false
     @State private var existingYarn            : Yarn? = nil
-    @State private var numColors               : Int = 1
     @State private var processingColor         : Bool = false
-    @State private var showAddCompositionForm  : Bool = false
     @State private var showPartialSkeinSlider  : Bool = false
     @State private var partialSkein            : Double = 0.0
-    @State private var hasTwoMinis            : Bool = false
-    @State private var maskImage: UIImage? // This will hold the segmentation mask image
+    @State private var hasTwoMinis             : Bool = false
+    @State private var maskImage               : UIImage? // This will hold the segmentation mask image
     
     // Form fields
-    @State private var name            : String = ""
-    @State private var dyer            : String = ""
-    @State private var isSockSet       : Bool = false
+    @State private var name                  : String = ""
+    @State private var dyer                  : String = ""
+    @State private var isSockSet             : Bool = false
     @State private var weightAndYardage      : WeightAndYardage = WeightAndYardage()
     @State private var mini1WeightAndYardage : WeightAndYardage = WeightAndYardage()
     @State private var mini2WeightAndYardage : WeightAndYardage = WeightAndYardage()
-    @State private var notes           : String = ""
-    @State private var caked           : Bool = false
-
-    @State private var archive         : Bool = false
-    @State private var colorPickers    : [ColorPickerItem] = []
-    @State private var composition     : [CompositionItem] = []
+    @State private var notes                 : String = ""
+    @State private var caked                 : Bool = false
+    @State private var archive               : Bool = false
+    @State private var colorPickers          : [ColorPickerItem] = []
+    @State private var composition           : [CompositionItem] = []
     
     // init function
     init(toast : Binding<Toast?>, yarnToEdit : Yarn?) {
@@ -68,9 +61,9 @@ struct AddOrEditYarnForm: View {
         
         // Pre-populate the form if editing an existing Yarn
         if let yarnToEdit = yarnToEdit {
-            _name         = State(initialValue : yarnToEdit.name!)
-            _dyer         = State(initialValue : yarnToEdit.dyer!)
-            _notes        = State(initialValue : yarnToEdit.notes!)
+            _name         = State(initialValue : yarnToEdit.name ?? "")
+            _dyer         = State(initialValue : yarnToEdit.dyer ?? "")
+            _notes        = State(initialValue : yarnToEdit.notes ?? "")
             _caked        = State(initialValue : yarnToEdit.isCaked)
             _isSockSet    = State(initialValue : yarnToEdit.isSockSet)
             _hasTwoMinis  = State(initialValue : yarnToEdit.hasTwoMinis)
@@ -100,7 +93,7 @@ struct AddOrEditYarnForm: View {
                     grams             : yarnToEdit.mini1Grams != 0 ? Int(yarnToEdit.mini1Grams) : nil,
                     hasBeenWeighed    : Int(yarnToEdit.mini1HasBeenWeighed),
                     totalGrams        : yarnToEdit.mini1TotalGrams != 0 ? Int(yarnToEdit.mini1TotalGrams) : nil,
-                    skeins            : yarnToEdit.mini1Skeins ?? 1,
+                    skeins            : yarnToEdit.mini1Skeins,
                     hasPartialSkein   : yarnToEdit.mini1HasPartialSkein,
                     exactLength       : yarnToEdit.mini1ExactLength
                 )
@@ -113,7 +106,7 @@ struct AddOrEditYarnForm: View {
                     grams             : yarnToEdit.mini2Grams != 0 ? Int(yarnToEdit.mini2Grams) : nil,
                     hasBeenWeighed    : Int(yarnToEdit.mini2HasBeenWeighed),
                     totalGrams        : yarnToEdit.mini2TotalGrams != 0 ? Int(yarnToEdit.mini2TotalGrams) : nil,
-                    skeins            : yarnToEdit.mini2Skeins ?? 1,
+                    skeins            : yarnToEdit.mini2Skeins,
                     hasPartialSkein   : yarnToEdit.mini2HasPartialSkein,
                     exactLength       : yarnToEdit.mini2ExactLength
                 )
@@ -135,104 +128,76 @@ struct AddOrEditYarnForm: View {
     }
     
     var body: some View {
-        Form {
-            ImageCarousel(images : $images, editMode: true)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                .listRowInsets(EdgeInsets())
-                .background(Color(UIColor.systemGroupedBackground))
-            
-            if !images.isEmpty {
-                if processingColor {
-                    Section {
-                        ProgressView("Analyzing Color...")
-                            .progressViewStyle(CircularProgressViewStyle())
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                    }
-                } else {
-                    ForEach($colorPickers.indices, id: \.self) { index in
-                        ColorPickerView(
-                            colorPickerItem: $colorPickers[index],
-                            removeAction: {removeColorPicker(colorPickers[index])},
-                            addAction: {addColorPicker()},
-                            displayAddButton : index == 0,
-                            canRemove: colorPickers.count > 1
-                        )
-                    }
-                    
-                    
-                }
-            }
-            
-            Section(header: Text("General Information")) {
-                TextField("Name", text: $name).disableAutocorrection(true)
+        NavigationStack {
+            Form {
+                ImageCarousel(images : $images, editMode: true, editExistingImages : yarnToEdit != nil)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .listRowInsets(EdgeInsets())
+                    .background(Color(UIColor.systemGroupedBackground))
                 
-                TextFieldTypeahead(field: $dyer, label: "Dyer", allResults: uniqueDyers)
-                
-                Toggle("Sock Set", isOn: $isSockSet.animation())
-                    .onChange(of: isSockSet) { newValue in
-                        if newValue && weightAndYardage.weight == Weight.none {
-                            weightAndYardage.weight = Weight.one
-                        } else if !newValue && weightAndYardage.weight == Weight.one {
-                            weightAndYardage.weight = Weight.none
+                if !images.isEmpty {
+                    if processingColor {
+                        Section {
+                            ProgressView("Analyzing Color...")
+                                .progressViewStyle(CircularProgressViewStyle())
+                                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         }
-                    }
-            }
-            
-            if isSockSet {
-                VStack {
-                    Divider()
-                    
-                    HStack {
-                        Text("Main Skein").bold().font(.title)
+                    } else {
+                        ForEach($colorPickers.indices, id: \.self) { index in
+                            ColorPickerView(
+                                colorPickerItem: $colorPickers[index],
+                                removeAction: {removeColorPicker(colorPickers[index])},
+                                addAction: {addColorPicker()},
+                                displayAddButton : index == 0,
+                                canRemove: colorPickers.count > 1
+                            )
+                        }
                         
-                        Spacer()
+                        
                     }
                 }
-                .transition(.slide)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                .listRowInsets(EdgeInsets())
-                .background(Color(UIColor.systemGroupedBackground))
-            }
-            
-            WeightAndYardageForm(weightAndYardage: $weightAndYardage, isSockSet: isSockSet, skeinIndex: 0, hasTwoMinis: $hasTwoMinis)
-            
-            if isSockSet {
-                VStack {
-                    Divider()
+                
+                Section(header: Text("General Information")) {
+                    TextField("Name", text: $name).disableAutocorrection(true)
                     
-                    HStack {
-                        Text(hasTwoMinis ? "Mini #1" : "Mini").bold().font(.title)
-                        
-                        Spacer()
-                    }
+                    TextFieldTypeahead(field: $dyer, label: "Dyer", allResults: uniqueDyers)
+                    
+                    Toggle("Sock Set", isOn: $isSockSet.animation())
+                        .onChange(of: isSockSet) {
+                            if isSockSet && weightAndYardage.weight == Weight.none {
+                                weightAndYardage.weight = Weight.one
+                            } else if !isSockSet && weightAndYardage.weight == Weight.one {
+                                weightAndYardage.weight = Weight.none
+                            }
+                        }
                 }
-                .transition(.slide)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                .listRowInsets(EdgeInsets())
-                .background(Color(UIColor.systemGroupedBackground))
                 
-                WeightAndYardageForm(weightAndYardage: $mini1WeightAndYardage, isSockSet: isSockSet, skeinIndex: 1, hasTwoMinis: $hasTwoMinis)
-                    .transition(.slide)
-                
-                if hasTwoMinis {
+                if isSockSet {
                     VStack {
                         Divider()
                         
                         HStack {
-                            Text("Mini #2").bold().font(.title)
+                            Text("Main Skein").bold().font(.title)
                             
                             Spacer()
+                        }
+                    }
+                    .transition(.slide)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .listRowInsets(EdgeInsets())
+                    .background(Color(UIColor.systemGroupedBackground))
+                }
+                
+                WeightAndYardageForm(weightAndYardage: $weightAndYardage, isSockSet: isSockSet, skeinIndex: 0, hasTwoMinis: $hasTwoMinis)
+                
+                if isSockSet {
+                    VStack {
+                        Divider()
+                        
+                        HStack {
+                            Text(hasTwoMinis ? "Mini #1" : "Mini").bold().font(.title)
                             
-                            Button {
-                                withAnimation {
-                                    hasTwoMinis = false
-                                }
-                            } label: {
-                                Label("", systemImage : "xmark.circle")
-                                    .font(.title2)
-                                    .foregroundColor(.red)
-                            }
-                            
+                            Spacer()
                         }
                     }
                     .transition(.slide)
@@ -240,88 +205,125 @@ struct AddOrEditYarnForm: View {
                     .listRowInsets(EdgeInsets())
                     .background(Color(UIColor.systemGroupedBackground))
                     
-                    WeightAndYardageForm(weightAndYardage: $mini2WeightAndYardage, isSockSet: isSockSet, skeinIndex: 2, hasTwoMinis: $hasTwoMinis)
+                    WeightAndYardageForm(weightAndYardage: $mini1WeightAndYardage, isSockSet: isSockSet, skeinIndex: 1, hasTwoMinis: $hasTwoMinis)
                         .transition(.slide)
+                    
+                    if hasTwoMinis {
+                        VStack {
+                            Divider()
+                            
+                            HStack {
+                                Text("Mini #2").bold().font(.title)
+                                
+                                Spacer()
+                                
+                                Button {
+                                    withAnimation {
+                                        hasTwoMinis = false
+                                    }
+                                } label: {
+                                    Label("", systemImage : "xmark.circle")
+                                        .font(.title2)
+                                        .foregroundColor(.red)
+                                }
+                                
+                            }
+                        }
+                        .transition(.slide)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                        .listRowInsets(EdgeInsets())
+                        .background(Color(UIColor.systemGroupedBackground))
+                        
+                        WeightAndYardageForm(weightAndYardage: $mini2WeightAndYardage, isSockSet: isSockSet, skeinIndex: 2, hasTwoMinis: $hasTwoMinis)
+                            .transition(.slide)
+                    }
+                    
+                    Divider()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                        .listRowInsets(EdgeInsets())
+                        .background(Color(UIColor.systemGroupedBackground))
                 }
                 
-                Divider()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                if !composition.isEmpty {
+                    VStack {
+                        CompositionChart(composition: composition)
+                        CompositionText(composition: composition)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                     .listRowInsets(EdgeInsets())
                     .background(Color(UIColor.systemGroupedBackground))
-            }
-            
-            if !composition.isEmpty {
-                VStack {
-                    CompositionChart(composition: composition)
-                    CompositionText(composition: composition)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                .listRowInsets(EdgeInsets())
-                .background(Color(UIColor.systemGroupedBackground))
-                
-                
-            }
-            
-            Section() {
-                NavigationLink {
-                    EditComposition(composition: $composition)
-                } label: {
-                    Label("Composition", systemImage : "chart.pie")
-                }
-            }
-            
-            Section(header: Text("Additional Information")) {
-                Toggle("Caked", isOn: $caked)
-                Toggle("Archive", isOn: $archive)
-            }
-            
-            Section(header: Text("Anything else you'd like to note?")) {
-                TextEditor(text: $notes)
-                    .frame(height: 100)
-            }
-            
-            Button(yarnToEdit == nil ? "Create Yarn" : "Save", action: {
-                createOrUpdateYarn()
-            })
-            .disabled(name.isEmpty || images.isEmpty)
-        }
-        .onChange(of: maskImage) {
-            if maskImage != nil {
-                DispatchQueue.global(qos: .background).async {
-                    print("Starting to parse color in background")
-                    let distinctColors = AnalyzeColorUtils.shared.yarnColors(from: images.first!, with: maskImage!)
                     
-                    DispatchQueue.main.async { // Ensure UI updates are performed on the main thread
-                        print("Done parsing color")
-                        self.colorPickers = distinctColors.map{ color in
-                            return ColorPickerItem(color : color,  name : "")
+                    
+                }
+                
+                Section() {
+                    NavigationLink {
+                        EditComposition(composition: $composition)
+                    } label: {
+                        Label("Composition", systemImage : "chart.pie")
+                    }
+                    .id(UUID())
+                }
+                
+                Section(header: Text("Additional Information")) {
+                    Toggle("Caked", isOn: $caked)
+                    Toggle("Archive", isOn: $archive)
+                }
+                
+                Section(header: Text("Anything else you'd like to note?")) {
+                    TextEditor(text: $notes)
+                        .frame(height: 100)
+                }
+                
+                Button(yarnToEdit == nil ? "Add" : "Save", action: {
+                    createOrUpdateYarn()
+                })
+                .disabled(name.isEmpty || images.isEmpty)
+            }
+            .onChange(of: maskImage) {
+                if maskImage != nil {
+                    DispatchQueue.global(qos: .background).async {
+                        print("Starting to parse color in background")
+                        let distinctColors = AnalyzeColorUtils.shared.yarnColors(from: images.first!, with: maskImage!)
+                        
+                        DispatchQueue.main.async { // Ensure UI updates are performed on the main thread
+                            print("Done parsing color")
+                            self.colorPickers = distinctColors.map{ color in
+                                return ColorPickerItem(color : color,  name : "")
+                            }
+                            self.processingColor = false
+                            print("set")
                         }
-                        self.processingColor = false
-                        print("set")
                     }
                 }
             }
-        }
-        .onChange(of: images) {
-            if yarnToEdit?.colorPickerItems == nil {
-                performSegmentation()
+            .onChange(of: images) {
+                if yarnToEdit?.colorPickerItems == nil {
+                    performSegmentation()
+                }
             }
-        }
-        .navigationTitle(yarnToEdit == nil ? "Create" : "Update")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            if !name.isEmpty && !images.isEmpty {
+            .navigationTitle(yarnToEdit == nil ? "New Yarn" : "Edit Yarn")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Text("Cancel")
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
                         createOrUpdateYarn()
                     }) {
-                        Image(systemName: "checkmark") // Use a system icon
-                            .imageScale(.large)
+                        Text(yarnToEdit == nil ? "Add" : "Save")
                     }
+                    .disabled(name.isEmpty || images.isEmpty)
                 }
+               
             }
         }
-     
     }
     
     private func createOrUpdateYarn() {
@@ -366,6 +368,7 @@ struct AddOrEditYarnForm: View {
     }
     
     func persistYarn(yarn : Yarn) {
+        yarn.id = yarn.id != nil ? yarn.id : UUID()
         yarn.name = name
         yarn.dyer = dyer
         yarn.isSockSet = isSockSet

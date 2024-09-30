@@ -44,7 +44,6 @@ struct FilterYarn: View {
     }
     
     var body: some View {
-        
         VStack {
             // Toolbar-like header
             HStack {

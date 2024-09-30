@@ -49,10 +49,10 @@ struct WeightAndYardageForm: View {
                     Text(unitsOfMeasure[index].rawValue).tag(unitsOfMeasure[index])
                 }
             }
-            .onChange(of: weightAndYardage.unitOfMeasure) { newValue in
+            .onChange(of: weightAndYardage.unitOfMeasure) {
                 let yardsToMeters = 0.9144
                 if weightAndYardage.length != nil {
-                    if (newValue == UnitOfMeasure.meters) {
+                    if (weightAndYardage.unitOfMeasure == UnitOfMeasure.meters) {
                         weightAndYardage.length = Double(String(format : "%.2f", yardsToMeters * weightAndYardage.length!))!
                     } else {
                         weightAndYardage.length = Double(String(format : "%.2f", weightAndYardage.length! / yardsToMeters))!
@@ -66,8 +66,8 @@ struct WeightAndYardageForm: View {
             
             TextField("Grams", value: $weightAndYardage.grams, format: .number)
                 .keyboardType(.numberPad)
-                .onChange(of: weightAndYardage.grams) { value in
-                    if value != nil && weightAndYardage.totalGrams != nil {
+                .onChange(of: weightAndYardage.grams) {
+                    if weightAndYardage.grams != nil && weightAndYardage.totalGrams != nil {
                         weightAndYardage.skeins = Double(weightAndYardage.totalGrams!)/Double(weightAndYardage.grams!)
                     }
                 }
@@ -95,11 +95,11 @@ struct WeightAndYardageForm: View {
                 Text("No").tag(0)
             }
             .pickerStyle(SegmentedPickerStyle())
-            .onChange(of: weightAndYardage.hasBeenWeighed) { value in
-                if value == 0 {
+            .onChange(of: weightAndYardage.hasBeenWeighed) {
+                if weightAndYardage.hasBeenWeighed == 0 {
                     weightAndYardage.skeins = 1
                     weightAndYardage.hasPartialSkein = false
-                } else if value == 1 {
+                } else if weightAndYardage.hasBeenWeighed == 1 {
                     weightAndYardage.totalGrams = nil
                 }
             }
@@ -107,15 +107,15 @@ struct WeightAndYardageForm: View {
             if weightAndYardage.hasBeenWeighed == 1 {
                 TextField("Total Grams", value: $weightAndYardage.totalGrams, format: .number)
                     .keyboardType(.decimalPad)
-                    .onChange(of: weightAndYardage.totalGrams) { value in
-                        if value != nil && weightAndYardage.grams != nil {
+                    .onChange(of: weightAndYardage.totalGrams) {
+                        if weightAndYardage.totalGrams != nil && weightAndYardage.grams != nil {
                             withAnimation {
                                 weightAndYardage.skeins = Double(weightAndYardage.totalGrams!)/Double(weightAndYardage.grams!)
                             }
                             
                             if weightAndYardage.length != nil {
                                 withAnimation {
-                                    weightAndYardage.exactLength = (weightAndYardage.length! * Double(value!)) / Double(weightAndYardage.grams!)
+                                    weightAndYardage.exactLength = (weightAndYardage.length! * Double(weightAndYardage.totalGrams!)) / Double(weightAndYardage.grams!)
                                 }
                             }
                         }

@@ -28,6 +28,7 @@ struct YarnList: View {
     @State private var sockSet: Int = -1
     @State private var showConfirmationDialog : Bool = false
     @State private var yarnToEdit : Yarn? = nil
+    @State private var yarnToDelete : Yarn? = nil
     
     enum SortOption: String, CaseIterable, Identifiable {
         case nameAscending = "Name Ascending"
@@ -36,19 +37,14 @@ struct YarnList: View {
         var id: String { rawValue }
     }
     
-    // Computed property to determine the number of yarns to show per row
-    var yarnsPerRow: Int {
-        return horizontalSizeClass == .compact && verticalSizeClass == .regular ? 2 : 4
-    }
-    
     @FetchRequest(
         entity: Yarn.entity(),
         sortDescriptors: [NSSortDescriptor(keyPath: \Yarn.name, ascending: true)] // Optional: Sort by name
-    ) private var yarns: FetchedResults<Yarn>
+    ) private var allYarns: FetchedResults<Yarn>
     
     private var uniqueDyers: [String] {
         // Extract dyers and remove duplicates
-        let dyers = Set(yarns.compactMap { $0.dyer })
+        let dyers = Set(allYarns.compactMap { $0.dyer })
         return Array(dyers).sorted() // Optional: Sort the list of dyers
     }
     
@@ -328,92 +324,57 @@ struct YarnList: View {
                         .padding()
                     }
                 } else {
-                    ForEach(0..<Int(ceil(Double((filteredYarn.count + 1)) / Double(yarnsPerRow))), id: \.self) { rowIndex in
-                        HStack(alignment : .top) {
-                            ForEach(0..<yarnsPerRow, id: \.self) { columnIndex in
-                                // Calculate the index of the current item
-                                let itemIndex = rowIndex * yarnsPerRow + columnIndex
-                                
-                                // Check if the itemIndex is within the bounds of the items array
-                                if itemIndex < filteredYarn.count {
-                                    let yarn = filteredYarn[itemIndex]
-                                    
-                                    NavigationLink(
-                                        destination: YarnInfo(yarn: yarn, toast : $toast, selectedTab : $selectedTab)
-                                    ) {
-                                        VStack {
-                                            ImageCarousel(images: .constant(yarn.uiImages), smallMode: true)
-                                                .contextMenu {
-                                                    Button {
-                                                        DispatchQueue.main.async {
-                                                            yarnToEdit = yarn
-                                                        }
-
-                                                    } label: {
-                                                        Label("Edit", systemImage : "pencil")
-                                                    }
-
-                                                    Button {
-                                                        YarnUtils.shared.toggleYarnArchived(at: yarn)
-
-                                                        toast = Toast(style: .success, message: "Successfully \(yarn.isArchived ? "" : "un")archived yarn")
-                                                    } label: {
-                                                        Label(yarn.isArchived ? "Unarchive" : "Archive", systemImage : yarn.isArchived ? "tray.and.arrow.up" : "tray.and.arrow.down")
-                                                    }
-
-                                                    Button(role: .destructive) {
-                                                        showConfirmationDialog = true
-                                                    } label: {
-                                                        Label("Delete", systemImage : "trash")
-                                                    }
+                    ScrollView {
+                        LazyVGrid(columns: [.init(.adaptive(minimum:150))], spacing: 5) {
+                            ForEach(filteredYarn) { yarn in
+                                NavigationLink(
+                                    destination: YarnInfo(yarn: yarn, toast : $toast, selectedTab : $selectedTab)
+                                ) {
+                                    VStack {
+                                        ImageCarousel(images: .constant(yarn.uiImages), smallMode: true)
+                                            .contextMenu {
+                                                Button {
+                                                    yarnToEdit = yarn
+                                                } label: {
+                                                    Label("Edit", systemImage : "pencil")
                                                 }
-                                             
-                                                .cardBackground()
-//                                            Image(uiImage: UIImage(data: yarn.image ?? Data()) ?? UIImage())
-//                                                .resizable()
-//                                                .aspectRatio(contentMode: .fill)
-//
-//
-//                                                .frame(width: 170, height: 258) // Specify the frame of the image
-//                                                .cardBackground()
-                                            
-                                            
-                                            Text(yarn.name ?? "No Name")
-                                                .foregroundStyle(Color.black)
-                                                .bold()
-                                            
-                                            Text(yarn.dyer ?? "N/A")
-                                                .foregroundStyle(Color.gray)
-                                                .font(.caption)
-                                                .bold()
-                                        }
-                                        .padding(.horizontal, 5)
-                                       
+                                                
+                                                Button {
+                                                    YarnUtils.shared.toggleYarnArchived(at: yarn)
+                                                    
+                                                    toast = Toast(style: .success, message: "Successfully \(yarn.isArchived ? "" : "un")archived yarn")
+                                                } label: {
+                                                    Label(yarn.isArchived ? "Unarchive" : "Archive", systemImage : yarn.isArchived ? "tray.and.arrow.up" : "tray.and.arrow.down")
+                                                }
+                                                
+                                                Button(role: .destructive) {
+                                                    yarnToDelete = yarn
+                                                    showConfirmationDialog = true
+                                                } label: {
+                                                    Label("Delete", systemImage : "trash")
+                                                }
+                                            }
+                                            .cardBackground()
+                                        
+                                        
+                                        Text(yarn.name ?? "No Name")
+                                            .foregroundStyle(Color.black)
+                                            .bold()
+                                        
+                                        Text(yarn.dyer ?? "N/A")
+                                            .foregroundStyle(Color.gray)
+                                            .font(.caption)
+                                            .bold()
                                     }
-                                    .confirmationDialog(
-                                        "Are you sure you want to delete this yarn?",
-                                        isPresented: $showConfirmationDialog,
-                                        titleVisibility: .visible
-                                    ) {
-                                        Button("Delete", role: .destructive) {
-                                            print("about to delete yarn", yarn.name)
-                                            YarnUtils.shared.removeYarn(at: yarn, with: managedObjectContext)
-                                            
-                                            toast = Toast(style: .success, message: "Successfully deleted yarn!")
-                                        }
-                                        Button("Cancel", role: .cancel) {}
-                                    }
-                                    
-                                    if itemIndex == filteredYarn.count - 1 {
-                                        Spacer()
-                                    }
+                                    .padding(.horizontal, 7)
                                     
                                 }
+                            
                             }
                         }
-                        .padding(.horizontal, 15)
-                        .padding(.vertical, 7)
                     }
+                    .padding(.vertical, 13)
+                    .padding(.horizontal, 5)
                 }
                 
             }
@@ -429,9 +390,9 @@ struct YarnList: View {
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    NavigationLink(
-                        destination: AddOrEditYarnForm(toast : $toast, yarnToEdit : yarnToEdit)
-                    ) {
+                    Button(action: {
+                        showAddYarnForm = true
+                    }) {
                         Image(systemName: "plus") // Use a system icon
                             .imageScale(.large)
                     }
@@ -448,8 +409,8 @@ struct YarnList: View {
                 }
             }
         )
-        .onChange(of: searchText) { newValue in
-            if newValue.isEmpty {
+        .onChange(of: searchText) {
+            if searchText.isEmpty {
                 searchText = ""
             }
         }
@@ -462,6 +423,26 @@ struct YarnList: View {
                 filteredYarnCount: filteredYarnCount
             )
             .preferredColorScheme(.light) // Force light mode
+        }
+        .fullScreenCover(isPresented: $showAddYarnForm) {
+            AddOrEditYarnForm(toast : $toast, yarnToEdit : yarnToEdit)
+                .preferredColorScheme(.light) // Force light mode
+        }
+        .confirmationDialog(
+            "Are you sure you want to delete this yarn?",
+            isPresented: $showConfirmationDialog,
+            titleVisibility: .visible
+        ) {
+            if let yarnToDelete = yarnToDelete {
+                Button("Delete", role: .destructive) {
+                    print("about to delete yarn", yarnToDelete.name)
+                    YarnUtils.shared.removeYarn(at: yarnToDelete, with: managedObjectContext)
+                    
+                    toast = Toast(style: .success, message: "Successfully deleted \(yarnToDelete.name)!")
+                }
+            }
+            
+            Button("Cancel", role: .cancel) {}
         }
         .toastView(toast: $toast)
         .scrollBounceBehavior(.basedOnSize)

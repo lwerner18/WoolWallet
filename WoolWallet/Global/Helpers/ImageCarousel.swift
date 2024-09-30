@@ -13,6 +13,7 @@ struct ImageCarousel: View {
     @Binding var images: [UIImage]
     var editMode: Bool? = false
     var smallMode : Bool? = false
+    var editExistingImages : Bool? = false
 
     @State private var showPhotoPicker : Bool = false
     @State private var selectedImages = [PhotosPickerItem]()
@@ -145,34 +146,15 @@ struct ImageCarousel: View {
                     .scrollDisabled(images.count <= 1)
                 }
                 .padding(0)
-                
-//                if images.count > 1 && !smallMode! {
-//                    HStack {
-//                        
-//                        Spacer()
-//                        
-//                        let screenWidth = UIScreen.main.bounds.size.width
-//                        let pagesSwiped = (scrollOffset.x / screenWidth) * -1.0
-//                        let currentImageIndex = Int(pagesSwiped.rounded(.up))
-//                        let size : CGFloat = smallMode! ? 4 : 8
-//                        
-//                        ForEach(0..<images.count, id: \.self) { index in
-//                            Circle()
-//                                .fill(index == currentImageIndex ? Color.black : Color.gray)
-//                                .frame(width: size, height: size)
-//                        }
-//                        
-//                        Spacer()
-//                    }
-//                    .padding(.top, 5)
-//                }
             }
         }
         .photosPicker(isPresented: $showPhotoPicker, selection: $selectedImages, matching: .images, photoLibrary: .shared())
         .onChange(of: selectedImages) {
             if editMode! {
                 Task {
-                    images.removeAll()
+                    if !editExistingImages! {
+                        images.removeAll()
+                    }
                     
                     for item in selectedImages {
                         if let data = try? await item.loadTransferable(type: Data.self) {
