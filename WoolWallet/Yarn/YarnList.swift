@@ -13,29 +13,21 @@ let tabs : [YarnTab] = [YarnTab.active, YarnTab.archived]
 struct YarnList: View {
     // @Environment variables
     @Environment(\.managedObjectContext) var managedObjectContext
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
-    @Environment(\.verticalSizeClass) var verticalSizeClass
     
     // Internal state trackers
-    @State var searchText: String = ""
-    @State private var showAddYarnForm : Bool = false
-    @State private var showFilterScreen : Bool = false
-    @State private var toast: Toast? = nil
-    @State private var selectedSortOption: SortOption = .nameAscending
-    @State private var selectedColors: [NamedColor] = []
-    @State private var selectedWeights: [Weight] = []
-    @State private var selectedTab: Int = 0
-    @State private var sockSet: Int = -1
+    @State var searchText                     : String = ""
+    @State private var showAddYarnForm        : Bool = false
+    @State private var showFilterScreen       : Bool = false
+    @State private var showNewYarnDetail      : Bool = false
+    @State private var newYarn                : Yarn? = nil
+    @State private var toast                  : Toast? = nil
+    @State private var selectedColors         : [NamedColor] = []
+    @State private var selectedWeights        : [Weight] = []
+    @State private var selectedTab            : Int = 0
+    @State private var sockSet                : Int = -1
     @State private var showConfirmationDialog : Bool = false
-    @State private var yarnToEdit : Yarn? = nil
-    @State private var yarnToDelete : Yarn? = nil
-    
-    enum SortOption: String, CaseIterable, Identifiable {
-        case nameAscending = "Name Ascending"
-        case nameDescending = "Name Descending"
-        
-        var id: String { rawValue }
-    }
+    @State private var yarnToEdit             : Yarn? = nil
+    @State private var yarnToDelete           : Yarn? = nil
     
     @FetchRequest(
         entity: Yarn.entity(),
@@ -67,13 +59,8 @@ struct YarnList: View {
     // Computed property to get all the yarn with an optional searchText
     private var filteredYarn: FetchedResults<Yarn> {
         
-        // Apply sorting based on the selected option
-        switch selectedSortOption {
-            case .nameAscending:
-                filteredFetchRequest.wrappedValue.nsSortDescriptors = [NSSortDescriptor(keyPath: \Yarn.name, ascending: true)]
-            case .nameDescending:
-                filteredFetchRequest.wrappedValue.nsSortDescriptors = [NSSortDescriptor(keyPath: \Yarn.name, ascending: false)]
-        }
+        // Apply sorting
+        filteredFetchRequest.wrappedValue.nsSortDescriptors = [NSSortDescriptor(keyPath: \Yarn.name, ascending: true)]
         
         var predicates: [NSPredicate] = []
         if searchText != "" {
@@ -293,7 +280,7 @@ struct YarnList: View {
                                 .scaledToFit() // Adjust the image's aspect ratio
                                 .frame(width: 300, height: 125) // Set desired frame size
                             
-                            Text("Looking for yarn is tough work! Time for a nap")
+                            Text("Looking for yarn is tough work! Time for a nap.")
                                 .font(.title)
                                 .bold()
                                 .multilineTextAlignment(.center)
@@ -367,6 +354,7 @@ struct YarnList: View {
                                             .bold()
                                     }
                                     .padding(.horizontal, 7)
+                                    .padding(.top, 3)
                                     
                                 }
                             
@@ -425,7 +413,20 @@ struct YarnList: View {
             .preferredColorScheme(.light) // Force light mode
         }
         .fullScreenCover(isPresented: $showAddYarnForm) {
-            AddOrEditYarnForm(toast : $toast, yarnToEdit : yarnToEdit)
+            AddOrEditYarnForm(toast : $toast, yarnToEdit : nil)  { addedYarn in
+                // Capture the newly added yarn
+                newYarn = addedYarn
+                showAddYarnForm = false
+            
+            }
+            .preferredColorScheme(.light) // Force light mode
+        }
+        .fullScreenCover(item: $yarnToEdit, onDismiss: { yarnToEdit = nil}) { yarn in
+            AddOrEditYarnForm(toast : $toast, yarnToEdit : yarn)
+                .preferredColorScheme(.light) // Force light mode
+        }
+        .popover(item: $newYarn) { yarn in
+            YarnInfo(yarn: yarn, toast : $toast, selectedTab : $selectedTab, isNewYarn : true)
                 .preferredColorScheme(.light) // Force light mode
         }
         .confirmationDialog(
@@ -435,10 +436,7 @@ struct YarnList: View {
         ) {
             if let yarnToDelete = yarnToDelete {
                 Button("Delete", role: .destructive) {
-                    print("about to delete yarn", yarnToDelete.name)
                     YarnUtils.shared.removeYarn(at: yarnToDelete, with: managedObjectContext)
-                    
-                    toast = Toast(style: .success, message: "Successfully deleted \(yarnToDelete.name)!")
                 }
             }
             

@@ -19,7 +19,8 @@ extension Composition {
         let newComposition = Composition(context: context)
         newComposition.id = compositionItem.id
         newComposition.percentage = Int16(compositionItem.percentage)
-        newComposition.material = compositionItem.material
+        newComposition.material = YarnUtils.shared.getMaterial(item: compositionItem)
+        newComposition.customMaterial = compositionItem.material == MaterialCategory.other.rawValue
         return newComposition
     }
 }

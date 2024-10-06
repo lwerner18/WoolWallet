@@ -24,12 +24,13 @@ struct WeightAndYardage {
 struct WeightAndYardageForm: View {
     @Binding var weightAndYardage: WeightAndYardage
     var isSockSet : Bool = false
+    var isPattern : Bool = false
     var skeinIndex : Int = 0
     @Binding var hasTwoMinis : Bool
     
     var body: some View {
         Section(
-            header: Text("\(isSockSet ? (skeinIndex == 0 ? "Main Skein Weight and Yardage" : (skeinIndex == 1 ? (hasTwoMinis ? "Mini #1 Yardage" : "Mini Skein Yardage") : "Mini #2 Yardage")) : "Weight and Yardage")"),
+            header: Text("\(isPattern ? "Recommended Weight and Yardage" : isSockSet ? (skeinIndex == 0 ? "Main Skein Weight and Yardage" : (skeinIndex == 1 ? (hasTwoMinis ? "Mini #1 Yardage" : "Mini Skein Yardage") : "Mini #2 Yardage")) : "Weight and Yardage")"),
             footer : weightAndYardage.length != nil && weightAndYardage.grams != nil
             ? Text("\(String(format: "%g", weightAndYardage.length!)) \(weightAndYardage.unitOfMeasure.rawValue.lowercased()) / \(weightAndYardage.grams!) grams")
             : Text("")
@@ -73,84 +74,86 @@ struct WeightAndYardageForm: View {
                 }
         }
         
-        Section(
-            header :
-                Text("Have you weighed \(isSockSet ? (skeinIndex == 0 ? "the main skein" : (skeinIndex == 1 ? (hasTwoMinis ? "the first mini" : "the mini") : "the second mini")) : "this yarn")?"),
-            footer : isSockSet && skeinIndex == 1 && !hasTwoMinis
+        if !isPattern {
+            Section(
+                header :
+                    Text("Have you weighed \(isSockSet ? (skeinIndex == 0 ? "the main skein" : (skeinIndex == 1 ? (hasTwoMinis ? "the first mini" : "the mini") : "the second mini")) : "this yarn")?"),
+                footer : isSockSet && skeinIndex == 1 && !hasTwoMinis
                 ? AnyView(HStack {
-                        Spacer()
-                        Button {
-                            withAnimation {
-                                hasTwoMinis = true
-                            }
-                        } label: {
-                            Text("Have another mini?")
+                    Spacer()
+                    Button {
+                        withAnimation {
+                            hasTwoMinis = true
                         }
-
+                    } label: {
+                        Text("Have another mini?")
+                    }
+                    
                 }.transition(.moveAndFade))
                 : AnyView(Text(""))
-        ) {
-            Picker("", selection: $weightAndYardage.hasBeenWeighed.animation()) {
-                Text("Yes").tag(1)
-                Text("No").tag(0)
-            }
-            .pickerStyle(SegmentedPickerStyle())
-            .onChange(of: weightAndYardage.hasBeenWeighed) {
-                if weightAndYardage.hasBeenWeighed == 0 {
-                    weightAndYardage.skeins = 1
-                    weightAndYardage.hasPartialSkein = false
-                } else if weightAndYardage.hasBeenWeighed == 1 {
-                    weightAndYardage.totalGrams = nil
+            ) {
+                Picker("", selection: $weightAndYardage.hasBeenWeighed.animation()) {
+                    Text("Yes").tag(1)
+                    Text("No").tag(0)
                 }
-            }
-            
-            if weightAndYardage.hasBeenWeighed == 1 {
-                TextField("Total Grams", value: $weightAndYardage.totalGrams, format: .number)
-                    .keyboardType(.decimalPad)
-                    .onChange(of: weightAndYardage.totalGrams) {
-                        if weightAndYardage.totalGrams != nil && weightAndYardage.grams != nil {
-                            withAnimation {
-                                weightAndYardage.skeins = Double(weightAndYardage.totalGrams!)/Double(weightAndYardage.grams!)
-                            }
-                            
-                            if weightAndYardage.length != nil {
+                .pickerStyle(SegmentedPickerStyle())
+                .onChange(of: weightAndYardage.hasBeenWeighed) {
+                    if weightAndYardage.hasBeenWeighed == 0 {
+                        weightAndYardage.skeins = 1
+                        weightAndYardage.hasPartialSkein = false
+                    } else if weightAndYardage.hasBeenWeighed == 1 {
+                        weightAndYardage.totalGrams = nil
+                    }
+                }
+                
+                if weightAndYardage.hasBeenWeighed == 1 {
+                    TextField("Total Grams", value: $weightAndYardage.totalGrams, format: .number)
+                        .keyboardType(.decimalPad)
+                        .onChange(of: weightAndYardage.totalGrams) {
+                            if weightAndYardage.totalGrams != nil && weightAndYardage.grams != nil {
                                 withAnimation {
-                                    weightAndYardage.exactLength = (weightAndYardage.length! * Double(weightAndYardage.totalGrams!)) / Double(weightAndYardage.grams!)
+                                    weightAndYardage.skeins = Double(weightAndYardage.totalGrams!)/Double(weightAndYardage.grams!)
+                                }
+                                
+                                if weightAndYardage.length != nil {
+                                    withAnimation {
+                                        weightAndYardage.exactLength = (weightAndYardage.length! * Double(weightAndYardage.totalGrams!)) / Double(weightAndYardage.grams!)
+                                    }
                                 }
                             }
                         }
+                        .transition(.slide)
+                    
+                    if weightAndYardage.exactLength > 0 && weightAndYardage.totalGrams != nil {
+                        HStack {
+                            Text("Length")
+                            
+                            Spacer()
+                            
+                            Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.exactLength)) ?? "0") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
+                        }
+                        .transition(.slide)
                     }
-                    .transition(.slide)
-                
-                if weightAndYardage.exactLength > 0 && weightAndYardage.totalGrams != nil {
-                    HStack {
-                        Text("Length")
-                        
-                        Spacer()
-                        
-                        Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.exactLength)) ?? "0") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
+                    
+                    if weightAndYardage.skeins != nil {
+                        HStack {
+                            Text("Skeins")
+                            Spacer()
+                            Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.skeins)) ?? "1")")
+                        }
+                        .transition(.slide)
                     }
-                    .transition(.slide)
-                }
-                
-                if weightAndYardage.skeins != nil {
-                    HStack {
-                        Text("Skeins")
-                        Spacer()
-                        Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.skeins)) ?? "1")")
-                    }
-                    .transition(.slide)
-                }
-            } else if weightAndYardage.hasBeenWeighed == 0 {
-                Stepper("Skeins: \(String(format: "%g", weightAndYardage.skeins))", value: $weightAndYardage.skeins, in: 1...50)
-                
-                Toggle("Partial Skein", isOn: $weightAndYardage.hasPartialSkein)
-                
-                if weightAndYardage.length != nil {
-                    HStack {
-                        Text("Length Estimate")
-                        Spacer()
-                        Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.length! * weightAndYardage.skeins)) ?? "0") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
+                } else if weightAndYardage.hasBeenWeighed == 0 {
+                    Stepper("Skeins: \(String(format: "%g", weightAndYardage.skeins))", value: $weightAndYardage.skeins, in: 1...50)
+                    
+                    Toggle("Partial Skein", isOn: $weightAndYardage.hasPartialSkein)
+                    
+                    if weightAndYardage.length != nil {
+                        HStack {
+                            Text("Length Estimate")
+                            Spacer()
+                            Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.length! * weightAndYardage.skeins)) ?? "0") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
+                        }
                     }
                 }
             }

@@ -34,3 +34,21 @@ enum UnitOfMeasure : String, CaseIterable, Identifiable {
     case yards = "Yards"
     case meters = "Meters"
 }
+
+
+enum MaterialCategory : String, CaseIterable, Identifiable {
+    var id : String { UUID().uuidString }
+    
+    case wool     = "Wool"
+    case alpaca   = "Alpaca"
+    case cashmere = "Cashmere"
+    case mohair   = "Mohair"
+    case cotton   = "Cotton"
+    case linen    = "Linen"
+    case bamboo   = "Bamboo"
+    case silk     = "Silk"
+    case acrylic  = "Acrylic"
+    case nylon    = "Nylon"
+    case rayon    = "Rayon"
+    case other    = "Other"
+}

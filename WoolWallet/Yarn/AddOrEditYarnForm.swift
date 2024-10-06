@@ -29,10 +29,10 @@ struct AddOrEditYarnForm: View {
     // Binding variables
     @Binding var toast: Toast?
     var yarnToEdit: Yarn?
+    var onAdd: ((Yarn) -> Void)? // Closure to return the newly added yarn
     
     // Internal state trackers
     @State private var images = [UIImage]()
-    
     @State private var showExistingYarnAlert   : Bool = false
     @State private var existingYarn            : Yarn? = nil
     @State private var processingColor         : Bool = false
@@ -55,9 +55,10 @@ struct AddOrEditYarnForm: View {
     @State private var composition           : [CompositionItem] = []
     
     // init function
-    init(toast : Binding<Toast?>, yarnToEdit : Yarn?) {
+    init(toast : Binding<Toast?>, yarnToEdit : Yarn?, onAdd: ((Yarn) -> Void)? = nil) {
         self.yarnToEdit = yarnToEdit
         self._toast = toast
+        self.onAdd = onAdd
         
         // Pre-populate the form if editing an existing Yarn
         if let yarnToEdit = yarnToEdit {
@@ -336,11 +337,14 @@ struct AddOrEditYarnForm: View {
         }
         
         if !showExistingYarnAlert {
-            persistYarn(yarn: yarnToEdit == nil ? Yarn(context: managedObjectContext) : yarnToEdit!)
+            let newYarn = persistYarn(yarn: yarnToEdit == nil ? Yarn(context: managedObjectContext) : yarnToEdit!)
             
-            toast = Toast(style: .success, message: "Yarn \(yarnToEdit == nil ? "created" : "saved")!")
-            hideKeyboard()
-            dismiss()
+            if onAdd != nil {
+                onAdd!(newYarn)
+            } else {
+                hideKeyboard()
+                dismiss()
+            }
         }
     }
     
@@ -367,7 +371,7 @@ struct AddOrEditYarnForm: View {
         }
     }
     
-    func persistYarn(yarn : Yarn) {
+    func persistYarn(yarn : Yarn) -> Yarn {
         yarn.id = yarn.id != nil ? yarn.id : UUID()
         yarn.name = name
         yarn.dyer = dyer
@@ -431,6 +435,8 @@ struct AddOrEditYarnForm: View {
         yarn.images = NSSet(array: storedImages)
         
         PersistenceController.shared.save()
+        
+        return yarn
     }
     
     func getExistingYarn(name: String, dyer : String, in context: NSManagedObjectContext) -> Yarn? {

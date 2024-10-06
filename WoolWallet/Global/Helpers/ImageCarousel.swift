@@ -21,6 +21,11 @@ struct ImageCarousel: View {
     @State private var showCamera : Bool = false
     @State private var capturedImage : UIImage?
     
+    @GestureState private var zoom = 1.0
+    
+    @State var scale = 1.0
+    @State var lastScale = 0.0
+    
     var body: some View {
         VStack {
             if images.isEmpty && editMode! {
@@ -53,22 +58,20 @@ struct ImageCarousel: View {
                                     .resizable()
                                     .aspectRatio(contentMode: smallMode! ? .fill : .fit)
                                     .clipShape(RoundedRectangle(cornerRadius: 25.0))
-                                    .clipped()
                                     .tag(imageIndex)
-                              
                                     .containerRelativeFrame(.horizontal)
                                     .overlay(
                                         editMode!
                                         ? AnyView(Button(action: {
-                                                // Delete action
-                                                images.remove(at: imageIndex)
-                                            }) {
-                                                Image(systemName: "xmark.circle")
-                                                    .font(.title)
-                                                    .foregroundColor(Color.black.opacity(0.75))
-                                                    .background(.white)
-                                                    .clipShape(Circle())
-                                            }
+                                            // Delete action
+                                            images.remove(at: imageIndex)
+                                        }) {
+                                            Image(systemName: "xmark.circle")
+                                                .font(.title)
+                                                .foregroundColor(Color.black.opacity(0.75))
+                                                .background(.white)
+                                                .clipShape(Circle())
+                                        }
                                             .padding(.top, 15)
                                             .padding(.trailing, 20))
                                         : AnyView(EmptyView()),
@@ -78,10 +81,10 @@ struct ImageCarousel: View {
                                     .overlay(
                                         editMode!
                                         ? AnyView(Button(action: {
-                                                showPhotoPicker = true
-                                            }) {
-                                                Label("", systemImage : "photo.badge.plus").font(.title2)
-                                            }
+                                            showPhotoPicker = true
+                                        }) {
+                                            Label("", systemImage : "photo.badge.plus").font(.title2)
+                                        }
                                             .padding(.bottom, 10)
                                             .padding(.trailing, 20))
                                         : AnyView(EmptyView()),
@@ -167,6 +170,10 @@ struct ImageCarousel: View {
                 }
             }
         }
+    }
+    
+    private func handleScaleChange(_ zoom: CGFloat) -> CGFloat {
+        min(max((lastScale + zoom - (lastScale == 0 ? 0 : 1)), 1.0), 3.0)
     }
 }
 

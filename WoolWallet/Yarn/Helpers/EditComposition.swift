@@ -13,7 +13,16 @@ struct CompositionItem : Identifiable, Hashable {
     let id = UUID()
     var percentage: Int
     var material: String
+    var materialDescription : String = ""
 }
+
+//struct MaterialItem: Identifiable, Equatable {
+//    let id = UUID()
+//    
+//    var value: String
+//    var showDescription : Bool = false
+//    var description : String = ""
+//}
 
 struct CompositionText : View {
     var composition : [CompositionItem]
@@ -23,9 +32,11 @@ struct CompositionText : View {
             let sortedCompositions = composition.sorted { $0.percentage > $1.percentage}
             
             ForEach(sortedCompositions, id: \.self) { compositionItem in
-                if compositionItem.percentage != 0 && compositionItem.material != "" {
+                let material = YarnUtils.shared.getMaterial(item: compositionItem)
+                
+                if compositionItem.percentage != 0 && material != "" {
                     Text(
-                        "\(compositionItem.percentage)% \(compositionItem.material)\(sortedCompositions.last != compositionItem ? "," : "")"
+                        "\(compositionItem.percentage)% \(material)\(sortedCompositions.last != compositionItem ? "," : "")"
                     )
                 }
             }
@@ -68,7 +79,7 @@ struct CompositionChart : View {
             }
             
             ForEach(composition.reversed(), id: \.self) { compositionItem in
-                if compositionItem.percentage != 0 && compositionItem.material != "" {
+                if compositionItem.percentage != 0 && YarnUtils.shared.getMaterial(item: compositionItem) != "" {
                     SectorMark(
                         angle: .value("Percentage", compositionItem.percentage),
 //                        innerRadius: .ratio(0.65),
@@ -94,7 +105,11 @@ struct EditComposition: View {
     // @Environment variables
     @Environment(\.dismiss) private var dismiss
     
-    @FetchRequest(entity: Composition.entity(), sortDescriptors: [])
+    @FetchRequest(
+        entity: Composition.entity(),
+        sortDescriptors: [],
+        predicate: NSPredicate(format: "customMaterial = %@", true as NSNumber)
+    )
     var compositions: FetchedResults<Composition>
     
     @Binding var composition : [CompositionItem]
@@ -141,7 +156,7 @@ struct EditComposition: View {
     // Computed property to calculate if save should be disabled
     var saveDisabled: Bool {
         let incompleteComposition = tempComposition.first { compositionItem in
-            return compositionItem.percentage == 0 || compositionItem.material == ""
+            return compositionItem.percentage == 0 || YarnUtils.shared.getMaterial(item: compositionItem) == ""
         }
         
         return incompleteComposition != nil
@@ -191,11 +206,31 @@ struct EditComposition: View {
                         compositionItem: $tempComposition[index]
                     )
                     
-                    TextFieldTypeahead(
-                        field: $tempComposition[index].material,
-                        label: "Material",
-                        allResults: uniqueMaterials
-                    )
+                    
+                    
+                    NavigationLink {
+                        MaterialPicker(material: $tempComposition[index].material)
+                    } label: {
+                        HStack {
+                            Text("Material")
+                            
+                            Spacer()
+                            
+                            Text(tempComposition[index].material != "" ? tempComposition[index].material : "--")
+                                .foregroundColor(.gray)
+                       
+                        }
+                    }
+                    .id(UUID())
+                    
+                    if tempComposition[index].material == MaterialCategory.other.rawValue {
+                        TextFieldTypeahead(
+                            field: $tempComposition[index].materialDescription,
+                            label: "Description",
+                            allResults: uniqueMaterials
+                        )
+                        
+                    }
                 }
                 .onChange(of: tempComposition) {
                     if tempComposition.last?.percentage != 0 && tempComposition.last?.material != "" {
@@ -231,6 +266,7 @@ struct EditComposition: View {
                     Image(systemName: "checkmark") // Use a system icon
                         .imageScale(.large)
                 }
+                .disabled(saveDisabled)
             }
         }
     }

@@ -7,6 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		042530BD2CB24DF8008804C7 /* MaterialPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042530BC2CB24DF8008804C7 /* MaterialPicker.swift */; };
+		042699B22CAF90E600F76B10 /* Pattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042699B12CAF90E600F76B10 /* Pattern.swift */; };
+		042B0A682CAE6300003CDCF0 /* PatternItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042B0A672CAE6300003CDCF0 /* PatternItem.swift */; };
+		042B0A6A2CAE63B0003CDCF0 /* CrochetHook.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042B0A692CAE63B0003CDCF0 /* CrochetHook.swift */; };
+		042B0A6C2CAE641C003CDCF0 /* KnittingNeedle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042B0A6B2CAE641C003CDCF0 /* KnittingNeedle.swift */; };
+		042B0A6F2CAEFFBA003CDCF0 /* PatternUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042B0A6E2CAEFFBA003CDCF0 /* PatternUtils.swift */; };
+		042B0A712CAF008E003CDCF0 /* PatternInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042B0A702CAF008E003CDCF0 /* PatternInfo.swift */; };
+		042B0A742CAF309B003CDCF0 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 042B0A732CAF309B003CDCF0 /* LaunchScreen.storyboard */; };
+		042B87F82CB06E0B00B34698 /* Image.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042B87F72CB06E0B00B34698 /* Image.swift */; };
 		042BF1562CA61D9D008740FB /* TextFieldTypeahead.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042BF1552CA61D9D008740FB /* TextFieldTypeahead.swift */; };
 		042CC1E82BAB9BFF008DD2F6 /* ConditionalStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042CC1E72BAB9BFF008DD2F6 /* ConditionalStack.swift */; };
 		04421B592BAE25110034E16A /* Lato in Resources */ = {isa = PBXBuildFile; fileRef = 04421B582BAE25110034E16A /* Lato */; };
@@ -14,7 +23,7 @@
 		04421B6B2BAF48B30034E16A /* OpenCVWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04421B6A2BAF48B30034E16A /* OpenCVWrapper.mm */; };
 		0462D00B2C7FBB7700EBB11C /* ButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0462D00A2C7FBB7700EBB11C /* ButtonStyles.swift */; };
 		0466F21B2CA919CE0094F3DA /* View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0466F21A2CA919CE0094F3DA /* View.swift */; };
-		0466F21D2CA91A780094F3DA /* AddOrEditPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0466F21C2CA91A780094F3DA /* AddOrEditPattern.swift */; };
+		0466F21D2CA91A780094F3DA /* AddOrEditPatternForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0466F21C2CA91A780094F3DA /* AddOrEditPatternForm.swift */; };
 		046A96442BA17B1C00E83055 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046A96432BA17B1C00E83055 /* Toast.swift */; };
 		04726D992C9A98BC008769A3 /* Composition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04726D982C9A98BC008769A3 /* Composition.swift */; };
 		0473B97C2BA4021400595BE7 /* YarnInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0473B97B2BA4021400595BE7 /* YarnInfo.swift */; };
@@ -22,6 +31,7 @@
 		047DE4CC2B9FF40600F0A2D5 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4CB2B9FF40600F0A2D5 /* PersistenceController.swift */; };
 		047DE4CF2B9FF78700F0A2D5 /* Data.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4CD2B9FF78700F0A2D5 /* Data.xcdatamodeld */; };
 		047DE4D52B9FFB6900F0A2D5 /* YarnList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4D42B9FFB6900F0A2D5 /* YarnList.swift */; };
+		048746B52CADC24700C3472B /* PatternEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048746B42CADC24700C3472B /* PatternEnums.swift */; };
 		048D66052CA0E9890051D7A3 /* EditComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048D66042CA0E9890051D7A3 /* EditComposition.swift */; };
 		049FAA4F2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 049FAA4E2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage */; };
 		04A5C3E02C4C1D8300CD5870 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3DF2C4C1D8300CD5870 /* Color.swift */; };
@@ -79,6 +89,16 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		042530BC2CB24DF8008804C7 /* MaterialPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialPicker.swift; sourceTree = "<group>"; };
+		042699B12CAF90E600F76B10 /* Pattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pattern.swift; sourceTree = "<group>"; };
+		042B0A672CAE6300003CDCF0 /* PatternItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternItem.swift; sourceTree = "<group>"; };
+		042B0A692CAE63B0003CDCF0 /* CrochetHook.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrochetHook.swift; sourceTree = "<group>"; };
+		042B0A6B2CAE641C003CDCF0 /* KnittingNeedle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnittingNeedle.swift; sourceTree = "<group>"; };
+		042B0A6E2CAEFFBA003CDCF0 /* PatternUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternUtils.swift; sourceTree = "<group>"; };
+		042B0A702CAF008E003CDCF0 /* PatternInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternInfo.swift; sourceTree = "<group>"; };
+		042B0A722CAF2CFD003CDCF0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		042B0A732CAF309B003CDCF0 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		042B87F72CB06E0B00B34698 /* Image.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Image.swift; sourceTree = "<group>"; };
 		042BF1552CA61D9D008740FB /* TextFieldTypeahead.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldTypeahead.swift; sourceTree = "<group>"; };
 		042CC1E72BAB9BFF008DD2F6 /* ConditionalStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConditionalStack.swift; sourceTree = "<group>"; };
 		04421B582BAE25110034E16A /* Lato */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Lato; sourceTree = "<group>"; };
@@ -88,7 +108,7 @@
 		04421B6D2BAF491B0034E16A /* PrefixHeader.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrefixHeader.pch; sourceTree = "<group>"; };
 		0462D00A2C7FBB7700EBB11C /* ButtonStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonStyles.swift; sourceTree = "<group>"; };
 		0466F21A2CA919CE0094F3DA /* View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = View.swift; sourceTree = "<group>"; };
-		0466F21C2CA91A780094F3DA /* AddOrEditPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddOrEditPattern.swift; sourceTree = "<group>"; };
+		0466F21C2CA91A780094F3DA /* AddOrEditPatternForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddOrEditPatternForm.swift; sourceTree = "<group>"; };
 		046A96432BA17B1C00E83055 /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		04726D982C9A98BC008769A3 /* Composition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Composition.swift; sourceTree = "<group>"; };
 		0473B97B2BA4021400595BE7 /* YarnInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnInfo.swift; sourceTree = "<group>"; };
@@ -96,6 +116,7 @@
 		047DE4CB2B9FF40600F0A2D5 /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceController.swift; sourceTree = "<group>"; };
 		047DE4CE2B9FF78700F0A2D5 /* Data.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Data.xcdatamodel; sourceTree = "<group>"; };
 		047DE4D42B9FFB6900F0A2D5 /* YarnList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnList.swift; sourceTree = "<group>"; };
+		048746B42CADC24700C3472B /* PatternEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternEnums.swift; sourceTree = "<group>"; };
 		048D66042CA0E9890051D7A3 /* EditComposition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditComposition.swift; sourceTree = "<group>"; };
 		049FAA4E2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = yarn_segmentation_model.mlpackage; sourceTree = "<group>"; };
 		04A5C3DF2C4C1D8300CD5870 /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
@@ -174,6 +195,25 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		042B0A662CAE62EE003CDCF0 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				042B0A672CAE6300003CDCF0 /* PatternItem.swift */,
+				042B0A692CAE63B0003CDCF0 /* CrochetHook.swift */,
+				042B0A6B2CAE641C003CDCF0 /* KnittingNeedle.swift */,
+				042699B12CAF90E600F76B10 /* Pattern.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		042B0A6D2CAEFFAC003CDCF0 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				042B0A6E2CAEFFBA003CDCF0 /* PatternUtils.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
 		04421B572BAE24E90034E16A /* Fonts */ = {
 			isa = PBXGroup;
 			children = (
@@ -209,6 +249,14 @@
 			path = Controllers;
 			sourceTree = "<group>";
 		};
+		048746B32CADC23700C3472B /* Enums */ = {
+			isa = PBXGroup;
+			children = (
+				048746B42CADC24700C3472B /* PatternEnums.swift */,
+			);
+			path = Enums;
+			sourceTree = "<group>";
+		};
 		04A5C3D82C4C1A6A00CD5870 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
@@ -220,6 +268,7 @@
 				04B710262CA1E76900D9292A /* AnyTransition.swift */,
 				04A81CF22CA4743D00BF66CC /* StoredImage.swift */,
 				0466F21A2CA919CE0094F3DA /* View.swift */,
+				042B87F72CB06E0B00B34698 /* Image.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -248,7 +297,6 @@
 				04A81D002CA47FF600BF66CC /* Helpers */,
 				04A81CFF2CA47FC900BF66CC /* Utils */,
 				04D415112C9F61BD004E1AFD /* AddOrEditYarnForm.swift */,
-				048D66042CA0E9890051D7A3 /* EditComposition.swift */,
 				04B15C612C77BAF100A03751 /* FilterYarn.swift */,
 				0473B97B2BA4021400595BE7 /* YarnInfo.swift */,
 				047DE4D42B9FFB6900F0A2D5 /* YarnList.swift */,
@@ -259,8 +307,12 @@
 		04A81CFC2CA47F6C00BF66CC /* Pattern */ = {
 			isa = PBXGroup;
 			children = (
+				042B0A6D2CAEFFAC003CDCF0 /* Utils */,
+				042B0A662CAE62EE003CDCF0 /* Extensions */,
+				048746B32CADC23700C3472B /* Enums */,
 				04D5C44E2C87DFCD00DC9697 /* PatternList.swift */,
-				0466F21C2CA91A780094F3DA /* AddOrEditPattern.swift */,
+				0466F21C2CA91A780094F3DA /* AddOrEditPatternForm.swift */,
+				042B0A702CAF008E003CDCF0 /* PatternInfo.swift */,
 			);
 			path = Pattern;
 			sourceTree = "<group>";
@@ -300,9 +352,11 @@
 		04A81D002CA47FF600BF66CC /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				048D66042CA0E9890051D7A3 /* EditComposition.swift */,
 				04A5C3E42C4C1DE600CD5870 /* ColorPickerView.swift */,
 				04E601892CA89A2400865991 /* WeightAndYardageForm.swift */,
 				04E6018B2CA8B40900865991 /* ViewWeightAndYardage.swift */,
+				042530BC2CB24DF8008804C7 /* MaterialPicker.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -360,6 +414,7 @@
 		04B74E732B9B6EFB00D19F52 /* WoolWallet */ = {
 			isa = PBXGroup;
 			children = (
+				042B0A722CAF2CFD003CDCF0 /* Info.plist */,
 				04A81CFE2CA47FA500BF66CC /* Global */,
 				04A81CFD2CA47F7D00BF66CC /* Project */,
 				04A81CFC2CA47F6C00BF66CC /* Pattern */,
@@ -368,6 +423,7 @@
 				04B74E782B9B6EFE00D19F52 /* Assets.xcassets */,
 				04B74E7A2B9B6EFE00D19F52 /* Preview Content */,
 				047DE4CD2B9FF78700F0A2D5 /* Data.xcdatamodeld */,
+				042B0A732CAF309B003CDCF0 /* LaunchScreen.storyboard */,
 			);
 			path = WoolWallet;
 			sourceTree = "<group>";
@@ -554,6 +610,7 @@
 				04E6018E2CA915C100865991 /* .gitignore in Resources */,
 				04B74E7C2B9B6EFE00D19F52 /* Preview Assets.xcassets in Resources */,
 				04B74E792B9B6EFE00D19F52 /* Assets.xcassets in Resources */,
+				042B0A742CAF309B003CDCF0 /* LaunchScreen.storyboard in Resources */,
 				04421B592BAE25110034E16A /* Lato in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -685,12 +742,16 @@
 				04A81CFA2CA47E2000BF66CC /* YarnEnums.swift in Sources */,
 				04726D992C9A98BC008769A3 /* Composition.swift in Sources */,
 				04A81CF52CA47C6100BF66CC /* ImageCarousel.swift in Sources */,
+				042B0A682CAE6300003CDCF0 /* PatternItem.swift in Sources */,
 				04A5C3E92C4C1E3600CD5870 /* TextFieldLabel.swift in Sources */,
 				04A5C3EB2C4C1E5200CD5870 /* FormRow.swift in Sources */,
+				042699B22CAF90E600F76B10 /* Pattern.swift in Sources */,
+				042B87F82CB06E0B00B34698 /* Image.swift in Sources */,
 				0473B97C2BA4021400595BE7 /* YarnInfo.swift in Sources */,
 				04B15C5E2C74F6F900A03751 /* StoredColor.swift in Sources */,
 				04D5C44F2C87DFCD00DC9697 /* PatternList.swift in Sources */,
 				04BAC0C32BAE13E400C26CD8 /* YarnUtils.swift in Sources */,
+				042B0A712CAF008E003CDCF0 /* PatternInfo.swift in Sources */,
 				04A5C3ED2C4C1E8F00CD5870 /* AnalyzeColorUtils.swift in Sources */,
 				04A5C3E52C4C1DE600CD5870 /* ColorPickerView.swift in Sources */,
 				04B15C622C77BAF100A03751 /* FilterYarn.swift in Sources */,
@@ -707,7 +768,7 @@
 				047DE4CC2B9FF40600F0A2D5 /* PersistenceController.swift in Sources */,
 				04BAC0C12BAE0D1D00C26CD8 /* GlobalSettings.swift in Sources */,
 				04B710272CA1E76900D9292A /* AnyTransition.swift in Sources */,
-				0466F21D2CA91A780094F3DA /* AddOrEditPattern.swift in Sources */,
+				0466F21D2CA91A780094F3DA /* AddOrEditPatternForm.swift in Sources */,
 				04E2329B2C9FE802007C8863 /* Sequence.swift in Sources */,
 				047DE4B02B9EC45600F0A2D5 /* MyTextFieldStyle.swift in Sources */,
 				042BF1562CA61D9D008740FB /* TextFieldTypeahead.swift in Sources */,
@@ -718,9 +779,14 @@
 				04E6018C2CA8B40900865991 /* ViewWeightAndYardage.swift in Sources */,
 				047DE4CF2B9FF78700F0A2D5 /* Data.xcdatamodeld in Sources */,
 				04D415122C9F61BD004E1AFD /* AddOrEditYarnForm.swift in Sources */,
+				042B0A6C2CAE641C003CDCF0 /* KnittingNeedle.swift in Sources */,
+				042B0A6A2CAE63B0003CDCF0 /* CrochetHook.swift in Sources */,
 				042CC1E82BAB9BFF008DD2F6 /* ConditionalStack.swift in Sources */,
 				04B15C602C76220300A03751 /* Yarn.swift in Sources */,
 				0462D00B2C7FBB7700EBB11C /* ButtonStyles.swift in Sources */,
+				042B0A6F2CAEFFBA003CDCF0 /* PatternUtils.swift in Sources */,
+				042530BD2CB24DF8008804C7 /* MaterialPicker.swift in Sources */,
+				048746B52CADC24700C3472B /* PatternEnums.swift in Sources */,
 				04D596032B9E9C2200E1913C /* AccessCamera.swift in Sources */,
 				04A5C3E02C4C1D8300CD5870 /* Color.swift in Sources */,
 			);
@@ -816,6 +882,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -869,6 +936,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -877,6 +945,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = FDA0566D778E92170B72CEA8 /* Pods-WoolWallet.debug.xcconfig */;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -885,13 +954,16 @@
 				ENABLE_PREVIEWS = YES;
 				GCC_PREFIX_HEADER = WoolWallet/Yarn/MachineLearning/ObjectiveC/PrefixHeader.pch;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WoolWallet/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs to capture images to show in the app";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -912,6 +984,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = F74F68A142EF87440C101085 /* Pods-WoolWallet.release.xcconfig */;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -920,13 +993,16 @@
 				ENABLE_PREVIEWS = YES;
 				GCC_PREFIX_HEADER = WoolWallet/Yarn/MachineLearning/ObjectiveC/PrefixHeader.pch;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WoolWallet/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs to capture images to show in the app";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

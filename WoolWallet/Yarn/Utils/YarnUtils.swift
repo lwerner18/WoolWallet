@@ -30,4 +30,8 @@ class YarnUtils {
         
         PersistenceController.shared.save()
     }
+    
+    func getMaterial(item : CompositionItem) -> String {
+        return item.material != MaterialCategory.other.rawValue ? item.material : item.materialDescription
+    }
 }

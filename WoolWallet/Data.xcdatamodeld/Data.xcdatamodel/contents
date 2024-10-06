@@ -1,13 +1,42 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22522" systemVersion="22G621" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
     <entity name="Composition" representedClassName="Composition" syncable="YES" codeGenerationType="class">
+        <attribute name="customMaterial" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="material" optional="YES" attributeType="String"/>
         <attribute name="percentage" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="pattern" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Pattern" inverseName="recComposition" inverseEntity="Pattern"/>
         <relationship name="yarn" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Yarn" inverseName="composition" inverseEntity="Yarn"/>
     </entity>
+    <entity name="CrochetHook" representedClassName="CrochetHook" syncable="YES" codeGenerationType="class">
+        <attribute name="size" optional="YES" attributeType="String"/>
+        <relationship name="pattern" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Pattern" inverseName="crochetHooks" inverseEntity="Pattern"/>
+    </entity>
+    <entity name="KnittingNeedle" representedClassName="KnittingNeedle" syncable="YES" codeGenerationType="class">
+        <attribute name="size" optional="YES" attributeType="String"/>
+        <relationship name="pattern" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Pattern" inverseName="knittingNeedles" inverseEntity="Pattern"/>
+    </entity>
     <entity name="Pattern" representedClassName="Pattern" syncable="YES" codeGenerationType="class">
-        <relationship name="images" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="StoredImage" inverseName="pattern" inverseEntity="StoredImage"/>
+        <attribute name="designer" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="intendedSize" optional="YES" attributeType="String"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="oneSize" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="recGrams" optional="YES" attributeType="Integer 16" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="recLength" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="recUnitOfMeasure" optional="YES" attributeType="String"/>
+        <attribute name="recWeight" optional="YES" attributeType="String"/>
+        <attribute name="type" attributeType="String"/>
+        <relationship name="crochetHooks" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CrochetHook" inverseName="pattern" inverseEntity="CrochetHook"/>
+        <relationship name="images" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="StoredImage" inverseName="pattern" inverseEntity="StoredImage"/>
+        <relationship name="items" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="PatternItem" inverseName="pattern" inverseEntity="PatternItem"/>
+        <relationship name="knittingNeedles" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="KnittingNeedle" inverseName="pattern" inverseEntity="KnittingNeedle"/>
+        <relationship name="recComposition" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Composition" inverseName="pattern" inverseEntity="Composition"/>
+    </entity>
+    <entity name="PatternItem" representedClassName="PatternItem" syncable="YES" codeGenerationType="class">
+        <attribute name="item" optional="YES" attributeType="String"/>
+        <relationship name="pattern" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Pattern" inverseName="items" inverseEntity="Pattern"/>
     </entity>
     <entity name="StoredColor" representedClassName="StoredColor" syncable="YES" codeGenerationType="class">
         <attribute name="alpha" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
@@ -55,7 +84,7 @@
         <attribute name="mini2Skeins" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="mini2TotalGrams" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="mini2UnitOfMeasure" optional="YES" attributeType="String"/>
-        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="name" attributeType="String"/>
         <attribute name="notes" optional="YES" attributeType="String"/>
         <attribute name="skeins" optional="YES" attributeType="Double" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="totalGrams" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
@@ -63,6 +92,6 @@
         <attribute name="weight" optional="YES" attributeType="String"/>
         <relationship name="colors" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="StoredColor" inverseName="yarn" inverseEntity="StoredColor"/>
         <relationship name="composition" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Composition" inverseName="yarn" inverseEntity="Composition"/>
-        <relationship name="images" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="StoredImage" inverseName="yarn" inverseEntity="StoredImage"/>
+        <relationship name="images" toMany="YES" deletionRule="Nullify" destinationEntity="StoredImage" inverseName="yarn" inverseEntity="StoredImage"/>
     </entity>
 </model>
