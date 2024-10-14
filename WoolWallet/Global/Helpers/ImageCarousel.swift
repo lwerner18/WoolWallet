@@ -138,7 +138,7 @@ struct ImageCarousel: View {
                                 
                                 Spacer()
                             }
-                                .padding(.bottom, smallMode! ? 4 : 8)
+                            .padding(.bottom, smallMode! ? 4 : 8)
                         )
                         : AnyView(EmptyView()),
                         alignment: .bottom

@@ -9,23 +9,18 @@ import Foundation
 import SwiftUI
 
 
-struct ClearButton: ViewModifier
-{
+struct ClearButton: ViewModifier {
     @Binding var text: String
     
-    public func body(content: Content) -> some View
-    {
-        ZStack(alignment: .trailing)
-        {
+    public func body(content: Content) -> some View {
+        ZStack(alignment: .trailing) {
             content
             
-            if !text.isEmpty
-            {
+            if !text.isEmpty {
                 Button(action:
                         {
                     self.text = ""
-                })
-                {
+                }) {
                     Image(systemName: "xmark.circle")
                         .foregroundColor(Color(UIColor.opaqueSeparator))
                 }

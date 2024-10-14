@@ -38,6 +38,7 @@ struct CompositionText : View {
                     Text(
                         "\(compositionItem.percentage)% \(material)\(sortedCompositions.last != compositionItem ? "," : "")"
                     )
+                    .foregroundStyle(Color.primary)
                 }
             }
         }
@@ -108,7 +109,7 @@ struct EditComposition: View {
     @FetchRequest(
         entity: Composition.entity(),
         sortDescriptors: [],
-        predicate: NSPredicate(format: "customMaterial = %@", true as NSNumber)
+        predicate: NSPredicate(format: "materialDescription != nil")
     )
     var compositions: FetchedResults<Composition>
     
@@ -205,8 +206,6 @@ struct EditComposition: View {
                         composition: $tempComposition,
                         compositionItem: $tempComposition[index]
                     )
-                    
-                    
                     
                     NavigationLink {
                         MaterialPicker(material: $tempComposition[index].material)
@@ -306,6 +305,7 @@ struct PercentagePicker: View {
                 Spacer()
                 Text("\(compositionItem.percentage) %")
             }
+            .foregroundStyle(Color.primary)
         }
     }
 }
@@ -325,33 +325,4 @@ struct CollapsibleWheelPicker<SelectionValue, Content, Label>: View where Select
     }
 }
 
-struct CollapsibleView<Label, Content>: View where Label: View, Content: View {
-    @State private var isSecondaryViewVisible = false
-    
-    @ViewBuilder let label: () -> Label
-    @ViewBuilder let content: () -> Content
-    
-    var body: some View {
-        Group {
-            Button {
-                withAnimation {
-                    isSecondaryViewVisible.toggle()
-                }
-            
-            } label: {
-                label()
-            }
-            .buttonStyle(.plain)
-            
-            if isSecondaryViewVisible {
-                content()
-                    .onTapGesture {
-                        withAnimation {
-                            isSecondaryViewVisible.toggle()
-                        }
-                    }
-                    .transition(.move(edge: .bottom))
-            }
-        }
-    }
-}
+

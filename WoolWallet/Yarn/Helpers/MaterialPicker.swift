@@ -77,51 +77,33 @@ struct MaterialPicker: View {
                 // Group 1
                 Section(header: Text(materialItem.category.rawValue)) {
                     ForEach(materialItem.subTypes, id: \.self) { subType in
-                        HStack {
-                            Text(subType)
-                                .onTapGesture {
-                                    material = subType
-                                    
-                                    dismiss()
+                        Button {
+                            material = subType
+                            
+                            dismiss()
+                        } label : {
+                            HStack {
+                                Text(subType)
+                                    .foregroundStyle(Color.primary)
+                                
+                                Spacer()
+                                
+                                if material == subType {
+                                    Label("", systemImage: "checkmark")
+                                        .font(.footnote)
+                                        .bold()
+                                        .foregroundStyle(Color.accentColor)
+                                        .onTapGesture {
+                                            material = subType
+                                            
+                                            dismiss()
+                                        }
                                 }
-                            
-//                            Button {
-//                           
-//                            } label : {
-//
-//                            }
-//                            .buttonStyle(.plain)
-//                            .frame(maxWidth: .infinity)
-                            
-                            Spacer()
-                                .onTapGesture {
-                                    material = subType
-                                    
-                                    dismiss()
-                                }
-                            
-                            if material == subType {
-                                Label("", systemImage: "checkmark")
-                                    .font(.footnote)
-                                    .bold()
-                                    .foregroundStyle(.blue)
-                                    .onTapGesture {
-                                        material = subType
-                                        
-                                        dismiss()
-                                    }
+                            }
+                            .alignmentGuide(.listRowSeparatorLeading) { viewDimensions in
+                                return 0
                             }
                         }
-                        .alignmentGuide(.listRowSeparatorLeading) { viewDimensions in
-                            return 0
-                        }
-//                        .frame(maxWidth: .infinity)
-//                        .onTapGesture {
-//                            material = subType
-//                            
-//                            dismiss()
-//                        }
-                        
                     }
                 }
             }

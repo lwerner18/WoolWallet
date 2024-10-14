@@ -10,11 +10,10 @@ import SwiftUI
 
 let patternTypes : [PatternType] = [PatternType.crochet, PatternType.knit]
 
-struct PatternItemField: Identifiable, Equatable {
+struct PatternItemField: Identifiable, Equatable, Hashable {
     let id = UUID()
     
     var item: Item
-    var showDescription : Bool = false
     var description : String = ""
 }
 
@@ -33,16 +32,16 @@ struct AddOrEditPatternForm: View {
     @State private var showExistingPatternAlert   : Bool = false
     
     // Form fields
-    @State private var patternType         : PatternType = PatternType.crochet
-    @State private var name                : String = ""
-    @State private var designer            : String = ""
-    @State private var items              : [PatternItemField] = [PatternItemField(item : Item.none)]
-    @State private var oneSize             : Int = -1
-    @State private var intendedSize        : String = ""
-    @State private var crochetHookSizes    : [CrochetHookSize] = [CrochetHookSize.none]
-    @State private var knittingNeedleSizes : [KnitNeedleSize] = [KnitNeedleSize.none]
-    @State private var recWeightAndYardage : WeightAndYardage = WeightAndYardage()
-    @State private var notes               : String = ""
+    @State private var patternType          : PatternType = PatternType.crochet
+    @State private var name                 : String = ""
+    @State private var designer             : String = ""
+    @State private var items                : [PatternItemField] = [PatternItemField(item : Item.none)]
+    @State private var oneSize              : Int = -1
+    @State private var intendedSize         : String = ""
+    @State private var crochetHookSizes     : [CrochetHookSize] = [CrochetHookSize.none]
+    @State private var knittingNeedleSizes  : [KnitNeedleSize] = [KnitNeedleSize.none]
+    @State private var recWeightAndYardages : [WeightAndYardageData] = [WeightAndYardageData(parent: WeightAndYardageParent.pattern)]
+    @State private var notes                : String = ""
     
     init(patternToEdit : Pattern?, onAdd: ((Pattern) -> Void)? = nil) {
         self.patternToEdit = patternToEdit
@@ -50,9 +49,15 @@ struct AddOrEditPatternForm: View {
         
         // Pre-populate the form if editing an existing Yarn
         if let patternToEdit = patternToEdit {
-            _name         = State(initialValue : patternToEdit.name ?? "")
-            _designer     = State(initialValue : patternToEdit.designer ?? "")
-            _notes        = State(initialValue : patternToEdit.notes ?? "")
+            _patternType          = State(initialValue : PatternType(rawValue: patternToEdit.type!)!)
+            _name                 = State(initialValue : patternToEdit.name ?? "")
+            _designer             = State(initialValue : patternToEdit.designer ?? "")
+            _notes                = State(initialValue : patternToEdit.notes ?? "")
+            _items                = State(initialValue : patternToEdit.patternItems)
+            _oneSize              = State(initialValue : Int(patternToEdit.oneSize))
+            _intendedSize         = State(initialValue : patternToEdit.intendedSize ?? "")
+            _crochetHookSizes     = State(initialValue : patternToEdit.crochetHooks)
+            _recWeightAndYardages = State(initialValue : patternToEdit.weightAndYardageItems)
         }
     }
     
@@ -122,32 +127,14 @@ struct AddOrEditPatternForm: View {
                             }
                             .pickerStyle(.navigationLink)
                             .deleteDisabled(items.count < 2)
-                            .onChange(of: items) {
-                                if items[index].item == Item.other {
-                                    items[index].showDescription = true
-                                } else {
-                                    items[index].showDescription = false
-                                }
-                            }
                             
-                            if items[index].showDescription {
+                            if items[index].item == Item.other {
                                 TextField("Description", text: $items[index].description).disableAutocorrection(true)
                             }
                         }
                         .onDelete(perform: deleteItem)
-                        
-//                        ForEach($items) { $item in
-//                            TextFieldTypeahead(
-//                                field: $item.item,
-//                                label: "Item \(items.count > 1 ? "\(items.firstIndex(of: $item.wrappedValue)! + 1)" : "")", // or use a different identifier
-//                                allResults: Item.allCases.map { $0.rawValue }
-//                            )
-//                            .deleteDisabled(items.count < 2)
-//                        }
-//                        .onDelete(perform: deleteItem)
                     }
                 }
-                
                 
                 Section(header: Text("Is this pattern one size?")) {
                     Picker("", selection: $oneSize) {
@@ -158,6 +145,63 @@ struct AddOrEditPatternForm: View {
                     
                     if oneSize == 0 {
                         TextField("Intended Size", text: $intendedSize).disableAutocorrection(true)
+                    }
+                }
+                
+                Section(header: Text("What kind of yarn do you need?")) {
+                    NavigationLink {
+                        RecYarnForm(recWeightAndYardages: $recWeightAndYardages)
+                    } label: {
+                        Label("Yarn Specs", systemImage : "volleyball")
+                          
+                    }
+                    .id(UUID())
+                    .alignmentGuide(.listRowSeparatorLeading) { viewDimensions in
+                        return 0
+                    }
+                    
+                    ForEach(recWeightAndYardages.indices, id: \.self) { index in
+                        if recWeightAndYardages[index].hasBeenEdited() {
+                            CollapsibleView(
+                                label : {
+                                    HStack {
+                                        Text(recWeightAndYardages.count == 1 ? "Recommended Yarn" : "Color")
+                                            .bold()
+                                            .foregroundStyle(Color.primary)
+                                        
+                                        if recWeightAndYardages[index].exactLength != nil {
+                                            Spacer()
+                                            
+                                            Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: recWeightAndYardages[index].exactLength!)) ?? "1") \(recWeightAndYardages[index].unitOfMeasure.rawValue.lowercased())")
+                                                .foregroundStyle(Color(UIColor.secondaryLabel))
+                                        } else if recWeightAndYardages[index].approximateLength > 0 {
+                                            Spacer()
+                                            
+                                            Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: recWeightAndYardages[index].approximateLength)) ?? "1") \(recWeightAndYardages[index].unitOfMeasure.rawValue.lowercased())")
+                                                .foregroundStyle(Color(UIColor.secondaryLabel))
+                                        }
+                                    }
+                                },
+                                showArrows : true
+                            ) {
+                                let item = recWeightAndYardages[index]
+                                
+                                VStack {
+                                    HStack {
+                                        Text("Weight").foregroundStyle(Color(UIColor.secondaryLabel))
+                                        Spacer()
+                                        Text(item.weight.rawValue)
+                                    }
+                                    
+                                    if item.yardage != nil && item.grams != nil {
+                                        Divider()
+                                        
+                                        Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: item.yardage!)) ?? "") \(item.unitOfMeasure.rawValue) / \(item.grams!) grams")
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            }
+                        }
                     }
                 }
                 
@@ -207,14 +251,6 @@ struct AddOrEditPatternForm: View {
                 // techniques (depends on knit or crochet
                 
                 // notions
-                
-                WeightAndYardageForm(
-                    weightAndYardage: $recWeightAndYardage,
-                    isSockSet: false,
-                    isPattern : true,
-                    skeinIndex: 0,
-                    hasTwoMinis: .constant(false)
-                )
                 
                 Section(header: Text("Anything else you'd like to note?")) {
                     TextEditor(text: $notes)
@@ -277,36 +313,38 @@ struct AddOrEditPatternForm: View {
         pattern.type = patternType.rawValue
         
         pattern.oneSize = Int16(oneSize)
-        pattern.intendedSize = intendedSize
-        
-        // main skein
-        pattern.recWeight        = recWeightAndYardage.weight.rawValue
-        pattern.recUnitOfMeasure = recWeightAndYardage.unitOfMeasure.rawValue
-        pattern.recLength        = recWeightAndYardage.length ?? 0
-        pattern.recGrams         = Int16(recWeightAndYardage.grams ?? 0)
-        
+        pattern.intendedSize = oneSize == 1 ? nil : intendedSize
         pattern.notes = notes
         
+        // weightAndYardages
+        let weightAndYardageArray: [WeightAndYardage] = recWeightAndYardages.enumerated().map { (index, element) in
+            return WeightAndYardage.from(data: element, order: index, context: managedObjectContext)
+        }
+        
+        pattern.recWeightAndYardages = NSSet(array: weightAndYardageArray)
+        
+        // items
         if items.first?.item != Item.none {
-            let patternItems: [PatternItem] = items.map { item in
-                return PatternItem.from(item: item.item.rawValue, context: managedObjectContext)
+            let patternItems: [PatternItem] = items.enumerated().map { (index, element) in
+                return PatternItem.from(item: element, order: index, context: managedObjectContext)
             }
-            
+    
             pattern.items = NSSet(array: patternItems)
         }
-  
         
-        let crochetHooks: [CrochetHook] = crochetHookSizes.map { item in
-            return CrochetHook.from(size: item.rawValue, context: managedObjectContext)
+        // crochet hooks
+        let crochetHooks: [CrochetHook] = crochetHookSizes.enumerated().map { (index, element) in
+            return CrochetHook.from(size: element.rawValue, order: index, context: managedObjectContext)
         }
         
-        pattern.crochetHooks = NSSet(array: crochetHooks)
+        pattern.hooks = NSSet(array: crochetHooks)
         
+        // knitting needles
         let knittingNeedles: [KnittingNeedle] = knittingNeedleSizes.map { item in
             return KnittingNeedle.from(size: item.rawValue, context: managedObjectContext)
         }
         
-        pattern.knittingNeedles = NSSet(array: knittingNeedles)
+        pattern.needles = NSSet(array: knittingNeedles)
         
 //        let storedImages: [StoredImage] = images.enumerated().map { (index, element) in
 //            return StoredImage.from(image: element, order: index, context: managedObjectContext)

@@ -84,44 +84,26 @@ struct YarnInfo: View {
                     ImageCarousel(images : .constant(yarn.uiImages))
                     
                     VStack {
-                        Text(yarn.name ?? "N/A").bold().font(.largeTitle)
+                        Text(yarn.name ?? "N/A").bold().font(.largeTitle).foregroundStyle(Color.primary)
                         
-                        Text(yarn.dyer ?? "N/A").bold().foregroundStyle(Color.gray)
+                        Text(yarn.dyer ?? "N/A").bold().foregroundStyle(Color(UIColor.secondaryLabel))
                     }
                     
                     if yarn.isArchived || yarn.isCaked || yarn.isSockSet {
                         HStack {
                             if yarn.isArchived {
                                 Label("Archived", systemImage : "tray.and.arrow.down")
-                                    .fixedSize(horizontal: true, vertical: false)
-                                    .font(.callout)
-                                    .padding(.vertical, 8) // Padding for the section
-                                    .padding(.horizontal, 12) // Padding for the section
-                                    .background(Color.white) // Background color for the section
-                                    .cornerRadius(25) // Rounded corners for the section
-                                    .shadow(radius: 0.5)
+                                    .infoCapsule()
                             }
                             
                             if yarn.isCaked {
                                 Label("Caked", systemImage : "birthday.cake")
-                                    .fixedSize(horizontal: true, vertical: false)
-                                    .font(.callout)
-                                    .padding(.vertical, 8) // Padding for the section
-                                    .padding(.horizontal, 12) // Padding for the section
-                                    .background(Color.white) // Background color for the section
-                                    .cornerRadius(25) // Rounded corners for the section
-                                    .shadow(radius: 0.5)
+                                    .infoCapsule()
                             }
                             
                             if yarn.isSockSet {
                                 Label("Sock Set", systemImage : "shoeprints.fill")
-                                    .fixedSize(horizontal: true, vertical: false)
-                                    .font(.callout)
-                                    .padding(.vertical, 8) // Padding for the section
-                                    .padding(.horizontal, 12) // Padding for the section
-                                    .background(Color.white) // Background color for the section
-                                    .cornerRadius(25) // Rounded corners for the section
-                                    .shadow(radius: 0.5)
+                                    .infoCapsule()
                             }
                             
                             Spacer()
@@ -131,9 +113,10 @@ struct YarnInfo: View {
                     VStack {
                         InfoCard() {
                             HStack {
-                                Text("Weight").foregroundStyle(Color.gray)
+                                Text("Weight").foregroundStyle(Color(UIColor.secondaryLabel))
                                 Spacer()
-                                Text(yarn.weight ?? "N/A").font(.headline).bold()
+                                Text(yarn.weightAndYardageItems.first?.weight.rawValue ?? "N/A")
+                                    .font(.headline).bold().foregroundStyle(Color.primary)
                             }
                         }
                         
@@ -141,7 +124,7 @@ struct YarnInfo: View {
                             InfoCard() {
                                 VStack {
                                     HStack {
-                                        Text("Composition").font(.title3).bold()
+                                        Text("Composition").font(.title3).bold().foregroundStyle(Color.primary)
                                         Spacer()
                                     }
                                     CompositionChart(composition: yarn.compositionItems, smallMode: true)
@@ -150,80 +133,13 @@ struct YarnInfo: View {
                             }
                         }
                         
-                        if yarn.isSockSet {
-                            Divider().padding()
-                            
-                            HStack {
-                                Text("Main Skein").font(.title3).bold()
-                                Spacer()
-                            }
-                        }
-                        
-                        ViewWeightAndYardage(
-                            weightAndYardage: WeightAndYardage(
-                                weight            : yarn.weight != nil ? Weight(rawValue: yarn.weight!)! : Weight.none,
-                                unitOfMeasure     : yarn.unitOfMeasure != nil ? UnitOfMeasure(rawValue: yarn.unitOfMeasure!)! : UnitOfMeasure.yards,
-                                length            : yarn.length != 0 ? yarn.length : nil,
-                                grams             : yarn.grams != 0 ? Int(yarn.grams) : nil,
-                                hasBeenWeighed    : Int(yarn.hasBeenWeighed),
-                                totalGrams        : yarn.totalGrams != 0 ? Int(yarn.totalGrams) : nil,
-                                skeins            : yarn.skeins,
-                                hasPartialSkein   : yarn.hasPartialSkein,
-                                exactLength       : yarn.exactLength,
-                                approximateLength : yarn.approximateLength
-                            )
-                        )
-                        
-                        if yarn.isSockSet {
-                            VStack {
-                                Divider().padding()
-                                
-                                HStack {
-                                    Text(yarn.hasTwoMinis ? "Mini #1" : "Mini").font(.title3).bold()
-                                    Spacer()
-                                }
-                            }
-                            
+                        ForEach(yarn.weightAndYardageItems.indices, id: \.self) { index in
                             ViewWeightAndYardage(
-                                weightAndYardage: WeightAndYardage(
-                                    unitOfMeasure     : yarn.mini1UnitOfMeasure != nil ? UnitOfMeasure(rawValue: yarn.mini1UnitOfMeasure!)! : UnitOfMeasure.yards,
-                                    length            : yarn.mini1Length != 0 ? yarn.mini1Length : nil,
-                                    grams             : yarn.mini1Grams != 0 ? Int(yarn.mini1Grams) : nil,
-                                    hasBeenWeighed    : Int(yarn.mini1HasBeenWeighed),
-                                    totalGrams        : yarn.mini1TotalGrams != 0 ? Int(yarn.mini1TotalGrams) : nil,
-                                    skeins            : yarn.mini1Skeins,
-                                    hasPartialSkein   : yarn.mini1HasPartialSkein,
-                                    exactLength       : yarn.mini1ExactLength,
-                                    approximateLength : yarn.mini1ApproximateLength
-                                )
+                                weightAndYardage: yarn.weightAndYardageItems[index],
+                                isSockSet: yarn.isSockSet,
+                                order: index,
+                                totalCount: yarn.weightAndYardageItems.count
                             )
-                            
-                            if yarn.hasTwoMinis {
-                                VStack {
-                                    Divider().padding()
-                                    
-                                    HStack {
-                                        Text("Mini #2").font(.title3).bold()
-                                        Spacer()
-                                    }
-                                }
-                                
-                                ViewWeightAndYardage(
-                                    weightAndYardage: WeightAndYardage(
-                                        unitOfMeasure     : yarn.mini2UnitOfMeasure != nil ? UnitOfMeasure(rawValue: yarn.mini2UnitOfMeasure!)! : UnitOfMeasure.yards,
-                                        length            : yarn.mini2Length != 0 ? yarn.mini2Length : nil,
-                                        grams             : yarn.mini2Grams != 0 ? Int(yarn.mini2Grams) : nil,
-                                        hasBeenWeighed    : Int(yarn.mini2HasBeenWeighed),
-                                        totalGrams        : yarn.mini2TotalGrams != 0 ? Int(yarn.mini2TotalGrams) : nil,
-                                        skeins            : yarn.mini2Skeins,
-                                        hasPartialSkein   : yarn.mini2HasPartialSkein,
-                                        exactLength       : yarn.mini2ExactLength,
-                                        approximateLength : yarn.mini2ApproximateLength
-                                    )
-                                )
-                            }
-                            
-                            Divider().padding()
                         }
                         
                         InfoCard(noPadding: true) {
@@ -242,9 +158,9 @@ struct YarnInfo: View {
                                         )
                                     
                                     HStack {
-                                        Text("Color").foregroundStyle(Color.gray)
+                                        Text("Color").foregroundStyle(Color(UIColor.secondaryLabel))
                                         Spacer()
-                                        Text(colorPickerItem.name).font(.headline).bold()
+                                        Text(colorPickerItem.name).font(.headline).bold().foregroundStyle(Color.primary)
                                     }
                                     .padding(.horizontal, 15)
                                     .padding(.top, 8)
@@ -260,22 +176,13 @@ struct YarnInfo: View {
                             }
                         }
                     }
-                    .background(Color(UIColor.systemGray6))
                     
                 }
                 .foregroundStyle(Color.black)
                 .padding()
             }
             .toastView(toast: $yarnInfoToast)
-            // Disable bounce if the content fits (optional)
             .scrollBounceBehavior(.basedOnSize)
-            //        .background(Color.black.opacity(isImageMaximized ? 0.5 : 0.0))
-            //        .onTapGesture {
-            //            // Allows tapping on the background to reset the focus state
-            //            withAnimation {
-            //                isImageMaximized = false
-            //            }
-            //        }
             .navigationTitle(yarn.name ?? "N/A")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -291,10 +198,6 @@ struct YarnInfo: View {
                             YarnUtils.shared.toggleYarnArchived(at: yarn)
                             
                             selectedTab = selectedTab == 0 ? 1 : 0
-                            
-                            dismiss()
-                            
-                            toast = Toast(style: .success, message: "Successfully \(yarn.isArchived ? "" : "un")archived yarn")
                         } label: {
                             Label(yarn.isArchived ? "Unarchive" : "Archive", systemImage : yarn.isArchived ? "tray.and.arrow.up" : "tray.and.arrow.down")
                         }
@@ -310,11 +213,7 @@ struct YarnInfo: View {
                     }
                 }
             }
-            .confirmationDialog(
-                "Are you sure you want to delete this yarn?",
-                isPresented: $showConfirmationDialog,
-                titleVisibility: .visible
-            ) {
+            .alert("Are you sure you want to delete this yarn?", isPresented: $showConfirmationDialog) {
                 Button("Delete", role: .destructive) {
                     YarnUtils.shared.removeYarn(at: yarn, with: managedObjectContext)
                     
@@ -327,16 +226,9 @@ struct YarnInfo: View {
             }
             .fullScreenCover(isPresented: $showEditYarnForm) {
                 AddOrEditYarnForm(toast : $toast, yarnToEdit : yarn)
-                    .preferredColorScheme(.light) // Force light mode
             }
         }
-        .background(Color(UIColor.systemGray6))
-    }
-    
-    // Function to join color names with commas
-    func joinedColorNames(colors : [StoredColor]) -> String {
-        let colorNames = colors.map { $0.name ?? "Unknown" }
-        return colorNames.joined(separator: ", ")
+        .background(Color(UIColor.systemGroupedBackground))
     }
 }
 
@@ -347,15 +239,4 @@ struct YarnDataRow: ViewModifier {
     }
 }
 
-struct InfoCard<Content: View>: View {
-    var noPadding : Bool? = false
-    let content: () -> Content
-    
-    var body: some View {
-        content() // Content provided as a closure
-        .padding(noPadding! ? 0 : 15) // Padding for the section
-        .background(Color.white) // Background color for the section
-        .cornerRadius(8) // Rounded corners for the section
-        .shadow(radius: 0.5)
-    }
-}
+

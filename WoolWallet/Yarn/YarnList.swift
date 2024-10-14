@@ -134,8 +134,7 @@ struct YarnList: View {
                         
                         Text(tabs[index].rawValue)
                             .padding()
-                            .background(Color.white)
-                            .foregroundColor(selectedTab == index ? Color(hex: "#36727E") : .gray)
+                            .foregroundColor(selectedTab == index ? Color.accentColor : .gray)
                             .frame(height: 30)
                         
                         Spacer()
@@ -148,7 +147,7 @@ struct YarnList: View {
                     let buttonWidth = geometry.size.width / CGFloat(tabs.count)
                     
                     Rectangle()
-                        .fill(Color(hex: "#36727E"))
+                        .fill(Color.accentColor)
                         .frame(width: buttonWidth, height: 2)
                         .offset(x: CGFloat(selectedTab) * buttonWidth, y: 33)
                         .animation(.easeInOut, value: selectedTab)
@@ -170,12 +169,12 @@ struct YarnList: View {
                                     Spacer()
                                     
                                     Text(weight.rawValue)
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(Color(UIColor.secondaryLabel))
                                     
                                     Spacer()
                                     
                                     Image(systemName: "xmark")
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(Color(UIColor.secondaryLabel))
                                         .font(.caption)
                                 }
                                 .frame(minWidth: 0, maxWidth: .infinity)
@@ -184,7 +183,7 @@ struct YarnList: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 8)) // Apply rounded corners
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 8) // Apply corner radius to the border
-                                        .stroke(Color.gray, lineWidth: 0.3)
+                                        .stroke(Color(UIColor.secondaryLabel), lineWidth: 0.3)
                                 )
                             }
                         }
@@ -197,12 +196,12 @@ struct YarnList: View {
                                     Spacer()
                                     
                                     Text(sockSet == 1 ? "Sock Sets Only" : "No Sock Sets")
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(Color(UIColor.secondaryLabel))
                                     
                                     Spacer()
                                     
                                     Image(systemName: "xmark")
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(Color(UIColor.secondaryLabel))
                                         .font(.caption)
                                 }
                                 .frame(minWidth: 0, maxWidth: .infinity)
@@ -211,7 +210,7 @@ struct YarnList: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 8)) // Apply rounded corners
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 8) // Apply corner radius to the border
-                                        .stroke(Color.gray, lineWidth: 0.3)
+                                        .stroke(Color(UIColor.secondaryLabel), lineWidth: 0.3)
                                 )
                             }
                         }
@@ -235,13 +234,13 @@ struct YarnList: View {
                                         )
                                     
                                     Text(colorGroup.name)
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(Color(UIColor.secondaryLabel))
                                         .fixedSize()
                                     
                                     Spacer()
                                     
                                     Image(systemName: "xmark")
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(Color(UIColor.secondaryLabel))
                                         .font(.caption)
                                 }
                                 .frame(minWidth: 0, maxWidth: .infinity)
@@ -250,7 +249,7 @@ struct YarnList: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 8)) // Apply rounded corners
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 8) // Apply corner radius to the border
-                                        .stroke(Color.gray, lineWidth: 0.3)
+                                        .stroke(Color(UIColor.secondaryLabel), lineWidth: 0.3)
                                 )
                             }
                         }
@@ -259,7 +258,6 @@ struct YarnList: View {
                             showFilterScreen = true
                         }) {
                             Image(systemName: "plus.circle")
-                                .foregroundColor(.blue)
                                 .font(.title2)
                         }
                     }
@@ -341,15 +339,15 @@ struct YarnList: View {
                                                     Label("Delete", systemImage : "trash")
                                                 }
                                             }
-                                            .cardBackground()
+//                                            .cardBackground()
                                         
                                         
                                         Text(yarn.name ?? "No Name")
-                                            .foregroundStyle(Color.black)
+                                            .foregroundStyle(Color.primary)
                                             .bold()
                                         
                                         Text(yarn.dyer ?? "N/A")
-                                            .foregroundStyle(Color.gray)
+                                            .foregroundStyle(Color(UIColor.secondaryLabel))
                                             .font(.caption)
                                             .bold()
                                     }
@@ -387,6 +385,7 @@ struct YarnList: View {
                 }
             }
         }
+        .scrollBounceBehavior(.basedOnSize)
         .searchable(
             text: $searchText,
             placement: .navigationBarDrawer(displayMode: .always),
@@ -404,13 +403,11 @@ struct YarnList: View {
         }
         .popover(isPresented: $showFilterScreen) {
             FilterYarn(
-                showSheet : $showFilterScreen,
                 selectedColors: $selectedColors,
                 selectedWeights: $selectedWeights,
                 sockSet : $sockSet,
                 filteredYarnCount: filteredYarnCount
             )
-            .preferredColorScheme(.light) // Force light mode
         }
         .fullScreenCover(isPresented: $showAddYarnForm) {
             AddOrEditYarnForm(toast : $toast, yarnToEdit : nil)  { addedYarn in
@@ -419,21 +416,14 @@ struct YarnList: View {
                 showAddYarnForm = false
             
             }
-            .preferredColorScheme(.light) // Force light mode
         }
         .fullScreenCover(item: $yarnToEdit, onDismiss: { yarnToEdit = nil}) { yarn in
             AddOrEditYarnForm(toast : $toast, yarnToEdit : yarn)
-                .preferredColorScheme(.light) // Force light mode
         }
         .popover(item: $newYarn) { yarn in
             YarnInfo(yarn: yarn, toast : $toast, selectedTab : $selectedTab, isNewYarn : true)
-                .preferredColorScheme(.light) // Force light mode
         }
-        .confirmationDialog(
-            "Are you sure you want to delete this yarn?",
-            isPresented: $showConfirmationDialog,
-            titleVisibility: .visible
-        ) {
+        .alert("Are you sure you want to delete this yarn?", isPresented: $showConfirmationDialog) {
             if let yarnToDelete = yarnToDelete {
                 Button("Delete", role: .destructive) {
                     YarnUtils.shared.removeYarn(at: yarnToDelete, with: managedObjectContext)

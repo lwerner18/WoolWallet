@@ -18,6 +18,11 @@
 		042B87F82CB06E0B00B34698 /* Image.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042B87F72CB06E0B00B34698 /* Image.swift */; };
 		042BF1562CA61D9D008740FB /* TextFieldTypeahead.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042BF1552CA61D9D008740FB /* TextFieldTypeahead.swift */; };
 		042CC1E82BAB9BFF008DD2F6 /* ConditionalStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042CC1E72BAB9BFF008DD2F6 /* ConditionalStack.swift */; };
+		043E16E72CB9A0E1005046B6 /* RecYarnForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043E16E62CB9A0E1005046B6 /* RecYarnForm.swift */; };
+		043E16E92CB9A76D005046B6 /* WeightAndYardage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043E16E82CB9A76D005046B6 /* WeightAndYardage.swift */; };
+		043E16EB2CB9AA1A005046B6 /* WeightAndYardageForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043E16EA2CB9AA1A005046B6 /* WeightAndYardageForm.swift */; };
+		043E16ED2CBA0E52005046B6 /* ViewWeightAndYardage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043E16EC2CBA0E52005046B6 /* ViewWeightAndYardage.swift */; };
+		043E16EF2CBB6B6A005046B6 /* CollapsibleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043E16EE2CBB6B6A005046B6 /* CollapsibleView.swift */; };
 		04421B592BAE25110034E16A /* Lato in Resources */ = {isa = PBXBuildFile; fileRef = 04421B582BAE25110034E16A /* Lato */; };
 		04421B602BAE7A050034E16A /* UIImageColors in Frameworks */ = {isa = PBXBuildFile; productRef = 04421B5F2BAE7A050034E16A /* UIImageColors */; };
 		04421B6B2BAF48B30034E16A /* OpenCVWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04421B6A2BAF48B30034E16A /* OpenCVWrapper.mm */; };
@@ -63,9 +68,8 @@
 		04D5C44F2C87DFCD00DC9697 /* PatternList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D5C44E2C87DFCD00DC9697 /* PatternList.swift */; };
 		04D5C4512C87E01E00DC9697 /* ProjectList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D5C4502C87E01E00DC9697 /* ProjectList.swift */; };
 		04E2329B2C9FE802007C8863 /* Sequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E2329A2C9FE802007C8863 /* Sequence.swift */; };
-		04E6018A2CA89A2400865991 /* WeightAndYardageForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E601892CA89A2400865991 /* WeightAndYardageForm.swift */; };
-		04E6018C2CA8B40900865991 /* ViewWeightAndYardage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E6018B2CA8B40900865991 /* ViewWeightAndYardage.swift */; };
 		04E6018E2CA915C100865991 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 04E6018D2CA915C100865991 /* .gitignore */; };
+		04FB6FCA2CB39955008A0FE8 /* InfoCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FB6FC92CB39955008A0FE8 /* InfoCard.swift */; };
 		974625F5C064D7615C374F39 /* Pods_WoolWalletTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CB342E0EDA72B2FE304CA5EF /* Pods_WoolWalletTests.framework */; };
 		D245718BC4A8FD5685EB8A47 /* Pods_WoolWallet_WoolWalletUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4405C73761C0C80F39C184FE /* Pods_WoolWallet_WoolWalletUITests.framework */; };
 		EAFBDCC3A5827221674ADABE /* Pods_WoolWallet.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1C7C36A3BFA48BBBF4CE9E3 /* Pods_WoolWallet.framework */; };
@@ -101,6 +105,11 @@
 		042B87F72CB06E0B00B34698 /* Image.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Image.swift; sourceTree = "<group>"; };
 		042BF1552CA61D9D008740FB /* TextFieldTypeahead.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldTypeahead.swift; sourceTree = "<group>"; };
 		042CC1E72BAB9BFF008DD2F6 /* ConditionalStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConditionalStack.swift; sourceTree = "<group>"; };
+		043E16E62CB9A0E1005046B6 /* RecYarnForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecYarnForm.swift; sourceTree = "<group>"; };
+		043E16E82CB9A76D005046B6 /* WeightAndYardage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightAndYardage.swift; sourceTree = "<group>"; };
+		043E16EA2CB9AA1A005046B6 /* WeightAndYardageForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightAndYardageForm.swift; sourceTree = "<group>"; };
+		043E16EC2CBA0E52005046B6 /* ViewWeightAndYardage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewWeightAndYardage.swift; sourceTree = "<group>"; };
+		043E16EE2CBB6B6A005046B6 /* CollapsibleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollapsibleView.swift; sourceTree = "<group>"; };
 		04421B582BAE25110034E16A /* Lato */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Lato; sourceTree = "<group>"; };
 		04421B692BAF48B30034E16A /* OpenCVWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OpenCVWrapper.h; sourceTree = "<group>"; };
 		04421B6A2BAF48B30034E16A /* OpenCVWrapper.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = OpenCVWrapper.mm; sourceTree = "<group>"; };
@@ -152,9 +161,8 @@
 		04D5C44E2C87DFCD00DC9697 /* PatternList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternList.swift; sourceTree = "<group>"; };
 		04D5C4502C87E01E00DC9697 /* ProjectList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectList.swift; sourceTree = "<group>"; };
 		04E2329A2C9FE802007C8863 /* Sequence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sequence.swift; sourceTree = "<group>"; };
-		04E601892CA89A2400865991 /* WeightAndYardageForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightAndYardageForm.swift; sourceTree = "<group>"; };
-		04E6018B2CA8B40900865991 /* ViewWeightAndYardage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewWeightAndYardage.swift; sourceTree = "<group>"; };
 		04E6018D2CA915C100865991 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		04FB6FC92CB39955008A0FE8 /* InfoCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoCard.swift; sourceTree = "<group>"; };
 		05E59D743EE22A611AB12A69 /* Pods-WoolWallet-WoolWalletUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WoolWallet-WoolWalletUITests.debug.xcconfig"; path = "Target Support Files/Pods-WoolWallet-WoolWalletUITests/Pods-WoolWallet-WoolWalletUITests.debug.xcconfig"; sourceTree = "<group>"; };
 		4405C73761C0C80F39C184FE /* Pods_WoolWallet_WoolWalletUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WoolWallet_WoolWalletUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7338B4F5185D3C1E765D3F2E /* Pods-WoolWalletTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WoolWalletTests.release.xcconfig"; path = "Target Support Files/Pods-WoolWalletTests/Pods-WoolWalletTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -202,6 +210,7 @@
 				042B0A692CAE63B0003CDCF0 /* CrochetHook.swift */,
 				042B0A6B2CAE641C003CDCF0 /* KnittingNeedle.swift */,
 				042699B12CAF90E600F76B10 /* Pattern.swift */,
+				043E16E62CB9A0E1005046B6 /* RecYarnForm.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -354,9 +363,9 @@
 			children = (
 				048D66042CA0E9890051D7A3 /* EditComposition.swift */,
 				04A5C3E42C4C1DE600CD5870 /* ColorPickerView.swift */,
-				04E601892CA89A2400865991 /* WeightAndYardageForm.swift */,
-				04E6018B2CA8B40900865991 /* ViewWeightAndYardage.swift */,
 				042530BC2CB24DF8008804C7 /* MaterialPicker.swift */,
+				043E16EA2CB9AA1A005046B6 /* WeightAndYardageForm.swift */,
+				043E16EC2CBA0E52005046B6 /* ViewWeightAndYardage.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -367,6 +376,7 @@
 				04726D982C9A98BC008769A3 /* Composition.swift */,
 				04B15C5D2C74F6F900A03751 /* StoredColor.swift */,
 				04B15C5F2C76220300A03751 /* Yarn.swift */,
+				043E16E82CB9A76D005046B6 /* WeightAndYardage.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -465,6 +475,8 @@
 				04A5C3EA2C4C1E5200CD5870 /* FormRow.swift */,
 				04A81CF42CA47C6100BF66CC /* ImageCarousel.swift */,
 				042BF1552CA61D9D008740FB /* TextFieldTypeahead.swift */,
+				04FB6FC92CB39955008A0FE8 /* InfoCard.swift */,
+				043E16EE2CBB6B6A005046B6 /* CollapsibleView.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -740,6 +752,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				04A81CFA2CA47E2000BF66CC /* YarnEnums.swift in Sources */,
+				043E16EB2CB9AA1A005046B6 /* WeightAndYardageForm.swift in Sources */,
+				043E16EF2CBB6B6A005046B6 /* CollapsibleView.swift in Sources */,
 				04726D992C9A98BC008769A3 /* Composition.swift in Sources */,
 				04A81CF52CA47C6100BF66CC /* ImageCarousel.swift in Sources */,
 				042B0A682CAE6300003CDCF0 /* PatternItem.swift in Sources */,
@@ -755,6 +769,7 @@
 				04A5C3ED2C4C1E8F00CD5870 /* AnalyzeColorUtils.swift in Sources */,
 				04A5C3E52C4C1DE600CD5870 /* ColorPickerView.swift in Sources */,
 				04B15C622C77BAF100A03751 /* FilterYarn.swift in Sources */,
+				04FB6FCA2CB39955008A0FE8 /* InfoCard.swift in Sources */,
 				04A81CF32CA4743D00BF66CC /* StoredImage.swift in Sources */,
 				04A5C3E72C4C1E1600CD5870 /* UIImage.swift in Sources */,
 				049FAA4F2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage in Sources */,
@@ -765,18 +780,19 @@
 				048D66052CA0E9890051D7A3 /* EditComposition.swift in Sources */,
 				04A5C3E22C4C1DA600CD5870 /* UIColor.swift in Sources */,
 				04B74E752B9B6EFB00D19F52 /* WoolWalletApp.swift in Sources */,
+				043E16ED2CBA0E52005046B6 /* ViewWeightAndYardage.swift in Sources */,
 				047DE4CC2B9FF40600F0A2D5 /* PersistenceController.swift in Sources */,
 				04BAC0C12BAE0D1D00C26CD8 /* GlobalSettings.swift in Sources */,
 				04B710272CA1E76900D9292A /* AnyTransition.swift in Sources */,
 				0466F21D2CA91A780094F3DA /* AddOrEditPatternForm.swift in Sources */,
 				04E2329B2C9FE802007C8863 /* Sequence.swift in Sources */,
+				043E16E72CB9A0E1005046B6 /* RecYarnForm.swift in Sources */,
 				047DE4B02B9EC45600F0A2D5 /* MyTextFieldStyle.swift in Sources */,
 				042BF1562CA61D9D008740FB /* TextFieldTypeahead.swift in Sources */,
 				04D596012B9E9BE000E1913C /* ClearButton.swift in Sources */,
+				043E16E92CB9A76D005046B6 /* WeightAndYardage.swift in Sources */,
 				046A96442BA17B1C00E83055 /* Toast.swift in Sources */,
-				04E6018A2CA89A2400865991 /* WeightAndYardageForm.swift in Sources */,
 				04D5C4512C87E01E00DC9697 /* ProjectList.swift in Sources */,
-				04E6018C2CA8B40900865991 /* ViewWeightAndYardage.swift in Sources */,
 				047DE4CF2B9FF78700F0A2D5 /* Data.xcdatamodeld in Sources */,
 				04D415122C9F61BD004E1AFD /* AddOrEditYarnForm.swift in Sources */,
 				042B0A6C2CAE641C003CDCF0 /* KnittingNeedle.swift in Sources */,
@@ -963,7 +979,6 @@
 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1002,7 +1017,6 @@
 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

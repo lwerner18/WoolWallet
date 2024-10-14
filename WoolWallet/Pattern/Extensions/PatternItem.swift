@@ -10,10 +10,12 @@ import SwiftUI
 import CoreData
 
 extension PatternItem {
-    static func from(item: String, context: NSManagedObjectContext) -> PatternItem {
+    static func from(item: PatternItemField, order: Int, context: NSManagedObjectContext) -> PatternItem {
         let newPatternItem = PatternItem(context: context)
         
-        newPatternItem.item = item
+        newPatternItem.item = item.item.rawValue
+        newPatternItem.itemDescription = item.description
+        newPatternItem.order = Int16(order)
         
         return newPatternItem
     }

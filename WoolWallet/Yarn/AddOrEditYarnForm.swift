@@ -45,9 +45,7 @@ struct AddOrEditYarnForm: View {
     @State private var name                  : String = ""
     @State private var dyer                  : String = ""
     @State private var isSockSet             : Bool = false
-    @State private var weightAndYardage      : WeightAndYardage = WeightAndYardage()
-    @State private var mini1WeightAndYardage : WeightAndYardage = WeightAndYardage()
-    @State private var mini2WeightAndYardage : WeightAndYardage = WeightAndYardage()
+    @State private var weightAndYardages     : [WeightAndYardageData] = [WeightAndYardageData(parent: WeightAndYardageParent.yarn)]
     @State private var notes                 : String = ""
     @State private var caked                 : Bool = false
     @State private var archive               : Bool = false
@@ -62,56 +60,17 @@ struct AddOrEditYarnForm: View {
         
         // Pre-populate the form if editing an existing Yarn
         if let yarnToEdit = yarnToEdit {
-            _name         = State(initialValue : yarnToEdit.name ?? "")
-            _dyer         = State(initialValue : yarnToEdit.dyer ?? "")
-            _notes        = State(initialValue : yarnToEdit.notes ?? "")
-            _caked        = State(initialValue : yarnToEdit.isCaked)
-            _isSockSet    = State(initialValue : yarnToEdit.isSockSet)
-            _hasTwoMinis  = State(initialValue : yarnToEdit.hasTwoMinis)
-            _archive      = State(initialValue : yarnToEdit.isArchived)
-            _images       = State(initialValue : yarnToEdit.uiImages)
-            _composition  = State(initialValue : yarnToEdit.compositionItems)
-            _colorPickers = State(initialValue : yarnToEdit.colorPickerItems)
-            
-            _weightAndYardage = State(
-                initialValue: WeightAndYardage(
-                    weight            : yarnToEdit.weight != nil ? Weight(rawValue: yarnToEdit.weight!)! : Weight.none,
-                    unitOfMeasure     : yarnToEdit.unitOfMeasure != nil ? UnitOfMeasure(rawValue: yarnToEdit.unitOfMeasure!)! : UnitOfMeasure.yards,
-                    length            : yarnToEdit.length != 0 ? yarnToEdit.length : nil,
-                    grams             : yarnToEdit.grams != 0 ? Int(yarnToEdit.grams) : nil,
-                    hasBeenWeighed    : Int(yarnToEdit.hasBeenWeighed),
-                    totalGrams        : yarnToEdit.totalGrams != 0 ? Int(yarnToEdit.totalGrams) : nil,
-                    skeins            : yarnToEdit.skeins,
-                    hasPartialSkein   : yarnToEdit.hasPartialSkein,
-                    exactLength       : yarnToEdit.exactLength
-                )
-            )
-            
-            _mini1WeightAndYardage = State(
-                initialValue: WeightAndYardage(
-                    unitOfMeasure     : yarnToEdit.mini1UnitOfMeasure != nil ? UnitOfMeasure(rawValue: yarnToEdit.mini1UnitOfMeasure!)! : UnitOfMeasure.yards,
-                    length            : yarnToEdit.mini1Length != 0 ? yarnToEdit.mini1Length : nil,
-                    grams             : yarnToEdit.mini1Grams != 0 ? Int(yarnToEdit.mini1Grams) : nil,
-                    hasBeenWeighed    : Int(yarnToEdit.mini1HasBeenWeighed),
-                    totalGrams        : yarnToEdit.mini1TotalGrams != 0 ? Int(yarnToEdit.mini1TotalGrams) : nil,
-                    skeins            : yarnToEdit.mini1Skeins,
-                    hasPartialSkein   : yarnToEdit.mini1HasPartialSkein,
-                    exactLength       : yarnToEdit.mini1ExactLength
-                )
-            )
-            
-            _mini2WeightAndYardage = State(
-                initialValue: WeightAndYardage(
-                    unitOfMeasure     : yarnToEdit.mini2UnitOfMeasure != nil ? UnitOfMeasure(rawValue: yarnToEdit.mini2UnitOfMeasure!)! : UnitOfMeasure.yards,
-                    length            : yarnToEdit.mini2Length != 0 ? yarnToEdit.mini2Length : nil,
-                    grams             : yarnToEdit.mini2Grams != 0 ? Int(yarnToEdit.mini2Grams) : nil,
-                    hasBeenWeighed    : Int(yarnToEdit.mini2HasBeenWeighed),
-                    totalGrams        : yarnToEdit.mini2TotalGrams != 0 ? Int(yarnToEdit.mini2TotalGrams) : nil,
-                    skeins            : yarnToEdit.mini2Skeins,
-                    hasPartialSkein   : yarnToEdit.mini2HasPartialSkein,
-                    exactLength       : yarnToEdit.mini2ExactLength
-                )
-            )
+            _name              = State(initialValue : yarnToEdit.name ?? "")
+            _dyer              = State(initialValue : yarnToEdit.dyer ?? "")
+            _notes             = State(initialValue : yarnToEdit.notes ?? "")
+            _caked             = State(initialValue : yarnToEdit.isCaked)
+            _isSockSet         = State(initialValue : yarnToEdit.isSockSet)
+            _hasTwoMinis       = State(initialValue : yarnToEdit.hasTwoMinis)
+            _archive           = State(initialValue : yarnToEdit.isArchived)
+            _images            = State(initialValue : yarnToEdit.uiImages)
+            _composition       = State(initialValue : yarnToEdit.compositionItems)
+            _colorPickers      = State(initialValue : yarnToEdit.colorPickerItems)
+            _weightAndYardages = State(initialValue : yarnToEdit.weightAndYardageItems)
         }
     }
     
@@ -165,84 +124,29 @@ struct AddOrEditYarnForm: View {
                     
                     Toggle("Sock Set", isOn: $isSockSet.animation())
                         .onChange(of: isSockSet) {
-                            if isSockSet && weightAndYardage.weight == Weight.none {
-                                weightAndYardage.weight = Weight.one
-                            } else if !isSockSet && weightAndYardage.weight == Weight.one {
-                                weightAndYardage.weight = Weight.none
+                            if isSockSet && weightAndYardages.first!.weight == Weight.none {
+                                weightAndYardages[0].weight = Weight.one
+                            } else if !isSockSet && weightAndYardages.first!.weight == Weight.one {
+                                weightAndYardages[0].weight = Weight.none
+                            }
+                            
+                            if isSockSet && weightAndYardages.count == 1 {
+                                addWeightAndYardage()
+                            } else if !isSockSet && weightAndYardages.count > 1 {
+                                weightAndYardages = [weightAndYardages.first!]
                             }
                         }
                 }
                 
-                if isSockSet {
-                    VStack {
-                        Divider()
-                        
-                        HStack {
-                            Text("Main Skein").bold().font(.title)
-                            
-                            Spacer()
-                        }
-                    }
-                    .transition(.slide)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                    .listRowInsets(EdgeInsets())
-                    .background(Color(UIColor.systemGroupedBackground))
-                }
-                
-                WeightAndYardageForm(weightAndYardage: $weightAndYardage, isSockSet: isSockSet, skeinIndex: 0, hasTwoMinis: $hasTwoMinis)
-                
-                if isSockSet {
-                    VStack {
-                        Divider()
-                        
-                        HStack {
-                            Text(hasTwoMinis ? "Mini #1" : "Mini").bold().font(.title)
-                            
-                            Spacer()
-                        }
-                    }
-                    .transition(.slide)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                    .listRowInsets(EdgeInsets())
-                    .background(Color(UIColor.systemGroupedBackground))
-                    
-                    WeightAndYardageForm(weightAndYardage: $mini1WeightAndYardage, isSockSet: isSockSet, skeinIndex: 1, hasTwoMinis: $hasTwoMinis)
-                        .transition(.slide)
-                    
-                    if hasTwoMinis {
-                        VStack {
-                            Divider()
-                            
-                            HStack {
-                                Text("Mini #2").bold().font(.title)
-                                
-                                Spacer()
-                                
-                                Button {
-                                    withAnimation {
-                                        hasTwoMinis = false
-                                    }
-                                } label: {
-                                    Label("", systemImage : "xmark.circle")
-                                        .font(.title2)
-                                        .foregroundColor(.red)
-                                }
-                                
-                            }
-                        }
-                        .transition(.slide)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                        .listRowInsets(EdgeInsets())
-                        .background(Color(UIColor.systemGroupedBackground))
-                        
-                        WeightAndYardageForm(weightAndYardage: $mini2WeightAndYardage, isSockSet: isSockSet, skeinIndex: 2, hasTwoMinis: $hasTwoMinis)
-                            .transition(.slide)
-                    }
-                    
-                    Divider()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                        .listRowInsets(EdgeInsets())
-                        .background(Color(UIColor.systemGroupedBackground))
+                ForEach($weightAndYardages.indices, id: \.self) { index in
+                    WeightAndYardageForm(
+                        weightAndYardage: $weightAndYardages[index],
+                        isSockSet: isSockSet,
+                        order: index,
+                        totalCount: weightAndYardages.count,
+                        addAction: {addWeightAndYardage()},
+                        removeAction: {removeWeightAndYardage(weightAndYardages[index])}
+                    )
                 }
                 
                 if !composition.isEmpty {
@@ -257,7 +161,7 @@ struct AddOrEditYarnForm: View {
                     
                 }
                 
-                Section() {
+                Section(header: Text("What is this yarn made of?")) {
                     NavigationLink {
                         EditComposition(composition: $composition)
                     } label: {
@@ -352,8 +256,16 @@ struct AddOrEditYarnForm: View {
         colorPickers.insert(ColorPickerItem(color: Color.white, name : "White"), at: 0)
     }
     
+    private func addWeightAndYardage() {
+        weightAndYardages.append(WeightAndYardageData(parent: WeightAndYardageParent.yarn))
+    }
+    
     private func removeColorPicker(_ item: ColorPickerItem) {
         colorPickers.removeAll { $0.id == item.id }
+    }
+    
+    private func removeWeightAndYardage(_ item: WeightAndYardageData) {
+        weightAndYardages.removeAll { $0.id == item.id }
     }
     
     func performSegmentation() {
@@ -377,57 +289,32 @@ struct AddOrEditYarnForm: View {
         yarn.dyer = dyer
         yarn.isSockSet = isSockSet
         yarn.hasTwoMinis = hasTwoMinis
-        
-        // main skein
-        yarn.weight            = weightAndYardage.weight.rawValue
-        yarn.unitOfMeasure     = weightAndYardage.unitOfMeasure.rawValue
-        yarn.length            = weightAndYardage.length ?? 0
-        yarn.grams             = Int16(weightAndYardage.grams ?? 0)
-        yarn.hasBeenWeighed    = Int16(weightAndYardage.hasBeenWeighed)
-        yarn.totalGrams        = Int16(weightAndYardage.totalGrams ?? 0)
-        yarn.skeins            = weightAndYardage.skeins
-        yarn.hasPartialSkein   = weightAndYardage.hasBeenWeighed == 0 ? weightAndYardage.hasPartialSkein : false
-        yarn.exactLength       = weightAndYardage.hasBeenWeighed == 1 ? weightAndYardage.exactLength : 0
-        yarn.approximateLength = (yarn.exactLength == 0 && weightAndYardage.length != nil) ? weightAndYardage.length! * weightAndYardage.skeins : 0
-        
-        // first mini
-        yarn.mini1UnitOfMeasure     = mini1WeightAndYardage.unitOfMeasure.rawValue
-        yarn.mini1Length            = mini1WeightAndYardage.length ?? 0
-        yarn.mini1Grams             = Int16(mini1WeightAndYardage.grams ?? 0)
-        yarn.mini1HasBeenWeighed    = Int16(mini1WeightAndYardage.hasBeenWeighed)
-        yarn.mini1TotalGrams        = Int16(mini1WeightAndYardage.totalGrams ?? 0)
-        yarn.mini1Skeins            = mini1WeightAndYardage.skeins
-        yarn.mini1HasPartialSkein   = mini1WeightAndYardage.hasBeenWeighed == 0 ? mini1WeightAndYardage.hasPartialSkein : false
-        yarn.mini1ExactLength       = mini1WeightAndYardage.hasBeenWeighed == 1 ? mini1WeightAndYardage.exactLength : 0
-        yarn.mini1ApproximateLength = (yarn.mini1ExactLength == 0 && mini1WeightAndYardage.length != nil) ? mini1WeightAndYardage.length! * mini1WeightAndYardage.skeins : 0
-        
-        // second mini
-        yarn.mini2UnitOfMeasure     = mini2WeightAndYardage.unitOfMeasure.rawValue
-        yarn.mini2Length            = mini2WeightAndYardage.length ?? 0
-        yarn.mini2Grams             = Int16(mini2WeightAndYardage.grams ?? 0)
-        yarn.mini2HasBeenWeighed    = Int16(mini2WeightAndYardage.hasBeenWeighed)
-        yarn.mini2TotalGrams        = Int16(mini2WeightAndYardage.totalGrams ?? 0)
-        yarn.mini2Skeins            = mini2WeightAndYardage.skeins
-        yarn.mini2HasPartialSkein   = mini2WeightAndYardage.hasBeenWeighed == 0 ? mini2WeightAndYardage.hasPartialSkein : false
-        yarn.mini2ExactLength       = mini2WeightAndYardage.hasBeenWeighed == 1 ? mini2WeightAndYardage.exactLength : 0
-        yarn.mini2ApproximateLength = (yarn.mini2ExactLength == 0 && mini2WeightAndYardage.length != nil) ? mini2WeightAndYardage.length! * mini2WeightAndYardage.skeins : 0
-        
         yarn.isCaked = caked
         yarn.isArchived = archive
         yarn.notes = notes
         
+        // weightAndYardages
+        let weightAndYardageArray: [WeightAndYardage] = weightAndYardages.enumerated().map { (index, element) in
+            return WeightAndYardage.from(data: element, order: index, context: managedObjectContext)
+        }
+        
+        yarn.weightAndYardages = NSSet(array: weightAndYardageArray)
+        
+        // colorPickers
         let storedColors: [StoredColor] = colorPickers.map { item in
             return StoredColor.from(color: item.color, name: item.name, context: managedObjectContext)
         }
         
         yarn.colors = NSSet(array: storedColors)
         
+        // compositions
         let compositions: [Composition] = composition.map { item in
             return Composition.from(compositionItem: item, context: managedObjectContext)
         }
         
         yarn.composition = NSSet(array: compositions)
         
+        // images
         let storedImages: [StoredImage] = images.enumerated().map { (index, element) in
             return StoredImage.from(image: element, order: index, context: managedObjectContext)
         }

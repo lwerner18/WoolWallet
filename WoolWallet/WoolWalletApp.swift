@@ -40,7 +40,6 @@ struct WoolWalletApp: App {
                     }
                     .tag(MainTab.projects)
             }
-            .colorScheme(.light) // Set color scheme to light mode
             .environment(\.managedObjectContext, persistenceController.container.viewContext)
 //            .onAppear {
 //                // correct the transparency bug for Tab bars

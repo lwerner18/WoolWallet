@@ -110,7 +110,7 @@ struct PatternList: View {
                             ) {
                                 let itemDisplay =
                                     PatternUtils.shared.getItemDisplay(
-                                        for: pattern.patternItems.isEmpty ? nil : pattern.patternItems.first
+                                        for: pattern.patternItems.isEmpty ? nil : pattern.patternItems.first?.item
                                     )
                                 HStack {
                                     
@@ -129,12 +129,12 @@ struct PatternList: View {
                                         Spacer()
                                         
                                         Text(pattern.name ?? "No Name")
-                                            .foregroundStyle(Color.black)
+                                            .foregroundStyle(Color.primary)
                                             .bold()
                                         
                                         if pattern.designer != nil {
                                             Text(pattern.designer!)
-                                                .foregroundStyle(Color.gray)
+                                                .foregroundStyle(Color(UIColor.secondaryLabel))
                                                 .font(.footnote)
                                                 .bold()
                                         }
@@ -149,22 +149,22 @@ struct PatternList: View {
                                     
                                     VStack {
                                         Text(pattern.type ?? "")
-                                            .foregroundStyle(Color.black)
+                                            .foregroundStyle(Color.primary)
                                             .font(.caption)
                                         
                                         Text("Used in 0 projects")
-                                            .foregroundStyle(Color.gray)
+                                            .foregroundStyle(Color(UIColor.secondaryLabel))
                                             .font(.caption)
                                     }
                                 }
-                                .swipeActions {
+                                .swipeActions(allowsFullSwipe: false) {
                                     Button {
                                         patternToEdit = pattern
                                     } label: {
                                         Label("", systemImage : "pencil")
                                            
                                     }
-                                    .tint(.blue)
+                                    .tint(Color.accentColor)
                                     
                                     Button(role: .destructive) {
                                         patternToDelete = pattern
@@ -212,17 +212,11 @@ struct PatternList: View {
                     showAddPatternForm = false
                     
                 }
-                .preferredColorScheme(.light) // Force light mode
             }
             .fullScreenCover(item: $patternToEdit, onDismiss: { patternToEdit = nil}) { pattern in
                 AddOrEditPatternForm(patternToEdit : pattern)
-                    .preferredColorScheme(.light) // Force light mode
             }
-            .confirmationDialog(
-                "Are you sure you want to delete this pattern?",
-                isPresented: $showConfirmationDialog,
-                titleVisibility: .visible
-            ) {
+            .alert("Are you sure you want to delete this pattern?", isPresented: $showConfirmationDialog) {
                 if let pattern = patternToDelete {
                     Button("Delete", role: .destructive) {
                         PatternUtils.shared.removePattern(at: pattern, with: managedObjectContext)

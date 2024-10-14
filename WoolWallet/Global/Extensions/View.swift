@@ -24,4 +24,16 @@ extension View {
     func toastView(toast: Binding<Toast?>) -> some View {
         self.modifier(ToastModifier(toast: toast))
     }
+    
+    func infoCapsule() -> some View {
+        self
+            .fixedSize(horizontal: true, vertical: false)
+            .foregroundStyle(Color.primary)
+            .font(.callout)
+            .padding(.vertical, 8) // Padding for the section
+            .padding(.horizontal, 12) // Padding for the section
+            .background(Color(UIColor.secondarySystemGroupedBackground))
+            .cornerRadius(25) // Rounded corners for the section
+            .shadow(radius: 0.5)
+    }
 }
