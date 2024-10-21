@@ -72,7 +72,8 @@ extension Pattern {
                 exactLength       : item.exactLength != 0 ? item.exactLength : nil,
                 approximateLength : item.approxLength != 0 ? item.approxLength : nil,
                 parent            : WeightAndYardageParent(rawValue: item.parent!)!,
-                hasExactLength    : Int(item.hasExactLength)
+                hasExactLength    : Int(item.hasExactLength),
+                existingItem      : item
             )
         }
     }
