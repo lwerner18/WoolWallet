@@ -32,25 +32,22 @@ struct AddOrEditYarnForm: View {
     var onAdd: ((Yarn) -> Void)? // Closure to return the newly added yarn
     
     // Internal state trackers
-    @State private var images = [UIImage]()
-    @State private var showExistingYarnAlert   : Bool = false
-    @State private var existingYarn            : Yarn? = nil
-    @State private var processingColor         : Bool = false
-    @State private var showPartialSkeinSlider  : Bool = false
-    @State private var partialSkein            : Double = 0.0
-    @State private var hasTwoMinis             : Bool = false
-    @State private var maskImage               : UIImage? // This will hold the segmentation mask image
+    @State private var images                : [ImageData] = []
+    @State private var showExistingYarnAlert : Bool = false
+    @State private var existingYarn          : Yarn? = nil
+    @State private var processingColor       : Bool = false
+    @State private var maskImage             : UIImage? // This will hold the segmentation mask image
     
     // Form fields
-    @State private var name                  : String = ""
-    @State private var dyer                  : String = ""
-    @State private var isSockSet             : Bool = false
-    @State private var weightAndYardages     : [WeightAndYardageData] = [WeightAndYardageData(parent: WeightAndYardageParent.yarn)]
-    @State private var notes                 : String = ""
-    @State private var caked                 : Bool = false
-    @State private var archive               : Bool = false
-    @State private var colorPickers          : [ColorPickerItem] = []
-    @State private var composition           : [CompositionItem] = []
+    @State private var name              : String = ""
+    @State private var dyer              : String = ""
+    @State private var isSockSet         : Bool = false
+    @State private var weightAndYardages : [WeightAndYardageData] = [WeightAndYardageData(parent: WeightAndYardageParent.yarn)]
+    @State private var notes             : String = ""
+    @State private var caked             : Bool = false
+    @State private var archive           : Bool = false
+    @State private var colorPickers      : [ColorPickerItem] = []
+    @State private var composition       : [CompositionItem] = []
     
     // init function
     init(toast : Binding<Toast?>, yarnToEdit : Yarn?, onAdd: ((Yarn) -> Void)? = nil) {
@@ -65,7 +62,6 @@ struct AddOrEditYarnForm: View {
             _notes             = State(initialValue : yarnToEdit.notes ?? "")
             _caked             = State(initialValue : yarnToEdit.isCaked)
             _isSockSet         = State(initialValue : yarnToEdit.isSockSet)
-            _hasTwoMinis       = State(initialValue : yarnToEdit.hasTwoMinis)
             _archive           = State(initialValue : yarnToEdit.isArchived)
             _images            = State(initialValue : yarnToEdit.uiImages)
             _composition       = State(initialValue : yarnToEdit.compositionItems)
@@ -189,7 +185,7 @@ struct AddOrEditYarnForm: View {
                 if maskImage != nil {
                     DispatchQueue.global(qos: .background).async {
                         print("Starting to parse color in background")
-                        let distinctColors = AnalyzeColorUtils.shared.yarnColors(from: images.first!, with: maskImage!)
+                        let distinctColors = AnalyzeColorUtils.shared.yarnColors(from: images.first!.image, with: maskImage!)
                         
                         DispatchQueue.main.async { // Ensure UI updates are performed on the main thread
                             print("Done parsing color")
@@ -269,7 +265,7 @@ struct AddOrEditYarnForm: View {
     }
     
     func performSegmentation() {
-        guard let inputImage = self.images.first else { return }
+        guard let inputImage = self.images.first?.image else { return }
         print("Kicking off.")
         DispatchQueue.global(qos: .background).async {
             print("In background")
@@ -284,25 +280,58 @@ struct AddOrEditYarnForm: View {
     }
     
     func persistYarn(yarn : Yarn) -> Yarn {
-        yarn.id = yarn.id != nil ? yarn.id : UUID()
+        let isEdit = yarn.id != nil
+        
+        yarn.id = isEdit ? yarn.id : UUID()
         yarn.name = name
         yarn.dyer = dyer
         yarn.isSockSet = isSockSet
-        yarn.hasTwoMinis = hasTwoMinis
         yarn.isCaked = caked
         yarn.isArchived = archive
         yarn.notes = notes
         
-        // weightAndYardages
+        // delete any items that we don't need anymore
+        if yarnToEdit != nil {
+            yarnToEdit?.weightAndYardageItems.forEach { item in
+                if !weightAndYardages.contains(where: {element in element.id == item.id}) {
+                    managedObjectContext.delete(item.existingItem!)
+                }
+            }
+            
+            yarnToEdit?.colorPickerItems.forEach { item in
+                if !colorPickers.contains(where: {element in element.id == item.id}) {
+                    managedObjectContext.delete(item.existingItem!)
+                }
+            }
+            
+            yarnToEdit?.compositionItems.forEach { item in
+                if !composition.contains(where: {element in element.id == item.id}) {
+                    managedObjectContext.delete(item.existingItem!)
+                }
+            }
+            
+            yarnToEdit?.uiImages.forEach { item in
+                if !images.contains(where: {element in element.id == item.id}) {
+                    managedObjectContext.delete(item.existingItem!)
+                }
+            }
+        }
+        
         let weightAndYardageArray: [WeightAndYardage] = weightAndYardages.enumerated().map { (index, element) in
-            return WeightAndYardage.from(data: element, order: index, context: managedObjectContext)
+            var data = element
+            
+            if index > 0 {
+                data.weight = weightAndYardages.first!.weight
+            }
+            
+            return WeightAndYardage.from(data: data, order: index, context: managedObjectContext)
         }
         
         yarn.weightAndYardages = NSSet(array: weightAndYardageArray)
         
         // colorPickers
         let storedColors: [StoredColor] = colorPickers.map { item in
-            return StoredColor.from(color: item.color, name: item.name, context: managedObjectContext)
+            return StoredColor.from(data: item, context: managedObjectContext)
         }
         
         yarn.colors = NSSet(array: storedColors)
@@ -316,7 +345,7 @@ struct AddOrEditYarnForm: View {
         
         // images
         let storedImages: [StoredImage] = images.enumerated().map { (index, element) in
-            return StoredImage.from(image: element, order: index, context: managedObjectContext)
+            return StoredImage.from(data: element, order: index, context: managedObjectContext)
         }
         
         yarn.images = NSSet(array: storedImages)

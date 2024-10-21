@@ -16,12 +16,20 @@ extension Composition {
     
     // Create a StoredColor instance from a SwiftUI Color
     static func from(compositionItem : CompositionItem, context: NSManagedObjectContext) -> Composition {
-        let newComposition = Composition(context: context)
-        newComposition.id = compositionItem.id
-        newComposition.percentage = Int16(compositionItem.percentage)
-        newComposition.material = compositionItem.material
-        newComposition.materialDescription = compositionItem.materialDescription
-        return newComposition
+        var composition : Composition
+        
+        if compositionItem.existingItem != nil {
+            composition = compositionItem.existingItem!
+        } else {
+            composition = Composition(context: context)
+        }
+        
+        composition.id = compositionItem.id
+        composition.percentage = Int16(compositionItem.percentage)
+        composition.material = compositionItem.material
+        composition.materialDescription = compositionItem.materialDescription
+        
+        return composition
     }
 }
 

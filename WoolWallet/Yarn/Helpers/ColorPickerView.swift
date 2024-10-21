@@ -239,9 +239,10 @@ struct SquareColorPickerView: View {
 }
 
 struct ColorPickerItem: Identifiable {
-    let id = UUID()
-    var color: Color
-    var name: String
+    var id           : UUID = UUID()
+    var color        : Color
+    var name         : String
+    var existingItem : StoredColor? = nil
 }
 
 struct ColorPickerView: View {

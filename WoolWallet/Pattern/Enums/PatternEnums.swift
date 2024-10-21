@@ -13,6 +13,7 @@ enum PatternType : String, CaseIterable, Identifiable {
     
     case crochet = "Crochet"
     case knit = "Knit"
+    case tunisianCrochet = "Tunisian Crochet"
 }
 
 enum CrochetHookSize : String, CaseIterable, Identifiable {

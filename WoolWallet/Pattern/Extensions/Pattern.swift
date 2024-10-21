@@ -17,35 +17,39 @@ extension Pattern {
         
         return sortedItems.map { patternItem in
             return PatternItemField(
+                id : patternItem.id!,
                 item: Item(rawValue: patternItem.item!)!,
-                description: patternItem.itemDescription!
+                description: patternItem.itemDescription!,
+                existingItem: patternItem
             )
         }
     }
     
-    var crochetHooks: [CrochetHookSize] {
+    var crochetHooks: [Hook] {
         let crochetHooks = hooks?.allObjects as? [CrochetHook] ?? []
         
         let sortedHooks = crochetHooks.sorted { $0.order < $1.order}
         
         return sortedHooks.map { hook in
-            return CrochetHookSize(rawValue: hook.size!)!
+            return Hook(
+                id: hook.id!,
+                hook: CrochetHookSize(rawValue: hook.size!)!,
+                existingItem: hook
+            )
         }
     }
     
-    func matchingYarns(in context: NSManagedObjectContext) -> [Yarn] {
-        let fetchRequest: NSFetchRequest<Yarn> = Yarn.fetchRequest()
+    var knittingNeedles: [Needle] {
+        let knittingNeedles = needles?.allObjects as? [KnittingNeedle] ?? []
         
-        return []
+        let sortedNeedles = knittingNeedles.sorted { $0.order < $1.order}
         
-//        // Set a predicate to filter yarns based on composition weights
-//        fetchRequest.predicate = NSPredicate(format: "ANY weight == %@", self.recWeight ?? "")
-        
-        do {
-            return try context.fetch(fetchRequest)
-        } catch {
-            print("Failed to fetch matching yarns: \(error)")
-            return []
+        return sortedNeedles.map { needle in
+            return Needle(
+                id: needle.id!,
+                needle: KnitNeedleSize(rawValue: needle.size!)!,
+                existingItem: needle
+            )
         }
     }
     
@@ -56,6 +60,7 @@ extension Pattern {
         
         return sortedWeightsAndYardages.map { item in
             return WeightAndYardageData(
+                id                : item.id!,
                 weight            : item.weight != nil ? Weight(rawValue: item.weight!)! : Weight.none,
                 unitOfMeasure     : item.unitOfMeasure != nil ? UnitOfMeasure(rawValue: item.unitOfMeasure!)! : UnitOfMeasure.yards,
                 yardage           : item.yardage != 0 ? item.yardage : nil,
@@ -64,8 +69,8 @@ extension Pattern {
                 totalGrams        : item.totalGrams != 0 ? item.totalGrams : nil,
                 skeins            : item.skeins,
                 hasPartialSkein   : item.hasPartialSkein,
-                exactLength       : item.exactLength,
-                approximateLength : item.approxLength,
+                exactLength       : item.exactLength != 0 ? item.exactLength : nil,
+                approximateLength : item.approxLength != 0 ? item.approxLength : nil,
                 parent            : WeightAndYardageParent(rawValue: item.parent!)!,
                 hasExactLength    : Int(item.hasExactLength)
             )

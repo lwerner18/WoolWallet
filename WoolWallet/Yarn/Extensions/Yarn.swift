@@ -12,15 +12,20 @@ extension Yarn {
     var colorPickerItems: [ColorPickerItem] {
         let storedColors = colors?.allObjects as? [StoredColor] ?? []
         
-        return storedColors.map { storedColor in
+        return storedColors.map { item in
             let color = Color(
-                red: storedColor.red,
-                green: storedColor.green,
-                blue: storedColor.blue,
-                opacity: storedColor.alpha
+                red: item.red,
+                green: item.green,
+                blue: item.blue,
+                opacity: item.alpha
             )
             
-            return ColorPickerItem(color: color, name: storedColor.name!)
+            return ColorPickerItem(
+                id: item.id!,
+                color: color,
+                name: item.name!,
+                existingItem: item
+            )
         }
     }
     
@@ -29,20 +34,26 @@ extension Yarn {
         
         return compositions.map { composition in
             return CompositionItem(
+                id : composition.id!,
                 percentage: Int(composition.percentage),
                 material: composition.material!,
-                materialDescription: composition.materialDescription!
+                materialDescription: composition.materialDescription!,
+                existingItem: composition
             )
         }
     }
     
-    var uiImages: [UIImage] {
+    var uiImages: [ImageData] {
         let storedImages = images?.allObjects as? [StoredImage] ?? []
         
         let sortedImages = storedImages.sorted { $0.order < $1.order}
         
         return sortedImages.map { storedImage in
-            return UIImage(data: storedImage.image ?? Data())!
+            return ImageData(
+                id : storedImage.id!,
+                image: UIImage(data: storedImage.image ?? Data())!,
+                existingItem: storedImage
+            )
         }
     }
     
@@ -53,6 +64,7 @@ extension Yarn {
         
         return sortedWeightsAndYardages.map { item in
             return WeightAndYardageData(
+                id                : item.id!,
                 weight            : item.weight != nil ? Weight(rawValue: item.weight!)! : Weight.none,
                 unitOfMeasure     : item.unitOfMeasure != nil ? UnitOfMeasure(rawValue: item.unitOfMeasure!)! : UnitOfMeasure.yards,
                 yardage           : item.yardage != 0 ? item.yardage : nil,
@@ -64,7 +76,8 @@ extension Yarn {
                 exactLength       : item.exactLength,
                 approximateLength : item.approxLength,
                 parent            : WeightAndYardageParent(rawValue: item.parent!)!,
-                hasExactLength    : Int(item.hasExactLength)
+                hasExactLength    : Int(item.hasExactLength),
+                existingItem      : item
             )
         }
     }

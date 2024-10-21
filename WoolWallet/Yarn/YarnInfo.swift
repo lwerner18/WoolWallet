@@ -84,7 +84,7 @@ struct YarnInfo: View {
                     ImageCarousel(images : .constant(yarn.uiImages))
                     
                     VStack {
-                        Text(yarn.name ?? "N/A").bold().font(.largeTitle).foregroundStyle(Color.primary)
+                        Text(yarn.name ?? "N/A").bold().font(.largeTitle).foregroundStyle(Color.primary).multilineTextAlignment(.center)
                         
                         Text(yarn.dyer ?? "N/A").bold().foregroundStyle(Color(UIColor.secondaryLabel))
                     }

@@ -31,7 +31,9 @@ struct CollapsibleView<Label, Content>: View where Label: View, Content: View {
                     if showArrows {
                         Spacer()
                         
-                        Image(systemName: isSecondaryViewVisible ? "chevron.down" : "chevron.up")
+                        Image(systemName: isSecondaryViewVisible ? "chevron.up" : "chevron.down")
+                            .foregroundStyle(Color.accentColor)
+                            .contentTransition(.symbolEffect(.replace))
                     }
                 }
             }
@@ -43,7 +45,7 @@ struct CollapsibleView<Label, Content>: View where Label: View, Content: View {
                             isSecondaryViewVisible.toggle()
                         }
                     }
-                    .transition(.move(edge: .bottom))
+                   
             }
         }
         .onAppear {

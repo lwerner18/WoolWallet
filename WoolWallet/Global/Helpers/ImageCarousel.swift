@@ -9,8 +9,14 @@ import Foundation
 import SwiftUI
 import PhotosUI
 
+struct ImageData: Equatable {
+    var id = UUID()
+    var image : UIImage
+    var existingItem : StoredImage? = nil
+}
+
 struct ImageCarousel: View {
-    @Binding var images: [UIImage]
+    @Binding var images: [ImageData]
     var editMode: Bool? = false
     var smallMode : Bool? = false
     var editExistingImages : Bool? = false
@@ -54,7 +60,7 @@ struct ImageCarousel: View {
                     ScrollView(.horizontal) {
                         LazyHStack(spacing: 0) {
                             ForEach(0..<images.count,id: \.self){ imageIndex in
-                                Image(uiImage: images[imageIndex])
+                                Image(uiImage: images[imageIndex].image)
                                     .resizable()
                                     .aspectRatio(contentMode: smallMode! ? .fill : .fit)
                                     .clipShape(RoundedRectangle(cornerRadius: 25.0))
@@ -162,7 +168,7 @@ struct ImageCarousel: View {
                     for item in selectedImages {
                         if let data = try? await item.loadTransferable(type: Data.self) {
                             let image = UIImage(data: data)
-                            images.append(image!)
+                            images.append(ImageData(image: image!))
                         } else {
                             print("Failed to load the image")
                         }

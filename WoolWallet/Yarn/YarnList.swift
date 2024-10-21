@@ -343,6 +343,7 @@ struct YarnList: View {
                                         
                                         
                                         Text(yarn.name ?? "No Name")
+                                            .multilineTextAlignment(.center)
                                             .foregroundStyle(Color.primary)
                                             .bold()
                                         

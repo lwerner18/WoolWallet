@@ -10,12 +10,24 @@ import SwiftUI
 import CoreData
 
 extension KnittingNeedle {
-    static func from(size: String, context: NSManagedObjectContext) -> KnittingNeedle {
-        let newKnittingNeedle = KnittingNeedle(context: context)
+    convenience init(context: NSManagedObjectContext) {
+        self.init(entity: KnittingNeedle.entity(), insertInto: context)
+        self.id = UUID() // Set a unique ID
+    }
+    
+    static func from(needle: Needle, order: Int, context: NSManagedObjectContext) -> KnittingNeedle {
+        var knittingNeedle : KnittingNeedle
         
-        newKnittingNeedle.size = size
+        if needle.existingItem != nil {
+            knittingNeedle = needle.existingItem!
+        } else {
+            knittingNeedle = KnittingNeedle(context: context)
+        }
         
-        return newKnittingNeedle
+        knittingNeedle.size = needle.needle.rawValue
+        knittingNeedle.order = Int16(order)
+        
+        return knittingNeedle
     }
 }
 

@@ -10,17 +10,28 @@ import SwiftUI
 import CoreData
 
 extension StoredImage {
+    convenience init(context: NSManagedObjectContext) {
+        self.init(entity: StoredImage.entity(), insertInto: context)
+        self.id = UUID() // Set a unique ID
+    }
+    
     // Create a StoredColor instance from a SwiftUI Color
-    static func from(image: UIImage, order: Int, context: NSManagedObjectContext) -> StoredImage {
-        let newStoredImage = StoredImage(context: context)
+    static func from(data: ImageData, order: Int, context: NSManagedObjectContext) -> StoredImage {
+        var storedImage : StoredImage
         
-        guard let imageData = image.jpegData(compressionQuality: 1.0) else {
-            return newStoredImage
+        if data.existingItem != nil {
+            storedImage = data.existingItem!
+        } else {
+            storedImage = StoredImage(context: context)
         }
         
-        newStoredImage.image = imageData
-        newStoredImage.order = Int16(order)
+        guard let imageData = data.image.jpegData(compressionQuality: 1.0) else {
+            return storedImage
+        }
+        
+        storedImage.image = imageData
+        storedImage.order = Int16(order)
     
-        return newStoredImage
+        return storedImage
     }
 }

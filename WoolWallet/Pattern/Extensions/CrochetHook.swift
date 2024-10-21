@@ -10,13 +10,24 @@ import SwiftUI
 import CoreData
 
 extension CrochetHook {
-    static func from(size: String, order: Int, context: NSManagedObjectContext) -> CrochetHook {
-        let newChrochetHook = CrochetHook(context: context)
+    convenience init(context: NSManagedObjectContext) {
+        self.init(entity: CrochetHook.entity(), insertInto: context)
+        self.id = UUID() // Set a unique ID
+    }
+    
+    static func from(hook: Hook, order: Int, context: NSManagedObjectContext) -> CrochetHook {
+        var crochetHook : CrochetHook
         
-        newChrochetHook.size = size
-        newChrochetHook.order = Int16(order)
+        if hook.existingItem != nil {
+            crochetHook = hook.existingItem!
+        } else {
+            crochetHook = CrochetHook(context: context)
+        }
         
-        return newChrochetHook
+        crochetHook.size = hook.hook.rawValue
+        crochetHook.order = Int16(order)
+        
+        return crochetHook
     }
 }
 

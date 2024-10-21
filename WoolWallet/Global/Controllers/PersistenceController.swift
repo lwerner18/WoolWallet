@@ -36,6 +36,8 @@ struct PersistenceController {
                 fatalError("Error: \(error.localizedDescription)")
             }
         }
+        
+        container.viewContext.automaticallyMergesChangesFromParent = true
     }
     
     func save() {

@@ -41,6 +41,10 @@ struct WoolWalletApp: App {
                     .tag(MainTab.projects)
             }
             .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            .onAppear {
+                print("Documents Directory: \(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path ?? "Not found")")
+
+            }
 //            .onAppear {
 //                // correct the transparency bug for Tab bars
 //                let tabBarAppearance = UITabBarAppearance()

@@ -10,15 +10,24 @@ import SwiftUI
 import CoreData
 
 extension StoredColor {
-    // Create a StoredColor instance from a SwiftUI Color
-    static func from(color: Color, name: String, context: NSManagedObjectContext) -> StoredColor {
-        let components = color.cgColor?.components ?? [0, 0, 0, 1]
-        let newStoredColor = StoredColor(context: context)
-        newStoredColor.red = Double(components[0])
-        newStoredColor.green = Double(components[1])
-        newStoredColor.blue = Double(components[2])
-        newStoredColor.alpha = Double(components[3])
-        newStoredColor.name = name
-        return newStoredColor
+    
+    static func from(data: ColorPickerItem, context: NSManagedObjectContext) -> StoredColor {
+        let components = data.color.cgColor?.components ?? [0, 0, 0, 1]
+        
+        var storedColor : StoredColor
+        
+        if data.existingItem != nil {
+            storedColor = data.existingItem!
+        } else {
+            storedColor = StoredColor(context: context)
+        }
+        
+        storedColor.red = Double(components[0])
+        storedColor.green = Double(components[1])
+        storedColor.blue = Double(components[2])
+        storedColor.alpha = Double(components[3])
+        storedColor.name = data.name
+        
+        return storedColor
     }
 }

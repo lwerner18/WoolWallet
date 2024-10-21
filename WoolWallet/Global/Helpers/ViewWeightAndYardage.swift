@@ -13,6 +13,7 @@ struct ViewWeightAndYardage: View {
     var isSockSet : Bool = false
     var order : Int = 0
     var totalCount : Int
+    var hideName : Bool = false
     
     // Computed property to format length to two decimal places if number is a fraction
     var formattedYardage: String {
@@ -32,7 +33,7 @@ struct ViewWeightAndYardage: View {
     }
     
     var body: some View {
-        if totalCount > 1  {
+        if totalCount > 1 && !hideName  {
             Divider().padding()
             
             HStack {
@@ -58,7 +59,7 @@ struct ViewWeightAndYardage: View {
                     HStack {
                         Spacer()
                         
-                        Text("\(formattedYardage) \(weightAndYardage.unitOfMeasure.rawValue) / \(weightAndYardage.grams!) grams")
+                        Text("\(formattedYardage) \(weightAndYardage.unitOfMeasure.rawValue.lowercased()) / \(weightAndYardage.grams!) grams")
                             .font(.headline).bold().foregroundStyle(Color.primary)
                         
                         Spacer()
@@ -91,11 +92,11 @@ struct ViewWeightAndYardage: View {
                     .yarnDataRow()
                     
                     Divider()
-                } else if weightAndYardage.approximateLength > 0 {
+                } else if weightAndYardage.approximateLength != nil {
                     HStack {
                         Text(isPattern ? "Estimated Length Needed" : "Length Estimate").foregroundStyle(Color(UIColor.secondaryLabel))
                         Spacer()
-                        Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.approximateLength)) ?? "1") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())").font(.headline).bold().foregroundStyle(Color.primary)
+                        Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.approximateLength!)) ?? "1") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())").font(.headline).bold().foregroundStyle(Color.primary)
                     }
                     .yarnDataRow()
                     
@@ -142,7 +143,7 @@ struct ViewWeightAndYardage: View {
                 }
             }
         } else if totalCount > 1 {
-            return "Color \(order + 1)"
+            return "Color \(PatternUtils.shared.getLetter(for: order))"
         }
         
         return ""

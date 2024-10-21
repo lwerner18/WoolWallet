@@ -10,13 +10,24 @@ import SwiftUI
 import CoreData
 
 extension PatternItem {
+    convenience init(context: NSManagedObjectContext) {
+        self.init(entity: PatternItem.entity(), insertInto: context)
+        self.id = UUID() // Set a unique ID
+    }
+    
     static func from(item: PatternItemField, order: Int, context: NSManagedObjectContext) -> PatternItem {
-        let newPatternItem = PatternItem(context: context)
+        var patternItem : PatternItem
         
-        newPatternItem.item = item.item.rawValue
-        newPatternItem.itemDescription = item.description
-        newPatternItem.order = Int16(order)
+        if item.existingItem != nil {
+            patternItem = item.existingItem!
+        } else {
+            patternItem = PatternItem(context: context)
+        }
         
-        return newPatternItem
+        patternItem.item = item.item.rawValue
+        patternItem.itemDescription = item.description
+        patternItem.order = Int16(order)
+        
+        return patternItem
     }
 }

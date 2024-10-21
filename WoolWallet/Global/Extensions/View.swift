@@ -25,13 +25,13 @@ extension View {
         self.modifier(ToastModifier(toast: toast))
     }
     
-    func infoCapsule() -> some View {
+    func infoCapsule(isSmall : Bool = false) -> some View {
         self
             .fixedSize(horizontal: true, vertical: false)
             .foregroundStyle(Color.primary)
-            .font(.callout)
-            .padding(.vertical, 8) // Padding for the section
-            .padding(.horizontal, 12) // Padding for the section
+            .font(isSmall ? .caption2 : .callout)
+            .padding(.vertical, isSmall ? 5 : 8) // Padding for the section
+            .padding(.horizontal, isSmall ? 8 : 12) // Padding for the section
             .background(Color(UIColor.secondarySystemGroupedBackground))
             .cornerRadius(25) // Rounded corners for the section
             .shadow(radius: 0.5)

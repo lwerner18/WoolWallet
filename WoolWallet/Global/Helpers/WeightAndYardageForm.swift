@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import CoreData
 
 enum WeightAndYardageParent : String, CaseIterable, Identifiable {
     var id : String { UUID().uuidString }
@@ -16,7 +17,7 @@ enum WeightAndYardageParent : String, CaseIterable, Identifiable {
 }
 
 struct WeightAndYardageData {
-    let id                : UUID = UUID()
+    var id                : UUID = UUID()
     var weight            : Weight = Weight.none
     var unitOfMeasure     : UnitOfMeasure = UnitOfMeasure.yards
     var yardage           : Double? = nil
@@ -26,9 +27,10 @@ struct WeightAndYardageData {
     var skeins            : Double = 1
     var hasPartialSkein   : Bool = false
     var exactLength       : Double? = nil
-    var approximateLength : Double = 0
+    var approximateLength : Double? = nil
     var parent            : WeightAndYardageParent = WeightAndYardageParent.yarn
     var hasExactLength    : Int = -1
+    var existingItem      : WeightAndYardage? = nil
     
     func hasBeenEdited() -> Bool {
         return weight != Weight.none
@@ -40,8 +42,60 @@ struct WeightAndYardageData {
         || skeins != 1
         || hasPartialSkein != false
         || exactLength != nil
-        || approximateLength != 0
+        || approximateLength != nil
         || hasExactLength != -1
+    }
+    
+    func matchingYarns(in context: NSManagedObjectContext) -> [WeightAndYardage] {
+        let fetchRequest: NSFetchRequest<WeightAndYardage> = WeightAndYardage.fetchRequest()
+        
+        let length = exactLength ?? approximateLength ?? 0
+        let allowedDeviation = 0.15
+        var ratio = 0.0
+        
+        print("length", length)
+        
+        if yardage != nil && grams != nil {
+            ratio = yardage! / Double(grams!)
+        }
+        
+        var predicates: [NSPredicate] = []
+        
+        // only yarn parents
+        predicates.append(NSPredicate(format: "parent == %@", WeightAndYardageParent.yarn.rawValue))
+        
+        // weight filter
+        predicates.append(NSPredicate(format: "weight == %@", weight.rawValue))
+        
+        // length filter
+        predicates.append(NSCompoundPredicate(orPredicateWithSubpredicates: [
+            NSPredicate(format: "exactLength > %@", NSNumber(value: length)),
+            NSPredicate(format: "approxLength > %@", NSNumber(value: length))
+        ]))
+        
+        // ratio filter
+        if ratio > 0.0 {
+            predicates.append(
+                NSPredicate(
+                    format: "grams > 0 AND (yardage / grams >= %@) AND (yardage / grams <= %@)",
+                    NSNumber(value: ratio - allowedDeviation),
+                    NSNumber(value: ratio + allowedDeviation)
+                )
+            )
+        }
+        
+        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+        
+        do {
+            let result = try context.fetch(fetchRequest)
+            
+            print(result.first?.weight)
+            print(result.first?.parent)
+            return try context.fetch(fetchRequest)
+        } catch {
+            print("Failed to fetch matching yarns: \(error)")
+            return []
+        }
     }
 }
 
@@ -206,6 +260,7 @@ struct WeightAndYardageForm: View {
                 .onChange(of: weightAndYardage.hasExactLength) {
                     weightAndYardage.skeins = 1
                     weightAndYardage.exactLength = nil
+                    weightAndYardage.approximateLength = nil
                 }
                 
                 if weightAndYardage.hasExactLength == 1 {
@@ -224,11 +279,11 @@ struct WeightAndYardageForm: View {
                             }
                         }
                     
-                    if weightAndYardage.approximateLength > 0 {
+                    if weightAndYardage.approximateLength != nil {
                         HStack {
                             Text("Estimated Length Needed")
                             Spacer()
-                            Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.approximateLength)) ?? "0") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
+                            Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.approximateLength!)) ?? "0") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
                         }
                     }
                 }
@@ -259,12 +314,11 @@ struct WeightAndYardageForm: View {
                 }
                 .pickerStyle(SegmentedPickerStyle())
                 .onChange(of: weightAndYardage.hasBeenWeighed) {
-                    if weightAndYardage.hasBeenWeighed == 0 {
-                        weightAndYardage.skeins = 1
-                        weightAndYardage.hasPartialSkein = false
-                    } else if weightAndYardage.hasBeenWeighed == 1 {
-                        weightAndYardage.totalGrams = nil
-                    }
+                    weightAndYardage.skeins = 1
+                    weightAndYardage.hasPartialSkein = false
+                    weightAndYardage.totalGrams = nil
+                    weightAndYardage.exactLength = nil
+                    weightAndYardage.approximateLength = nil
                 }
                 
                 if weightAndYardage.hasBeenWeighed == 1 {
@@ -314,11 +368,11 @@ struct WeightAndYardageForm: View {
                     
                     Toggle("Partial Skein", isOn: $weightAndYardage.hasPartialSkein)
                     
-                    if weightAndYardage.approximateLength > 0 {
+                    if weightAndYardage.approximateLength != nil {
                         HStack {
                             Text("Length Estimate")
                             Spacer()
-                            Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.approximateLength)) ?? "0") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
+                            Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.approximateLength!)) ?? "0") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
                         }
                     }
                 }
@@ -337,10 +391,9 @@ struct WeightAndYardageForm: View {
                 }
             }
         } else if totalCount > 1 {
-            return "Color \(order + 1)"
+            return "Color \(PatternUtils.shared.getLetter(for: order))"
         }
         
         return ""
     }
 }
-

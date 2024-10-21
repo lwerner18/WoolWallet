@@ -98,7 +98,7 @@ struct PatternInfo: View {
                     
                     HStack {
                         HStack {
-                            Image(pattern.type == PatternType.crochet.rawValue ? "crochet2" : "knit")
+                            Image(pattern.type == PatternType.knit.rawValue ? "knit" : "crochet2")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 15, height: 15)
@@ -115,19 +115,52 @@ struct PatternInfo: View {
                     }
                     
                     VStack {
-                        if !pattern.patternItems.isEmpty {
+                        if !pattern.patternItems.isEmpty && pattern.patternItems.first!.item != Item.none {
                             InfoCard() {
                                 Text(joinedItems(patternItems: pattern.patternItems)).font(.headline).bold().foregroundStyle(Color.primary)
                                     .frame(maxWidth: .infinity)
                             }
                         }
                         
-                        ForEach(pattern.matchingYarns(in: managedObjectContext)) { yarn in
-                            Text(yarn.name!)
-                            Text(yarn.weight ?? "N/A")
+                        if pattern.weightAndYardageItems.count > 3 {
+                            ForEach(pattern.weightAndYardageItems.indices, id: \.self) { index in
+                                let item = pattern.weightAndYardageItems[index]
+                                
+                                InfoCard() {
+                                    CollapsibleView(
+                                        label : {
+                                            RecYarnHeader(count: pattern.weightAndYardageItems.count, index: index, weightAndYardage: item)
+                                        },
+                                        showArrows : true
+                                    ) {
+                                        ViewWeightAndYardage(
+                                            weightAndYardage: item,
+                                            isSockSet: false,
+                                            order: index,
+                                            totalCount: pattern.weightAndYardageItems.count,
+                                            hideName : true
+                                        )
+                                    }
+                                }
+                                
+                                YarnSuggestions(weightAndYardage: item)
+                            }
+                        } else {
+                            ForEach(pattern.weightAndYardageItems.indices, id: \.self) { index in
+                                let item = pattern.weightAndYardageItems[index]
+                                
+                                ViewWeightAndYardage(
+                                    weightAndYardage: item,
+                                    isSockSet: false,
+                                    order: index,
+                                    totalCount: pattern.weightAndYardageItems.count
+                                )
+                                
+                                YarnSuggestions(weightAndYardage: item)
+                            }
                         }
                         
-                        if pattern.intendedSize != nil {
+                        if pattern.intendedSize != nil && pattern.intendedSize != "" {
                             InfoCard() {
                                 HStack {
                                     Text("Intended Size").foregroundStyle(Color(UIColor.secondaryLabel))

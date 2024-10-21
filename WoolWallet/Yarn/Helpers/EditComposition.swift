@@ -10,10 +10,11 @@ import SwiftUI
 import Charts
 
 struct CompositionItem : Identifiable, Hashable {
-    let id = UUID()
+    var id = UUID()
     var percentage: Int
     var material: String
     var materialDescription : String = ""
+    var existingItem : Composition? = nil
 }
 
 //struct MaterialItem: Identifiable, Equatable {

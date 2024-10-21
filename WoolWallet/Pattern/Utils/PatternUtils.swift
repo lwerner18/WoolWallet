@@ -16,6 +16,9 @@ struct ItemDisplay {
 
 }
 
+// Array of letters
+let letters: [String] = Array("ABCDEFGHIJKLMNOPQRSTUVWXYZ").map { String($0) }
+
 class PatternUtils {
     static let shared = PatternUtils()
     
@@ -29,7 +32,7 @@ class PatternUtils {
     
     func getItemDisplay(for item: Item?) -> ItemDisplay {
         
-        if item == nil {
+        if item == nil || item == Item.none {
             return ItemDisplay(color: Color.gray.opacity(0.5), icon: "minus")
         }
         
@@ -47,5 +50,13 @@ class PatternUtils {
         case .householdItem : return ItemDisplay(color: Color(hex : "#DAA520"), icon: "house")
         default             : return ItemDisplay(color: Color(hex : "#E7D46E"), icon: "questionmark")
         }
+    }
+    
+    func getLetter(for index: Int) -> String {
+        if index > letters.count {
+            return String(index)
+        }
+        
+        return letters[index]
     }
 }
