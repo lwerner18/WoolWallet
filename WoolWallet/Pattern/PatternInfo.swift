@@ -9,6 +9,11 @@ import Foundation
 import SwiftUI
 import CoreData
 
+struct YarnSuggestion {
+    var patternWAndY : WeightAndYardageData
+    var suggestedWAndY : [WeightAndYardage] = []
+}
+
 struct PatternInfo: View {
     // @Environment variables
     @Environment(\.dismiss) private var dismiss
@@ -28,6 +33,7 @@ struct PatternInfo: View {
     @State private var showEditPatternForm : Bool = false
     @State private var showConfirmationDialog = false
     @State private var animateCheckmark = false
+    @State private var yarnSuggestions : [YarnSuggestion] = []
     
     
     // Computed property to calculate if device is most likely in portrait mode
@@ -117,14 +123,19 @@ struct PatternInfo: View {
                     VStack {
                         if !pattern.patternItems.isEmpty && pattern.patternItems.first!.item != Item.none {
                             InfoCard() {
-                                Text(joinedItems(patternItems: pattern.patternItems)).font(.headline).bold().foregroundStyle(Color.primary)
-                                    .frame(maxWidth: .infinity)
+                                Text(
+                                    PatternUtils.shared.joinedItems(patternItems: pattern.patternItems)
+                                )
+                                .font(.headline)
+                                .bold()
+                                .foregroundStyle(Color.primary)
+                                .frame(maxWidth: .infinity)
                             }
                         }
                         
                         if pattern.weightAndYardageItems.count > 3 {
                             ForEach(pattern.weightAndYardageItems.indices, id: \.self) { index in
-                                let item = pattern.weightAndYardageItems[index]
+                                let item : WeightAndYardageData = pattern.weightAndYardageItems[index]
                                 
                                 InfoCard() {
                                     CollapsibleView(
@@ -143,11 +154,16 @@ struct PatternInfo: View {
                                     }
                                 }
                                 
-                                YarnSuggestions(weightAndYardage: item)
+                                if let suggestion : YarnSuggestion = yarnSuggestions.first(where: {$0.patternWAndY.id == item.id}) {
+                                    YarnSuggestions(
+                                        weightAndYardage: item,
+                                        matchingWeightAndYardage: suggestion.suggestedWAndY
+                                    )
+                                }
                             }
                         } else {
                             ForEach(pattern.weightAndYardageItems.indices, id: \.self) { index in
-                                let item = pattern.weightAndYardageItems[index]
+                                let item : WeightAndYardageData = pattern.weightAndYardageItems[index]
                                 
                                 ViewWeightAndYardage(
                                     weightAndYardage: item,
@@ -156,7 +172,12 @@ struct PatternInfo: View {
                                     totalCount: pattern.weightAndYardageItems.count
                                 )
                                 
-                                YarnSuggestions(weightAndYardage: item)
+                                if let suggestion : YarnSuggestion = yarnSuggestions.first(where: {$0.patternWAndY.id == item.id}) {
+                                    YarnSuggestions(
+                                        weightAndYardage: item,
+                                        matchingWeightAndYardage: suggestion.suggestedWAndY
+                                    )
+                                }
                             }
                         }
                         
@@ -212,36 +233,23 @@ struct PatternInfo: View {
             
         }
         .background(Color(UIColor.systemGroupedBackground))
-    }
-    
-    // Function to join color names with commas
-    func joinedItems(patternItems : [PatternItemField]) -> String {
-        var itemsSet = Set<String>()
-        
-        for pattern in patternItems {
-            if pattern.item == Item.other {
-                if pattern.description != "" {
-                    itemsSet.insert(pattern.description.lowercased())
+        .onAppear {
+            DispatchQueue.global(qos: .background).async {
+                var temp : [YarnSuggestion] = []
+                
+                for wAndY in pattern.weightAndYardageItems {
+                    temp.append(
+                        YarnSuggestion(
+                            patternWAndY: wAndY,
+                            suggestedWAndY: PatternUtils.shared.getMatchingYarns(for: wAndY, in: managedObjectContext)
+                        )
+                    )
                 }
-            } else {
-                itemsSet.insert(pattern.item.rawValue.lowercased())
+                
+                DispatchQueue.main.async { // Ensure UI updates are performed on the main thread
+                    self.yarnSuggestions = temp
+                }
             }
         }
-        
-        var items = Array(itemsSet)
-        
-        if items.count == 1 && (items.first == Item.socks.rawValue.lowercased() || items.first == Item.mittens.rawValue.lowercased()) {
-            return "Makes \(items.first!)"
-        } else if items.count == 1 && !Item.allCases.contains(where: { $0.rawValue.lowercased() == items.first })  {
-            return "Makes: \(items.first!)"
-        } else if items.count == 1 {
-            return "Makes a \(items.first!)"
-        } else if items.count == 2 {
-            return "Makes a \(items[0]) and \(items[1])"
-        }
-        
-        let lastItem = items.removeLast()
-        
-        return "Makes \(items.joined(separator: ", ")), and \(lastItem)"
     }
 }

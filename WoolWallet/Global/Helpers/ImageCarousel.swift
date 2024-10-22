@@ -17,8 +17,8 @@ struct ImageData: Equatable {
 
 struct ImageCarousel: View {
     @Binding var images: [ImageData]
-    var editMode: Bool? = false
-    var smallMode : Bool? = false
+    var editMode: Bool = false
+    var smallMode : Bool = false
     var editExistingImages : Bool? = false
 
     @State private var showPhotoPicker : Bool = false
@@ -34,7 +34,7 @@ struct ImageCarousel: View {
     
     var body: some View {
         VStack {
-            if images.isEmpty && editMode! {
+            if images.isEmpty && editMode {
                 Menu {
                     Button {
                         self.showCamera = true
@@ -62,12 +62,12 @@ struct ImageCarousel: View {
                             ForEach(0..<images.count,id: \.self){ imageIndex in
                                 Image(uiImage: images[imageIndex].image)
                                     .resizable()
-                                    .aspectRatio(contentMode: smallMode! ? .fill : .fit)
+                                    .aspectRatio(contentMode: smallMode ? .fill : .fit)
                                     .clipShape(RoundedRectangle(cornerRadius: 25.0))
                                     .tag(imageIndex)
                                     .containerRelativeFrame(.horizontal)
                                     .overlay(
-                                        editMode!
+                                        editMode
                                         ? AnyView(Button(action: {
                                             // Delete action
                                             images.remove(at: imageIndex)
@@ -85,7 +85,7 @@ struct ImageCarousel: View {
                                         
                                     )
                                     .overlay(
-                                        editMode!
+                                        editMode
                                         ? AnyView(Button(action: {
                                             showPhotoPicker = true
                                         }) {
@@ -104,47 +104,23 @@ struct ImageCarousel: View {
                                     }
                             }
                         }
-                        .background(GeometryReader { geometry in
-                            Color.clear
-                                .preference(key: ScrollOffsetPreferenceKey.self, value: geometry.frame(in: .named("scroll")).origin)
-                        })
-                        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
-                            self.scrollOffset = value
-                        }
+                        .scrollTracker(
+                            scrollOffset : $scrollOffset,
+                            name: "scroll"
+                        )
+//                        .background(GeometryReader { geometry in
+//                            Color.clear
+//                                .preference(key: ScrollOffsetPreferenceKey.self, value: geometry.frame(in: .named("scroll")).origin)
+//                        })
+//                        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+//                            self.scrollOffset = value
+//                        }
                         
                     }
                     .overlay(
                         images.count > 1
                         ? AnyView(
-                            HStack {
-                                
-                                Spacer()
-                                
-                                let screenWidth = UIScreen.main.bounds.size.width
-                                let pagesSwiped = (scrollOffset.x / screenWidth) * -1.0
-                                let currentImageIndex = Int(pagesSwiped.rounded(.up))
-                                let size : CGFloat = smallMode! ? 4 : 7
-                                
-                                // Create a ZStack to overlay the dots on a capsule
-                                ZStack {
-                                    // Light gray capsule background
-                                    Capsule()
-                                        .fill(Color.black.opacity(0.5)) // Adjust opacity for light gray
-                                        .frame(width: CGFloat(images.count) * (size + 11), height: size + 11) // Adjust the frame based on the number of dots
-                                    
-                                    // Dots
-                                    HStack(spacing: 6) { // Adjust spacing between dots
-                                        ForEach(0..<images.count, id: \.self) { index in
-                                            Circle()
-                                                .fill(index == currentImageIndex ? Color.white : Color.gray)
-                                                .frame(width: size, height: size)
-                                        }
-                                    }
-                                }
-                                
-                                Spacer()
-                            }
-                            .padding(.bottom, smallMode! ? 4 : 8)
+                            ScrollDots(scrollOffset: scrollOffset, numberOfDots: images.count, smallMode: smallMode)
                         )
                         : AnyView(EmptyView()),
                         alignment: .bottom
@@ -159,7 +135,7 @@ struct ImageCarousel: View {
         }
         .photosPicker(isPresented: $showPhotoPicker, selection: $selectedImages, matching: .images, photoLibrary: .shared())
         .onChange(of: selectedImages) {
-            if editMode! {
+            if editMode {
                 Task {
                     if !editExistingImages! {
                         images.removeAll()

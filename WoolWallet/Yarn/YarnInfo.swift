@@ -9,6 +9,11 @@ import Foundation
 import SwiftUI
 import CoreData
 
+struct PatternSuggestion {
+    var yarnWAndY : WeightAndYardageData
+    var suggestedWAndY : [WeightAndYardage] = []
+}
+
 struct YarnInfo: View {
     // @Environment variables
     @Environment(\.dismiss) private var dismiss
@@ -35,6 +40,7 @@ struct YarnInfo: View {
     @State private var yarnInfoToast: Toast? = nil
     @State private var showConfirmationDialog = false
     @State private var animateCheckmark = false
+    @State private var patternSuggestions : [PatternSuggestion] = []
     
     
     // Computed property to calculate if device is most likely in portrait mode
@@ -134,12 +140,21 @@ struct YarnInfo: View {
                         }
                         
                         ForEach(yarn.weightAndYardageItems.indices, id: \.self) { index in
+                            let item : WeightAndYardageData = yarn.weightAndYardageItems[index]
+                            
                             ViewWeightAndYardage(
-                                weightAndYardage: yarn.weightAndYardageItems[index],
+                                weightAndYardage: item,
                                 isSockSet: yarn.isSockSet,
                                 order: index,
                                 totalCount: yarn.weightAndYardageItems.count
                             )
+                            
+                            if let suggestion : PatternSuggestion = patternSuggestions.first(where: {$0.yarnWAndY.id == item.id}) {
+                                PossiblePatterns(
+                                    weightAndYardage: item,
+                                    matchingWeightAndYardage: suggestion.suggestedWAndY
+                                )
+                            }
                         }
                         
                         InfoCard(noPadding: true) {
@@ -229,6 +244,24 @@ struct YarnInfo: View {
             }
         }
         .background(Color(UIColor.systemGroupedBackground))
+        .onAppear {
+            DispatchQueue.global(qos: .background).async {
+                var temp : [PatternSuggestion] = []
+                
+                for wAndY in yarn.weightAndYardageItems {
+                    temp.append(
+                        PatternSuggestion(
+                            yarnWAndY: wAndY,
+                            suggestedWAndY: YarnUtils.shared.getMatchingPatterns(for: wAndY, in: managedObjectContext)
+                        )
+                    )
+                }
+                
+                DispatchQueue.main.async { // Ensure UI updates are performed on the main thread
+                    self.patternSuggestions = temp
+                }
+            }
+        }
     }
 }
 

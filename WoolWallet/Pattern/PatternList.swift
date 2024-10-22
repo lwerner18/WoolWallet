@@ -216,6 +216,9 @@ struct PatternList: View {
             .fullScreenCover(item: $patternToEdit, onDismiss: { patternToEdit = nil}) { pattern in
                 AddOrEditPatternForm(patternToEdit : pattern)
             }
+            .popover(item: $newPattern) { pattern in
+                PatternInfo(pattern: pattern, isNewPattern : true)
+            }
             .alert("Are you sure you want to delete this pattern?", isPresented: $showConfirmationDialog) {
                 if let pattern = patternToDelete {
                     Button("Delete", role: .destructive) {

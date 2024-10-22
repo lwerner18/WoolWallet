@@ -10,6 +10,10 @@ import SwiftUI
 import CoreData
 
 extension StoredColor {
+    convenience init(context: NSManagedObjectContext) {
+        self.init(entity: StoredColor.entity(), insertInto: context)
+        self.id = UUID() // Set a unique ID
+    }
     
     static func from(data: ColorPickerItem, context: NSManagedObjectContext) -> StoredColor {
         let components = data.color.cgColor?.components ?? [0, 0, 0, 1]

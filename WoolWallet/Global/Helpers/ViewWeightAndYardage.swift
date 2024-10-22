@@ -9,11 +9,15 @@ import Foundation
 import SwiftUI
 
 struct ViewWeightAndYardage: View {
+    // @Environment variables
+    @Environment(\.managedObjectContext) var managedObjectContext
+    
     var weightAndYardage : WeightAndYardageData
     var isSockSet : Bool = false
     var order : Int = 0
     var totalCount : Int
     var hideName : Bool = false
+    var showSuggestions : Bool = true
     
     // Computed property to format length to two decimal places if number is a fraction
     var formattedYardage: String {
@@ -92,7 +96,7 @@ struct ViewWeightAndYardage: View {
                     .yarnDataRow()
                     
                     Divider()
-                } else if weightAndYardage.approximateLength != nil {
+                } else if weightAndYardage.approximateLength != nil && weightAndYardage.approximateLength! > 0 {
                     HStack {
                         Text(isPattern ? "Estimated Length Needed" : "Length Estimate").foregroundStyle(Color(UIColor.secondaryLabel))
                         Spacer()
@@ -127,9 +131,9 @@ struct ViewWeightAndYardage: View {
             }
         }
         
-        if totalCount > 1 && order == totalCount - 1  {
-            Divider().padding()
-        }
+//        if totalCount > 1 && order == totalCount - 1  {
+//            Divider().padding()
+//        }
     }
     
     private func getName() -> String {

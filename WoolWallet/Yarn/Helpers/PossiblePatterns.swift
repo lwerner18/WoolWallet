@@ -1,5 +1,5 @@
 //
-//  YarnSuggestions.swift
+//  PatternFavorites.swift
 //  WoolWallet
 //
 //  Created by Mac on 10/18/24.
@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 import CoreData
 
-struct YarnSuggestions: View {
+struct PossiblePatterns: View {
     // @Environment variables
     @Environment(\.managedObjectContext) var managedObjectContext
     
@@ -19,7 +19,7 @@ struct YarnSuggestions: View {
     @State private var scrollOffset = CGPoint.zero
     
     var favoritesRequest : FetchRequest<FavoriteYarnForPattern>
-    var favoriteYarns : FetchedResults<FavoriteYarnForPattern>{favoritesRequest.wrappedValue}
+    var favoritePatterns : FetchedResults<FavoriteYarnForPattern>{favoritesRequest.wrappedValue}
     
     init(weightAndYardage : WeightAndYardageData, matchingWeightAndYardage : [WeightAndYardage]) {
         self.weightAndYardage = weightAndYardage
@@ -28,7 +28,7 @@ struct YarnSuggestions: View {
         self.favoritesRequest = FetchRequest(
             entity: FavoriteYarnForPattern.entity(),
             sortDescriptors: [],
-            predicate: NSPredicate(format: "patternWeightAndYardageId == %@", weightAndYardage.id as CVarArg)
+            predicate: NSPredicate(format: "yarnWeightAndYardageId == %@", weightAndYardage.id as CVarArg)
         )
     }
     
@@ -37,7 +37,7 @@ struct YarnSuggestions: View {
             InfoCard(backgroundColor: Color.accentColor.opacity(0.1)) {
                 CollapsibleView(
                     label : {
-                        Text("Yarn suggestions (\(matchingWeightAndYardage.count))").foregroundStyle(Color.primary)
+                        Text("Possible Patterns (\(matchingWeightAndYardage.count))").foregroundStyle(Color.primary)
                     },
                     showArrows : true
                 ) {
@@ -53,53 +53,65 @@ struct YarnSuggestions: View {
                             ForEach(sorted) { wAndYMatch in
                                 let favoriteIndex = getFavoritesIndex(for: wAndYMatch.id!)
                                 
-                                let yarn = wAndYMatch.yarn!
+                                let pattern = wAndYMatch.pattern!
                                 
                                 HStack {
+                                    
                                     VStack {
-                                        ImageCarousel(images: .constant(yarn.uiImages), smallMode: true)
-                                            .frame(width: 75, height: 100)
+                                        let itemDisplay =
+                                        PatternUtils.shared.getItemDisplay(
+                                            for: pattern.patternItems.isEmpty ? nil : pattern.patternItems.first?.item
+                                        )
                                         
-                                        if yarn.isSockSet {
-                                            Label("Sock Set", systemImage : "shoeprints.fill")
-                                                .infoCapsule(isSmall: true)
-                                            
-                                            if yarn.isSockSet {
-                                                switch wAndYMatch.order {
-                                                case 0: Text("Main Skein").font(.caption).foregroundStyle(Color(UIColor.secondaryLabel))
-                                                case 1: Text("Mini Skein").font(.caption).foregroundStyle(Color(UIColor.secondaryLabel))
-                                                case 2: Text("Mini #2").font(.caption).foregroundStyle(Color(UIColor.secondaryLabel))
-                                                default: EmptyView()
-                                                }
-                                            }
+                                        if itemDisplay.custom {
+                                            Image(itemDisplay.icon)
+                                                .iconCircle(background: itemDisplay.color, xl: true)
+                                        } else {
+                                            Image(systemName: itemDisplay.icon)
+                                                .iconCircle(background: itemDisplay.color, xl: true)
                                         }
+                                        
+                                        HStack {
+                                            Image(pattern.type == PatternType.knit.rawValue ? "knit" : "crochet2")
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 10, height: 10)
+                                            
+                                            Text(pattern.type!)
+                                        }
+                                        .infoCapsule(isSmall: true)
                                     }
                                     
                                     Spacer()
+
                                     
                                     VStack(alignment: .center) {
-                                        Text(yarn.name!)
+                                        Text(pattern.name!)
                                             .multilineTextAlignment(.center)
                                             .foregroundStyle(Color.primary)
                                             .bold()
                                         
-                                        Text(yarn.dyer!)
+                                        Text(pattern.designer!)
                                             .foregroundStyle(Color(UIColor.secondaryLabel))
                                             .font(.caption)
                                             .bold()
                                         
                                         Spacer()
                                         
+//                                        Text(
+//                                            PatternUtils.shared.joinedItems(patternItems: pattern.patternItems)
+//                                        )
+//                                        .foregroundStyle(Color(UIColor.secondaryLabel))
+//                                        
+//                                        Spacer()
+                                        
                                         let unit = wAndYMatch.unitOfMeasure!.lowercased()
                                         
-                                     
                                         if wAndYMatch.exactLength > 0 {
-                                            Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: wAndYMatch.exactLength)) ?? "1") \(unit)")
-                                                .font(.title3)
+                                            Text("\(pattern.weightAndYardageItems.count > 1 ? "Color \(PatternUtils.shared.getLetter(for: Int(wAndYMatch.order))) requires" : "Requires") \(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: wAndYMatch.exactLength)) ?? "1") \(unit)")
                                                 .foregroundStyle(Color.primary)
                                         } else {
-                                            Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: wAndYMatch.approxLength)) ?? "1") \(unit)")
-                                                .font(.title3)
+                                            Text("\(pattern.weightAndYardageItems.count > 1 ? "Color \(PatternUtils.shared.getLetter(for: Int(wAndYMatch.order))) requires" : "Requires") \(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: wAndYMatch.approxLength)) ?? "1") \(unit)")
                                                 .foregroundStyle(Color.primary)
                                         }
                                         
@@ -110,7 +122,6 @@ struct YarnSuggestions: View {
                                                 .font(.caption)
                                                 .foregroundStyle(Color(UIColor.secondaryLabel))
                                         }
-                                        
                                     }
                                     
                                     Spacer()
@@ -124,11 +135,11 @@ struct YarnSuggestions: View {
                                 .overlay(
                                     Button(action: {
                                         if favoriteIndex != nil {
-                                            managedObjectContext.delete(favoriteYarns[favoriteIndex!])
+                                            managedObjectContext.delete(favoritePatterns[favoriteIndex!])
                                         } else {
                                             let newFavorite = FavoriteYarnForPattern(context: managedObjectContext)
-                                            newFavorite.yarnWeightAndYardageId = wAndYMatch.id
-                                            newFavorite.patternWeightAndYardageId = weightAndYardage.id
+                                            newFavorite.patternWeightAndYardageId = wAndYMatch.id
+                                            newFavorite.yarnWeightAndYardageId = weightAndYardage.id
                                         }
                                         
                                         PersistenceController.shared.save()
@@ -172,8 +183,8 @@ struct YarnSuggestions: View {
     }
     
     func getFavoritesIndex(for id: UUID) -> Optional<Int> {
-        return favoriteYarns.firstIndex(where: { element in
-            return element.yarnWeightAndYardageId == id
+        return favoritePatterns.firstIndex(where: { element in
+            return element.patternWeightAndYardageId == id
         })
     }
 }

@@ -59,4 +59,95 @@ class PatternUtils {
         
         return letters[index]
     }
+    
+    // Function to join color names with commas
+    func joinedItems(patternItems : [PatternItemField]) -> String {
+        var itemsSet = Set<String>()
+        
+        for pattern in patternItems {
+            if pattern.item == Item.other {
+                if pattern.description != "" {
+                    itemsSet.insert(pattern.description.lowercased())
+                }
+            } else if pattern.item != Item.none {
+                itemsSet.insert(pattern.item.rawValue.lowercased())
+            }
+        }
+        
+        var items = Array(itemsSet)
+        
+        if items.isEmpty {
+            return ""
+        }
+        
+        if items.count == 1 && (items.first == Item.socks.rawValue.lowercased() || items.first == Item.mittens.rawValue.lowercased()) {
+            return "Makes \(items.first!)"
+        } else if items.count == 1 && !Item.allCases.contains(where: { $0.rawValue.lowercased() == items.first })  {
+            return "Makes: \(items.first!)"
+        } else if items.count == 1 {
+            return "Makes a \(items.first!)"
+        } else if items.count == 2 {
+            return "Makes a \(items[0]) and \(items[1])"
+        }
+        
+        let lastItem = items.removeLast()
+        
+        return "Makes \(items.joined(separator: ", ")), and \(lastItem)"
+    }
+    
+    func getMatchingYarns(for weightAndYardage: WeightAndYardageData, in context: NSManagedObjectContext) -> [WeightAndYardage] {
+        let fetchRequest: NSFetchRequest<WeightAndYardage> = WeightAndYardage.fetchRequest()
+        
+        var length = 0.0
+        
+        if weightAndYardage.exactLength != nil && weightAndYardage.exactLength! > 0 {
+            length = weightAndYardage.exactLength!
+        } else if weightAndYardage.approximateLength != nil && weightAndYardage.approximateLength! > 0 {
+            length = weightAndYardage.approximateLength!
+        }
+        
+        let allowedDeviation = 0.15
+        var ratio = 0.0
+        
+        if weightAndYardage.yardage != nil && weightAndYardage.grams != nil {
+            ratio = weightAndYardage.yardage! / Double(weightAndYardage.grams!)
+        }
+        
+        // return empty list when length or ratio is 0
+        if length == 0 || ratio == 0{
+            return []
+        }
+        
+        var predicates: [NSPredicate] = []
+        
+        // only yarn parents
+        predicates.append(NSPredicate(format: "parent == %@", WeightAndYardageParent.yarn.rawValue))
+        
+        // weight filter
+        predicates.append(NSPredicate(format: "weight == %@", weightAndYardage.weight.rawValue))
+        
+        // length filter
+        predicates.append(NSCompoundPredicate(orPredicateWithSubpredicates: [
+            NSPredicate(format: "exactLength > 0 AND exactLength > %@", NSNumber(value: length)),
+            NSPredicate(format: "approxLength > 0 AND approxLength > %@", NSNumber(value: length))
+        ]))
+        
+        // ratio filter
+        predicates.append(
+            NSPredicate(
+                format: "grams > 0 AND (yardage / grams >= %@) AND (yardage / grams <= %@)",
+                NSNumber(value: ratio - allowedDeviation),
+                NSNumber(value: ratio + allowedDeviation)
+            )
+        )
+        
+        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+        
+        do {
+            return try context.fetch(fetchRequest)
+        } catch {
+            print("Failed to fetch matching yarns: \(error)")
+            return []
+        }
+    }
 }

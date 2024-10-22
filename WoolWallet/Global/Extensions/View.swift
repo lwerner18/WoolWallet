@@ -21,6 +21,10 @@ extension View {
         modifier(YarnDataRow())
     }
     
+    func scrollTracker(scrollOffset: Binding<CGPoint>, name : String) -> some View {
+        modifier(ScrollTracker(scrollOffset : scrollOffset, name: name))
+    }
+    
     func toastView(toast: Binding<Toast?>) -> some View {
         self.modifier(ToastModifier(toast: toast))
     }

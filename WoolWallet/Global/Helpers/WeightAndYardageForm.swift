@@ -45,58 +45,6 @@ struct WeightAndYardageData {
         || approximateLength != nil
         || hasExactLength != -1
     }
-    
-    func matchingYarns(in context: NSManagedObjectContext) -> [WeightAndYardage] {
-        let fetchRequest: NSFetchRequest<WeightAndYardage> = WeightAndYardage.fetchRequest()
-        
-        let length = exactLength ?? approximateLength ?? 0
-        let allowedDeviation = 0.15
-        var ratio = 0.0
-        
-        print("length", length)
-        
-        if yardage != nil && grams != nil {
-            ratio = yardage! / Double(grams!)
-        }
-        
-        var predicates: [NSPredicate] = []
-        
-        // only yarn parents
-        predicates.append(NSPredicate(format: "parent == %@", WeightAndYardageParent.yarn.rawValue))
-        
-        // weight filter
-        predicates.append(NSPredicate(format: "weight == %@", weight.rawValue))
-        
-        // length filter
-        predicates.append(NSCompoundPredicate(orPredicateWithSubpredicates: [
-            NSPredicate(format: "exactLength > %@", NSNumber(value: length)),
-            NSPredicate(format: "approxLength > %@", NSNumber(value: length))
-        ]))
-        
-        // ratio filter
-        if ratio > 0.0 {
-            predicates.append(
-                NSPredicate(
-                    format: "grams > 0 AND (yardage / grams >= %@) AND (yardage / grams <= %@)",
-                    NSNumber(value: ratio - allowedDeviation),
-                    NSNumber(value: ratio + allowedDeviation)
-                )
-            )
-        }
-        
-        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
-        
-        do {
-            let result = try context.fetch(fetchRequest)
-            
-            print(result.first?.weight)
-            print(result.first?.parent)
-            return try context.fetch(fetchRequest)
-        } catch {
-            print("Failed to fetch matching yarns: \(error)")
-            return []
-        }
-    }
 }
 
 struct WeightAndYardageForm: View {
@@ -318,7 +266,12 @@ struct WeightAndYardageForm: View {
                     weightAndYardage.hasPartialSkein = false
                     weightAndYardage.totalGrams = nil
                     weightAndYardage.exactLength = nil
-                    weightAndYardage.approximateLength = nil
+                    
+                    if weightAndYardage.yardage != nil {
+                        weightAndYardage.approximateLength = weightAndYardage.yardage! * weightAndYardage.skeins
+                    } else {
+                        weightAndYardage.approximateLength = nil
+                    }
                 }
                 
                 if weightAndYardage.hasBeenWeighed == 1 {
