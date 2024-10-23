@@ -46,6 +46,7 @@ struct AddOrEditYarnForm: View {
     @State private var notes             : String = ""
     @State private var caked             : Bool = false
     @State private var archive           : Bool = false
+    @State private var isMini            : Bool = false
     @State private var colorPickers      : [ColorPickerItem] = []
     @State private var composition       : [CompositionItem] = []
     
@@ -61,6 +62,7 @@ struct AddOrEditYarnForm: View {
             _dyer              = State(initialValue : yarnToEdit.dyer ?? "")
             _notes             = State(initialValue : yarnToEdit.notes ?? "")
             _caked             = State(initialValue : yarnToEdit.isCaked)
+            _isMini            = State(initialValue : yarnToEdit.isMini)
             _isSockSet         = State(initialValue : yarnToEdit.isSockSet)
             _archive           = State(initialValue : yarnToEdit.isArchived)
             _images            = State(initialValue : yarnToEdit.uiImages)
@@ -167,6 +169,7 @@ struct AddOrEditYarnForm: View {
                 }
                 
                 Section(header: Text("Additional Information")) {
+                    Toggle("Mini", isOn: $isMini)
                     Toggle("Caked", isOn: $caked)
                     Toggle("Archive", isOn: $archive)
                 }
@@ -286,6 +289,7 @@ struct AddOrEditYarnForm: View {
         yarn.name = name
         yarn.dyer = dyer
         yarn.isSockSet = isSockSet
+        yarn.isMini = isMini
         yarn.isCaked = caked
         yarn.isArchived = archive
         yarn.notes = notes

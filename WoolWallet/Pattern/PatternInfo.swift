@@ -190,6 +190,43 @@ struct PatternInfo: View {
                                 }
                             }
                         }
+                        
+                        if pattern.type != PatternType.knit.rawValue && pattern.crochetHooks.first?.hook != CrochetHookSize.none {
+                            InfoCard() {
+                                HStack {
+                                    Text("Hook\(pattern.crochetHooks.count > 1 ? "s" : "")").foregroundStyle(Color(UIColor.secondaryLabel))
+                                    Spacer()
+                                    VStack {
+                                        ForEach(pattern.crochetHooks) { hook in
+                                            Text(hook.hook.rawValue).font(.headline).bold().foregroundStyle(Color.primary)
+                                        }
+                                    }
+                                    
+                                }
+                            }
+                        }
+                        
+                        if pattern.type == PatternType.knit.rawValue && pattern.knittingNeedles.first?.needle != KnitNeedleSize.none {
+                            InfoCard() {
+                                HStack {
+                                    Text("Hook\(pattern.knittingNeedles.count > 1 ? "s" : "")").foregroundStyle(Color(UIColor.secondaryLabel))
+                                    Spacer()
+                                    VStack {
+                                        ForEach(pattern.knittingNeedles) { needle in
+                                            Text(needle.needle.rawValue).font(.headline).bold().foregroundStyle(Color.primary)
+                                        }
+                                    }
+                                    
+                                }
+                            }
+                        }
+                        
+                        if pattern.notes != "" {
+                            InfoCard() {
+                                Text(pattern.notes!)
+                                    .frame(maxWidth: .infinity)
+                            }
+                        }
                     }
                 }
                 .foregroundStyle(Color.black)

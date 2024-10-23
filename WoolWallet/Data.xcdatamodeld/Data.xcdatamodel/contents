@@ -86,6 +86,7 @@
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="isArchived" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isCaked" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isMini" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isSockSet" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="name" attributeType="String"/>
         <attribute name="notes" optional="YES" attributeType="String"/>

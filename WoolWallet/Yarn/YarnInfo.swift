@@ -95,7 +95,7 @@ struct YarnInfo: View {
                         Text(yarn.dyer ?? "N/A").bold().foregroundStyle(Color(UIColor.secondaryLabel))
                     }
                     
-                    if yarn.isArchived || yarn.isCaked || yarn.isSockSet {
+                    if yarn.isArchived || yarn.isCaked || yarn.isSockSet || yarn.isMini {
                         HStack {
                             if yarn.isArchived {
                                 Label("Archived", systemImage : "tray.and.arrow.down")
@@ -109,6 +109,11 @@ struct YarnInfo: View {
                             
                             if yarn.isSockSet {
                                 Label("Sock Set", systemImage : "shoeprints.fill")
+                                    .infoCapsule()
+                            }
+                            
+                            if yarn.isMini {
+                                Label("Mini", systemImage : "arrow.down.right.and.arrow.up.left")
                                     .infoCapsule()
                             }
                             

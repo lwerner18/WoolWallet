@@ -55,11 +55,11 @@ struct ViewWeightAndYardage: View {
                         Text("\(weightAndYardage.weight.rawValue)").font(.headline).bold().foregroundStyle(Color.primary)
                     }
                     .yarnDataRow()
-                    
-                    Divider()
                 }
                 
                 if formattedYardage != "" && weightAndYardage.grams != nil {
+                    Divider()
+                    
                     HStack {
                         Spacer()
                         
@@ -70,11 +70,11 @@ struct ViewWeightAndYardage: View {
                         
                     }
                     .yarnDataRow()
-                    
-                    Divider()
                 }
                 
                 if weightAndYardage.totalGrams != nil {
+                    Divider()
+                    
                     HStack {
                         Text("Total Grams").foregroundStyle(Color(UIColor.secondaryLabel))
                         Spacer()
@@ -82,11 +82,11 @@ struct ViewWeightAndYardage: View {
                             .font(.headline).bold().foregroundStyle(Color.primary)
                     }
                     .yarnDataRow()
-                    
-                    Divider()
                 }
                 
                 if weightAndYardage.exactLength != nil && weightAndYardage.exactLength! > 0 {
+                    Divider()
+                    
                     HStack {
                         Text("Length\(isPattern ? " Needed" : "")").foregroundStyle(Color(UIColor.secondaryLabel))
                         Spacer()
@@ -94,20 +94,20 @@ struct ViewWeightAndYardage: View {
                             .font(.headline).bold().foregroundStyle(Color.primary)
                     }
                     .yarnDataRow()
-                    
-                    Divider()
                 } else if weightAndYardage.approximateLength != nil && weightAndYardage.approximateLength! > 0 {
+                    Divider()
+                    
                     HStack {
                         Text(isPattern ? "Estimated Length Needed" : "Length Estimate").foregroundStyle(Color(UIColor.secondaryLabel))
                         Spacer()
                         Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.approximateLength!)) ?? "1") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())").font(.headline).bold().foregroundStyle(Color.primary)
                     }
                     .yarnDataRow()
-                    
-                    Divider()
                 }
                 
                 if isYarn || (isPattern && weightAndYardage.exactLength == 0) {
+                    Divider()
+                    
                     HStack {
                         Text("Skeins").foregroundStyle(Color(UIColor.secondaryLabel))
                         Spacer()
@@ -130,10 +130,6 @@ struct ViewWeightAndYardage: View {
                 }
             }
         }
-        
-//        if totalCount > 1 && order == totalCount - 1  {
-//            Divider().padding()
-//        }
     }
     
     private func getName() -> String {

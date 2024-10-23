@@ -98,12 +98,14 @@ struct PossiblePatterns: View {
                                         
                                         Spacer()
                                         
-//                                        Text(
-//                                            PatternUtils.shared.joinedItems(patternItems: pattern.patternItems)
-//                                        )
-//                                        .foregroundStyle(Color(UIColor.secondaryLabel))
-//                                        
-//                                        Spacer()
+                                        if pattern.patternItems.first?.item == Item.other {
+                                            Text(
+                                                PatternUtils.shared.joinedItems(patternItems: pattern.patternItems)
+                                            )
+                                            .foregroundStyle(Color(UIColor.secondaryLabel))
+                                            
+                                            Spacer()
+                                        }
                                         
                                         let unit = wAndYMatch.unitOfMeasure!.lowercased()
                                         
