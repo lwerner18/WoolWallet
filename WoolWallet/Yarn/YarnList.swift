@@ -16,13 +16,19 @@ struct YarnList: View {
     
     @Binding var browseMode : Bool
     var preSelectedWeightFilter : [Weight]
+    @Binding var projectPairing : [ProjectPairing]
+    var patternWAndYIdBrowsingFor : UUID?
     
     init(
         browseMode: Binding<Bool> = .constant(false),
-        preSelectedWeightFilter : [Weight] = []
+        preSelectedWeightFilter : [Weight] = [],
+        projectPairing : Binding<[ProjectPairing]> = .constant([]),
+        patternWAndYIdBrowsingFor : UUID? = nil
     ) {
         self._browseMode = browseMode
         self.preSelectedWeightFilter = preSelectedWeightFilter
+        self._projectPairing = projectPairing
+        self.patternWAndYIdBrowsingFor = patternWAndYIdBrowsingFor
         
         _selectedWeights = State(initialValue: preSelectedWeightFilter)
     }
@@ -242,7 +248,14 @@ struct YarnList: View {
                         LazyVGrid(columns: [.init(.adaptive(minimum:150))], spacing: 5) {
                             ForEach(filteredYarn) { yarn in
                                 NavigationLink(
-                                    destination: YarnInfo(yarn: yarn, toast : $toast, selectedTab : $selectedTab)
+                                    destination: YarnInfo(
+                                        yarn: yarn,
+                                        toast : $toast,
+                                        selectedTab : $selectedTab,
+                                        browseMode : $browseMode,
+                                        projectPairing: $projectPairing,
+                                        patternWAndYIdBrowsingFor : patternWAndYIdBrowsingFor
+                                    )
                                 ) {
                                     VStack {
                                         ImageCarousel(images: .constant(yarn.uiImages), smallMode: true)

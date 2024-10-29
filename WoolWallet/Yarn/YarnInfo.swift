@@ -25,12 +25,26 @@ struct YarnInfo: View {
     @ObservedObject var yarn : Yarn
     @Binding var toast: Toast?
     @Binding var selectedTab: Int
+    @Binding var browseMode : Bool
+    @Binding var projectPairing : [ProjectPairing]
+    var patternWAndYIdBrowsingFor : UUID?
     var isNewYarn : Bool?
     
-    init(yarn: Yarn, toast : Binding<Toast?>, selectedTab : Binding<Int>, isNewYarn : Bool? = false) {
+    init(
+        yarn: Yarn,
+        toast : Binding<Toast?>,
+        selectedTab : Binding<Int>,
+        browseMode: Binding<Bool> = .constant(false),
+        projectPairing : Binding<[ProjectPairing]> = .constant([]),
+        patternWAndYIdBrowsingFor : UUID? = nil,
+        isNewYarn : Bool? = false
+    ) {
         self.yarn = yarn
         self._toast = toast
         self._selectedTab = selectedTab
+        self._browseMode = browseMode
+        self._projectPairing = projectPairing
+        self.patternWAndYIdBrowsingFor = patternWAndYIdBrowsingFor
         self.isNewYarn = isNewYarn
     }
     
@@ -40,6 +54,7 @@ struct YarnInfo: View {
     @State private var yarnInfoToast: Toast? = nil
     @State private var showDeleteConfirmation = false
     @State private var showChoosePatternDialog = false
+    @State private var showChooseSkeinDialog = false
     @State private var showAddProjectForm : Bool = false
     @State private var animateCheckmark = false
     @State private var patternSuggestions : [PatternSuggestion] = []
@@ -218,44 +233,70 @@ struct YarnInfo: View {
             .navigationTitle(yarn.name ?? "N/A")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button {
-                            showEditYarnForm = true
-                        } label : {
-                            Label("Edit", systemImage : "pencil")
-                        }
-                        
-                        if !favoritedPatterns.isEmpty {
-                            Button {
-                                if favoritedPatterns.count > 1 {
-                                    showChoosePatternDialog = true
-                                } else {
-                                    showAddProjectForm = true
-                                }
-                            } label : {
-                                Label("Start a Project", systemImage : "hammer")
+                if browseMode {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button() {
+                            if yarn.weightAndYardageItems.count > 1 {
+                                showChooseSkeinDialog = true
+                            } else {
+                                // TODO: Let user choose skein
+                                projectPairing.append(
+                                    ProjectPairing(
+                                        patternWeightAndYardageId: patternWAndYIdBrowsingFor!,
+                                        yarnWeightAndYardage: yarn.weightAndYardageItems.first!.existingItem!
+                                    )
+                                )
+                                browseMode = false
                             }
-                        }
-                        
-                        Button {
-                            YarnUtils.shared.toggleYarnArchived(at: yarn)
-                            
-                            selectedTab = selectedTab == 0 ? 1 : 0
                         } label: {
-                            Label(yarn.isArchived ? "Unarchive" : "Archive", systemImage : yarn.isArchived ? "tray.and.arrow.up" : "tray.and.arrow.down")
+                            Text("Select")
                         }
-                        
-                        Button(role: .destructive) {
-                            showDeleteConfirmation = true
-                        } label: {
-                            Label("Delete", systemImage : "trash")
-                        }
-                        
-                    } label: {
-                        Label("more", systemImage : "ellipsis")
                     }
-                  
+                } else if !projectPairing.isEmpty {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        ProgressView("")
+                            .progressViewStyle(CircularProgressViewStyle())
+                    }
+                } else {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Menu {
+                            Button {
+                                showEditYarnForm = true
+                            } label : {
+                                Label("Edit", systemImage : "pencil")
+                            }
+                            
+                            if !favoritedPatterns.isEmpty {
+                                Button {
+                                    if favoritedPatterns.count > 1 {
+                                        showChoosePatternDialog = true
+                                    } else {
+                                        showAddProjectForm = true
+                                    }
+                                } label : {
+                                    Label("Start a Project", systemImage : "hammer")
+                                }
+                            }
+                            
+                            Button {
+                                YarnUtils.shared.toggleYarnArchived(at: yarn)
+                                
+                                selectedTab = selectedTab == 0 ? 1 : 0
+                            } label: {
+                                Label(yarn.isArchived ? "Unarchive" : "Archive", systemImage : yarn.isArchived ? "tray.and.arrow.up" : "tray.and.arrow.down")
+                            }
+                            
+                            Button(role: .destructive) {
+                                showDeleteConfirmation = true
+                            } label: {
+                                Label("Delete", systemImage : "trash")
+                            }
+                            
+                        } label: {
+                            Label("more", systemImage : "ellipsis")
+                        }
+                        
+                    }
                 }
                
             }
@@ -304,6 +345,26 @@ struct YarnInfo: View {
                 Button("Cancel", role: .cancel) { }
             } message: {
                 Text("You've favorited multiple patterns. Which pattern would you like to use this yarn for?")
+            }
+            .confirmationDialog("", isPresented: $showChooseSkeinDialog) {
+                ForEach(yarn.weightAndYardageItems, id: \.id) {element in
+                    let existingItem : WeightAndYardage = element.existingItem!
+                    let text = "\(existingItem.order == 0 ? "Main Skein" : (existingItem.order == 1 ? "Mini Skein" : "Mini #2"))"
+                    
+                    Button("\(text)") {
+                        projectPairing.append(
+                            ProjectPairing(
+                                patternWeightAndYardageId: patternWAndYIdBrowsingFor!,
+                                yarnWeightAndYardage: existingItem
+                            )
+                        )
+                        
+                        browseMode = false
+                    }
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("This yarn has multiple skeins. Which one would you like to use for the project?")
             }
         }
         .background(Color(UIColor.systemGroupedBackground))

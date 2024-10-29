@@ -30,6 +30,8 @@ struct AddOrEditProjectForm: View {
     @State private var pattern : Pattern? = nil
     @State private var browsingPattern : Bool = false
     @State private var browsingYarn : Bool = false
+    @State private var yarnBrowsingWeight : Weight? = nil
+    @State private var patternWAndYIdBrowsingFor : UUID? = nil
     
     init(
         projectToEdit : Project?,
@@ -268,16 +270,21 @@ struct AddOrEditProjectForm: View {
                                 }
                                 .padding(.vertical, 4)
                             } else {
-                                NavigationLink {
-                                    YarnList(browseMode: $browsingYarn, preSelectedWeightFilter : [wAndY.weight])
-                                } label: {
-                                    Label("Browse \(header == "Yarn" ? "yarn" : "yarn for \(header)")", systemImage : "volleyball")
+                                Button {
+                                    browsingYarn = true
+                                    yarnBrowsingWeight = wAndY.weight
+                                    patternWAndYIdBrowsingFor = wAndY.id
+                                } label : {
+                                    HStack {
+                                        Label("Browse \(header == "Yarn" ? "yarn" : "yarn for \(header)")", systemImage : "volleyball")
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .foregroundColor(.blue)
+                                    }
+                                    .contentShape(Rectangle())
                                     
                                 }
-                                .id(UUID())
-                                .alignmentGuide(.listRowSeparatorLeading) { viewDimensions in
-                                    return 0
-                                }
+                                .buttonStyle(PlainButtonStyle())
                                 
                                 if !yarnSuggestions.isEmpty {
                                     if let suggestion : YarnSuggestion = yarnSuggestions.first(where: {$0.patternWAndY.id == wAndY.id}) {
@@ -350,9 +357,14 @@ struct AddOrEditProjectForm: View {
             .navigationDestination(isPresented: $browsingPattern) {
                 PatternList(browseMode: $browsingPattern, browsePattern : $pattern)
             }
-//            .navigationDestination(isPresented: $browsingYarn) {
-//                YarnList(browseMode: $browsingYarn, preSelectedWeightFilter : [wAndY.weight])
-//            }
+            .navigationDestination(isPresented: $browsingYarn) {
+                YarnList(
+                    browseMode: $browsingYarn, 
+                    preSelectedWeightFilter : yarnBrowsingWeight != nil ? [yarnBrowsingWeight!] : [],
+                    projectPairing : $projectPairing,
+                    patternWAndYIdBrowsingFor : patternWAndYIdBrowsingFor
+                )
+            }
         }
     }
     

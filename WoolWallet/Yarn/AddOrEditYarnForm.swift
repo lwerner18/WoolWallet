@@ -60,7 +60,7 @@ struct AddOrEditYarnForm: View {
             _notes             = State(initialValue : yarnToEdit.notes ?? "")
             _caked             = State(initialValue : yarnToEdit.isCaked)
             _isMini            = State(initialValue : yarnToEdit.isMini)
-            _colorType         = State(initialValue : yarnToEdit.colorType != "" ? ColorType(rawValue: yarnToEdit.colorType!) : nil)
+            _colorType         = State(initialValue : yarnToEdit.colorType != nil ? ColorType(rawValue: yarnToEdit.colorType!) : nil)
             _isSockSet         = State(initialValue : yarnToEdit.isSockSet)
             _archive           = State(initialValue : yarnToEdit.isArchived)
             _images            = State(initialValue : yarnToEdit.uiImages)
