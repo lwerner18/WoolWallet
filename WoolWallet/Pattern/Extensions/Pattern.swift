@@ -77,4 +77,8 @@ extension Pattern {
             )
         }
     }
+    
+//    var canMakeProject : Bool {
+//        return weightAndYardageItems.allSatisfy({$0.hasBeenEdited()})
+//    }
 }

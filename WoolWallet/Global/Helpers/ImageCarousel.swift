@@ -108,14 +108,6 @@ struct ImageCarousel: View {
                             scrollOffset : $scrollOffset,
                             name: "scroll"
                         )
-//                        .background(GeometryReader { geometry in
-//                            Color.clear
-//                                .preference(key: ScrollOffsetPreferenceKey.self, value: geometry.frame(in: .named("scroll")).origin)
-//                        })
-//                        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
-//                            self.scrollOffset = value
-//                        }
-                        
                     }
                     .overlay(
                         images.count > 1

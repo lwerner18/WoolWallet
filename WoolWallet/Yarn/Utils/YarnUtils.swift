@@ -26,6 +26,28 @@ class YarnUtils {
     }
     
     func removeYarn(at yarn: Yarn, with context: NSManagedObjectContext) {
+        yarn.colors?.forEach            { context.delete($0 as! NSManagedObject) }
+        yarn.composition?.forEach       { context.delete($0 as! NSManagedObject) }
+        yarn.images?.forEach            { context.delete($0 as! NSManagedObject) }
+        yarn.projects?.forEach          { context.delete($0 as! NSManagedObject) }
+        
+        yarn.weightAndYardages?.forEach {
+            let item = $0 as! WeightAndYardage
+            
+            let favoritesRequest: NSFetchRequest<FavoritePairing> = FavoritePairing.fetchRequest()
+            
+            favoritesRequest.predicate = NSPredicate(format: "yarnWeightAndYardage.id == %@", item.id! as any CVarArg)
+            
+            do {
+                try context.fetch(favoritesRequest).forEach { context.delete($0 as NSManagedObject) }
+            } catch {
+                print("Failed to fetch favorites: \(error)")
+            }
+            
+            context.delete(item)
+        }
+        
+        
         context.delete(yarn)
         
         PersistenceController.shared.save()
@@ -87,6 +109,25 @@ class YarnUtils {
             return try context.fetch(fetchRequest)
         } catch {
             print("Failed to fetch matching patterns: \(error)")
+            return []
+        }
+    }
+    
+    func favoritedPatterns(for yarn : Yarn, in context: NSManagedObjectContext) -> [FavoritePairing] {
+        let favoritesRequest: NSFetchRequest<FavoritePairing> = FavoritePairing.fetchRequest()
+        
+        var predicates: [NSPredicate] = []
+        
+        yarn.weightAndYardageItems.forEach { element in
+            predicates.append(NSPredicate(format: "yarnWeightAndYardage.id == %@", element.id as any CVarArg))
+        }
+        
+        favoritesRequest.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: predicates)
+        
+        do {
+            return try context.fetch(favoritesRequest)
+        } catch {
+            print("Failed to fetch favorites: \(error)")
             return []
         }
     }

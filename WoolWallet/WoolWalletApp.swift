@@ -45,16 +45,6 @@ struct WoolWalletApp: App {
                 print("Documents Directory: \(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path ?? "Not found")")
 
             }
-//            .onAppear {
-//                // correct the transparency bug for Tab bars
-//                let tabBarAppearance = UITabBarAppearance()
-//                tabBarAppearance.configureWithOpaqueBackground()
-//                UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
-//                // correct the transparency bug for Navigation bars
-//                let navigationBarAppearance = UINavigationBarAppearance()
-//                navigationBarAppearance.configureWithOpaqueBackground()
-//                UINavigationBar.appearance().scrollEdgeAppearance = navigationBarAppearance
-//            }
         }
     
     }

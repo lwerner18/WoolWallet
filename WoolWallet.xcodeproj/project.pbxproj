@@ -27,6 +27,7 @@
 		04421B592BAE25110034E16A /* Lato in Resources */ = {isa = PBXBuildFile; fileRef = 04421B582BAE25110034E16A /* Lato */; };
 		04421B602BAE7A050034E16A /* UIImageColors in Frameworks */ = {isa = PBXBuildFile; productRef = 04421B5F2BAE7A050034E16A /* UIImageColors */; };
 		04421B6B2BAF48B30034E16A /* OpenCVWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04421B6A2BAF48B30034E16A /* OpenCVWrapper.mm */; };
+		044E55CA2CCFED46004574FD /* FavoritePairing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044E55C92CCFED46004574FD /* FavoritePairing.swift */; };
 		0462D00B2C7FBB7700EBB11C /* ButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0462D00A2C7FBB7700EBB11C /* ButtonStyles.swift */; };
 		0464B6202CC2F78D00EADD48 /* PossiblePatterns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0464B61F2CC2F78D00EADD48 /* PossiblePatterns.swift */; };
 		0466F21B2CA919CE0094F3DA /* View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0466F21A2CA919CE0094F3DA /* View.swift */; };
@@ -43,6 +44,7 @@
 		048D66052CA0E9890051D7A3 /* EditComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048D66042CA0E9890051D7A3 /* EditComposition.swift */; };
 		048ED2E72CC7537A00DB790A /* ScrollDots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048ED2E62CC7537A00DB790A /* ScrollDots.swift */; };
 		048ED2E92CC7554100DB790A /* ScrollTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048ED2E82CC7554100DB790A /* ScrollTracker.swift */; };
+		048ED2EB2CC9522200DB790A /* AddOrEditProjectForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048ED2EA2CC9522200DB790A /* AddOrEditProjectForm.swift */; };
 		049FAA4F2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 049FAA4E2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage */; };
 		04A5C3E02C4C1D8300CD5870 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3DF2C4C1D8300CD5870 /* Color.swift */; };
 		04A5C3E22C4C1DA600CD5870 /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3E12C4C1DA600CD5870 /* UIColor.swift */; };
@@ -55,6 +57,7 @@
 		04A81CF52CA47C6100BF66CC /* ImageCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A81CF42CA47C6100BF66CC /* ImageCarousel.swift */; };
 		04A81CFA2CA47E2000BF66CC /* YarnEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A81CF92CA47E2000BF66CC /* YarnEnums.swift */; };
 		04A81D042CA4807D00BF66CC /* GlobalEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A81D032CA4807D00BF66CC /* GlobalEnums.swift */; };
+		04ADF9852CCB60EA00C821A5 /* WeightAndYardageUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04ADF9842CCB60EA00C821A5 /* WeightAndYardageUtils.swift */; };
 		04B15C5E2C74F6F900A03751 /* StoredColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B15C5D2C74F6F900A03751 /* StoredColor.swift */; };
 		04B15C602C76220300A03751 /* Yarn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B15C5F2C76220300A03751 /* Yarn.swift */; };
 		04B15C622C77BAF100A03751 /* FilterYarn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B15C612C77BAF100A03751 /* FilterYarn.swift */; };
@@ -121,6 +124,7 @@
 		04421B6A2BAF48B30034E16A /* OpenCVWrapper.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = OpenCVWrapper.mm; sourceTree = "<group>"; };
 		04421B6C2BAF48E00034E16A /* WoolWallet-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "WoolWallet-Bridging-Header.h"; sourceTree = "<group>"; };
 		04421B6D2BAF491B0034E16A /* PrefixHeader.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrefixHeader.pch; sourceTree = "<group>"; };
+		044E55C92CCFED46004574FD /* FavoritePairing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritePairing.swift; sourceTree = "<group>"; };
 		0462D00A2C7FBB7700EBB11C /* ButtonStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonStyles.swift; sourceTree = "<group>"; };
 		0464B61F2CC2F78D00EADD48 /* PossiblePatterns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PossiblePatterns.swift; sourceTree = "<group>"; };
 		0466F21A2CA919CE0094F3DA /* View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = View.swift; sourceTree = "<group>"; };
@@ -137,6 +141,7 @@
 		048D66042CA0E9890051D7A3 /* EditComposition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditComposition.swift; sourceTree = "<group>"; };
 		048ED2E62CC7537A00DB790A /* ScrollDots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollDots.swift; sourceTree = "<group>"; };
 		048ED2E82CC7554100DB790A /* ScrollTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollTracker.swift; sourceTree = "<group>"; };
+		048ED2EA2CC9522200DB790A /* AddOrEditProjectForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddOrEditProjectForm.swift; sourceTree = "<group>"; };
 		049FAA4E2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = yarn_segmentation_model.mlpackage; sourceTree = "<group>"; };
 		04A5C3DF2C4C1D8300CD5870 /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
 		04A5C3E12C4C1DA600CD5870 /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
@@ -149,6 +154,7 @@
 		04A81CF42CA47C6100BF66CC /* ImageCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCarousel.swift; sourceTree = "<group>"; };
 		04A81CF92CA47E2000BF66CC /* YarnEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnEnums.swift; sourceTree = "<group>"; };
 		04A81D032CA4807D00BF66CC /* GlobalEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalEnums.swift; sourceTree = "<group>"; };
+		04ADF9842CCB60EA00C821A5 /* WeightAndYardageUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightAndYardageUtils.swift; sourceTree = "<group>"; };
 		04B15C5D2C74F6F900A03751 /* StoredColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredColor.swift; sourceTree = "<group>"; };
 		04B15C5F2C76220300A03751 /* Yarn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Yarn.swift; sourceTree = "<group>"; };
 		04B15C612C77BAF100A03751 /* FilterYarn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterYarn.swift; sourceTree = "<group>"; };
@@ -285,6 +291,13 @@
 			path = Enums;
 			sourceTree = "<group>";
 		};
+		048ED2EC2CC997BF00DB790A /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Helpers;
+			sourceTree = "<group>";
+		};
 		04A5C3D82C4C1A6A00CD5870 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
@@ -298,6 +311,7 @@
 				0466F21A2CA919CE0094F3DA /* View.swift */,
 				042B87F72CB06E0B00B34698 /* Image.swift */,
 				043E16E82CB9A76D005046B6 /* WeightAndYardage.swift */,
+				044E55C92CCFED46004574FD /* FavoritePairing.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -305,6 +319,7 @@
 		04A5C3E32C4C1DBA00CD5870 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				04ADF9842CCB60EA00C821A5 /* WeightAndYardageUtils.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -350,7 +365,9 @@
 		04A81CFD2CA47F7D00BF66CC /* Project */ = {
 			isa = PBXGroup;
 			children = (
+				048ED2EC2CC997BF00DB790A /* Helpers */,
 				04D5C4502C87E01E00DC9697 /* ProjectList.swift */,
+				048ED2EA2CC9522200DB790A /* AddOrEditProjectForm.swift */,
 			);
 			path = Project;
 			sourceTree = "<group>";
@@ -801,6 +818,8 @@
 				0464B6202CC2F78D00EADD48 /* PossiblePatterns.swift in Sources */,
 				04421B6B2BAF48B30034E16A /* OpenCVWrapper.mm in Sources */,
 				04A81D042CA4807D00BF66CC /* GlobalEnums.swift in Sources */,
+				04ADF9852CCB60EA00C821A5 /* WeightAndYardageUtils.swift in Sources */,
+				044E55CA2CCFED46004574FD /* FavoritePairing.swift in Sources */,
 				0466F21B2CA919CE0094F3DA /* View.swift in Sources */,
 				048D66052CA0E9890051D7A3 /* EditComposition.swift in Sources */,
 				04A5C3E22C4C1DA600CD5870 /* UIColor.swift in Sources */,
@@ -818,6 +837,7 @@
 				042BF1562CA61D9D008740FB /* TextFieldTypeahead.swift in Sources */,
 				04D596012B9E9BE000E1913C /* ClearButton.swift in Sources */,
 				043E16E92CB9A76D005046B6 /* WeightAndYardage.swift in Sources */,
+				048ED2EB2CC9522200DB790A /* AddOrEditProjectForm.swift in Sources */,
 				046A96442BA17B1C00E83055 /* Toast.swift in Sources */,
 				04D5C4512C87E01E00DC9697 /* ProjectList.swift in Sources */,
 				047DE4CF2B9FF78700F0A2D5 /* Data.xcdatamodeld in Sources */,

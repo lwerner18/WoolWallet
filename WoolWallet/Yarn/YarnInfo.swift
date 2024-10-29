@@ -10,7 +10,7 @@ import SwiftUI
 import CoreData
 
 struct PatternSuggestion {
-    var yarnWAndY : WeightAndYardageData
+    var yarnWAndY : WeightAndYardage
     var suggestedWAndY : [WeightAndYardage] = []
 }
 
@@ -38,9 +38,13 @@ struct YarnInfo: View {
     @State private var showEditYarnForm : Bool = false
     @State private var isImageMaximized = false
     @State private var yarnInfoToast: Toast? = nil
-    @State private var showConfirmationDialog = false
+    @State private var showDeleteConfirmation = false
+    @State private var showChoosePatternDialog = false
+    @State private var showAddProjectForm : Bool = false
     @State private var animateCheckmark = false
     @State private var patternSuggestions : [PatternSuggestion] = []
+    @State private var favoritedPatterns : [FavoritePairing] = []
+    @State private var patternWAndYForProject : WeightAndYardage? = nil
     
     
     // Computed property to calculate if device is most likely in portrait mode
@@ -95,7 +99,7 @@ struct YarnInfo: View {
                         Text(yarn.dyer ?? "N/A").bold().foregroundStyle(Color(UIColor.secondaryLabel))
                     }
                     
-                    if yarn.isArchived || yarn.isCaked || yarn.isSockSet || yarn.isMini {
+                    if yarn.isArchived || yarn.isCaked || yarn.isSockSet || yarn.isMini || yarn.colorType != nil {
                         HStack {
                             if yarn.isArchived {
                                 Label("Archived", systemImage : "tray.and.arrow.down")
@@ -114,6 +118,14 @@ struct YarnInfo: View {
                             
                             if yarn.isMini {
                                 Label("Mini", systemImage : "arrow.down.right.and.arrow.up.left")
+                                    .infoCapsule()
+                            }
+                            
+                            if yarn.colorType == ColorType.variegated.rawValue {
+                                Label("Variegated", systemImage : "swirl.circle.righthalf.filled")
+                                    .infoCapsule()
+                            } else if yarn.colorType == ColorType.tonal.rawValue {
+                                Label("Tonal", systemImage : "circle.fill")
                                     .infoCapsule()
                             }
                             
@@ -156,8 +168,8 @@ struct YarnInfo: View {
                             
                             if let suggestion : PatternSuggestion = patternSuggestions.first(where: {$0.yarnWAndY.id == item.id}) {
                                 PossiblePatterns(
-                                    weightAndYardage: item,
-                                    matchingWeightAndYardage: suggestion.suggestedWAndY
+                                    patternSuggestion : suggestion,
+                                    favoritedPatterns : $favoritedPatterns
                                 )
                             }
                         }
@@ -214,6 +226,18 @@ struct YarnInfo: View {
                             Label("Edit", systemImage : "pencil")
                         }
                         
+                        if !favoritedPatterns.isEmpty {
+                            Button {
+                                if favoritedPatterns.count > 1 {
+                                    showChoosePatternDialog = true
+                                } else {
+                                    showAddProjectForm = true
+                                }
+                            } label : {
+                                Label("Start a Project", systemImage : "hammer")
+                            }
+                        }
+                        
                         Button {
                             YarnUtils.shared.toggleYarnArchived(at: yarn)
                             
@@ -223,7 +247,7 @@ struct YarnInfo: View {
                         }
                         
                         Button(role: .destructive) {
-                            showConfirmationDialog = true
+                            showDeleteConfirmation = true
                         } label: {
                             Label("Delete", systemImage : "trash")
                         }
@@ -231,9 +255,11 @@ struct YarnInfo: View {
                     } label: {
                         Label("more", systemImage : "ellipsis")
                     }
+                  
                 }
+               
             }
-            .alert("Are you sure you want to delete this yarn?", isPresented: $showConfirmationDialog) {
+            .alert("Are you sure you want to delete this yarn?", isPresented: $showDeleteConfirmation) {
                 Button("Delete", role: .destructive) {
                     YarnUtils.shared.removeYarn(at: yarn, with: managedObjectContext)
                     
@@ -244,27 +270,66 @@ struct YarnInfo: View {
                 
                 Button("Cancel", role: .cancel) {}
             }
-            .fullScreenCover(isPresented: $showEditYarnForm) {
+            .fullScreenCover(isPresented: $showEditYarnForm, onDismiss: getSuggestions) {
                 AddOrEditYarnForm(toast : $toast, yarnToEdit : yarn)
+            }
+            .popover(isPresented: $showAddProjectForm) {
+                let firstFavorite : WeightAndYardage = favoritedPatterns.first.unsafelyUnwrapped.patternWeightAndYardage!
+                let patternWandY : WeightAndYardage = patternWAndYForProject == nil ? firstFavorite : patternWAndYForProject!
+                
+                let yarnWandY : WeightAndYardage = favoritedPatterns.first(where: {
+                    $0.patternWeightAndYardage == patternWandY
+                }).unsafelyUnwrapped.yarnWeightAndYardage!
+                
+                AddOrEditProjectForm(
+                    projectToEdit: nil,
+                    preSelectedPattern: patternWandY.pattern!,
+                    preSelectedPairings : [ProjectPairing(patternWeightAndYardageId: patternWandY.id!, yarnWeightAndYardage: yarnWandY)]
+                ) { newProject in
+                    
+                }
+            }
+            .confirmationDialog("", isPresented: $showChoosePatternDialog) {
+                ForEach(favoritedPatterns, id: \.self) {element in
+                    let wAndY = element.patternWeightAndYardage!
+                    
+                    let text = "\(wAndY.pattern!.name!) \(wAndY.pattern!.weightAndYardageItems.count > 1 ? "(Color \(PatternUtils.shared.getLetter(for: Int(wAndY.order))))" : "")"
+
+
+                    Button("\(text)") {
+                        patternWAndYForProject = wAndY
+                        showAddProjectForm = true
+                    }
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("You've favorited multiple patterns. Which pattern would you like to use this yarn for?")
             }
         }
         .background(Color(UIColor.systemGroupedBackground))
         .onAppear {
-            DispatchQueue.global(qos: .background).async {
-                var temp : [PatternSuggestion] = []
-                
-                for wAndY in yarn.weightAndYardageItems {
-                    temp.append(
-                        PatternSuggestion(
-                            yarnWAndY: wAndY,
-                            suggestedWAndY: YarnUtils.shared.getMatchingPatterns(for: wAndY, in: managedObjectContext)
-                        )
+            getSuggestions()
+        }
+    }
+    
+    func getSuggestions() {
+        DispatchQueue.global(qos: .background).async {
+            var temp : [PatternSuggestion] = []
+            
+            for wAndY in yarn.weightAndYardageItems {
+                temp.append(
+                    PatternSuggestion(
+                        yarnWAndY: wAndY.existingItem!,
+                        suggestedWAndY: YarnUtils.shared.getMatchingPatterns(for: wAndY, in: managedObjectContext)
                     )
-                }
-                
-                DispatchQueue.main.async { // Ensure UI updates are performed on the main thread
-                    self.patternSuggestions = temp
-                }
+                )
+            }
+            
+            let favorites = YarnUtils.shared.favoritedPatterns(for: yarn, in: managedObjectContext)
+            
+            DispatchQueue.main.async { // Ensure UI updates are performed on the main thread
+                self.patternSuggestions = temp
+                self.favoritedPatterns = favorites
             }
         }
     }

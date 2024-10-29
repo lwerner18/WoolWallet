@@ -9,7 +9,7 @@ import Foundation
 
 
 enum PatternType : String, CaseIterable, Identifiable {
-    var id : String { UUID().uuidString }
+    var id: String { self.rawValue }
     
     case crochet = "Crochet"
     case knit = "Knit"
@@ -17,7 +17,7 @@ enum PatternType : String, CaseIterable, Identifiable {
 }
 
 enum CrochetHookSize : String, CaseIterable, Identifiable {
-    var id : String { UUID().uuidString }
+    var id: String { self.rawValue }
     
     case none                  = "--"
     case twoPointTwoFive       = "2.25mm (B-1)"
@@ -51,7 +51,7 @@ enum CrochetHookSize : String, CaseIterable, Identifiable {
 }
 
 enum KnitNeedleSize : String, CaseIterable, Identifiable {
-    var id : String { UUID().uuidString }
+    var id: String { self.rawValue }
     
     case none                  = "--"
     case twoPointTwoFive       = "2.25mm (1)"
@@ -75,7 +75,7 @@ enum KnitNeedleSize : String, CaseIterable, Identifiable {
 }
 
 enum Item : String, CaseIterable, Identifiable {
-    var id : String { UUID().uuidString }
+    var id: String { self.rawValue } 
     
     case none          = "--"
     case shirt         = "Shirt"

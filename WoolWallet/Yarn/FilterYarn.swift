@@ -17,13 +17,14 @@ struct FilterYarn: View {
     @Binding var selectedColors: [NamedColor]
     @Binding var selectedWeights: [Weight]
     @Binding var sockSet: Int
+    @Binding var colorType: ColorType?
 //    @Binding var minLength: Int
 //    @Binding var maxLength: Int
     var filteredYarnCount: Int
     
     // Computed property
     private var filtersApplied: Bool {
-        !selectedColors.isEmpty || !selectedWeights.isEmpty || sockSet != -1
+        !selectedColors.isEmpty || !selectedWeights.isEmpty || sockSet != -1 || colorType != nil
     }
     
     // init function
@@ -31,6 +32,7 @@ struct FilterYarn: View {
         selectedColors : Binding<[NamedColor]>,
         selectedWeights : Binding<[Weight]>,
         sockSet : Binding<Int>,
+        colorType : Binding<ColorType?>,
 //        minLength : Binding<Int>,
 //        maxLength : Binding<Int>,
         filteredYarnCount : Int
@@ -38,6 +40,7 @@ struct FilterYarn: View {
         self._selectedColors = selectedColors
         self._selectedWeights = selectedWeights
         self._sockSet = sockSet
+        self._colorType = colorType
         self.filteredYarnCount = filteredYarnCount
     }
     
@@ -52,7 +55,7 @@ struct FilterYarn: View {
                         
                         ScrollView {
                             LazyVGrid(columns: [.init(.adaptive(minimum:120))], spacing: 10) {
-                                ForEach(weights, id: \.self) { weight in
+                                ForEach(Weight.allCases, id: \.id) { weight in
                                     if weight != Weight.none {
                                         Button(action: {
                                             toggleWeightSelection(for: weight)
@@ -66,21 +69,13 @@ struct FilterYarn: View {
                                                         : Color(UIColor.secondaryLabel)
                                                     )
                                             }
-                                            .frame(minWidth: 0, maxWidth: .infinity)
-                                            .padding(10)
-                                            .background(
-                                                selectedWeights.contains(weight) ?
-                                                Color.accentColor.opacity(0.2) : Color(UIColor.secondarySystemGroupedBackground)
-                                            )
-                                            .clipShape(RoundedRectangle(cornerRadius: 8)) // Apply rounded corners
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 8) // Apply corner radius to the border
-                                                    .stroke(
-                                                        selectedWeights.contains(weight) 
-                                                        ? Color.accentColor.opacity(0.2)
-                                                        : Color(UIColor.secondaryLabel),
-                                                        lineWidth: 0.3
-                                                    )
+                                            .filterCapsule(
+                                                background: selectedWeights.contains(weight)
+                                                ? Color.accentColor.opacity(0.2)
+                                                : Color(UIColor.secondarySystemGroupedBackground),
+                                                border: selectedWeights.contains(weight) 
+                                                ? Color.accentColor.opacity(0.2)
+                                                : Color(UIColor.secondaryLabel)
                                             )
                                         }
                                     }
@@ -106,20 +101,9 @@ struct FilterYarn: View {
                                             sockSet == 1 ? Color.accentColor : Color(UIColor.secondaryLabel)
                                         )
                                 }
-                                .frame(minWidth: 0, maxWidth: .infinity)
-                                .padding(10)
-                                .background(
-                                    sockSet == 1 ? Color.accentColor.opacity(0.2) : Color(UIColor.secondarySystemGroupedBackground)
-                                )
-                                .clipShape(RoundedRectangle(cornerRadius: 8)) // Apply rounded corners
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8) // Apply corner radius to the border
-                                        .stroke(
-                                            sockSet == 1
-                                            ? Color.accentColor.opacity(0.2)
-                                            : Color(UIColor.secondaryLabel),
-                                            lineWidth: 0.3
-                                        )
+                                .filterCapsule(
+                                    background: sockSet == 1 ? Color.accentColor.opacity(0.2) : Color(UIColor.secondarySystemGroupedBackground),
+                                    border: sockSet == 1 ? Color.accentColor.opacity(0.2) : Color(UIColor.secondaryLabel)
                                 )
                             }
                             
@@ -136,20 +120,9 @@ struct FilterYarn: View {
                                             sockSet == 0 ? Color.accentColor : Color(UIColor.secondaryLabel)
                                         )
                                 }
-                                .frame(minWidth: 0, maxWidth: .infinity)
-                                .padding(10)
-                                .background(
-                                    sockSet == 0 ? Color.accentColor.opacity(0.2) : Color(UIColor.secondarySystemGroupedBackground)
-                                )
-                                .clipShape(RoundedRectangle(cornerRadius: 8)) // Apply rounded corners
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8) // Apply corner radius to the border
-                                        .stroke(
-                                            sockSet == 0
-                                            ? Color.accentColor.opacity(0.2)
-                                            : Color(UIColor.secondaryLabel),
-                                            lineWidth: 0.3
-                                        )
+                                .filterCapsule(
+                                    background: sockSet == 0 ? Color.accentColor.opacity(0.2) : Color(UIColor.secondarySystemGroupedBackground),
+                                    border: sockSet == 0 ? Color.accentColor.opacity(0.2) : Color(UIColor.secondaryLabel)
                                 )
                             }
                         }
@@ -158,6 +131,30 @@ struct FilterYarn: View {
                         
                         ScrollView {
                             LazyVGrid(columns: [.init(.adaptive(minimum:84))], spacing: 10) {
+                                ForEach(ColorType.allCases, id: \.id) { colorTypeEnum in
+                                    
+                                    Button(action: {
+                                        if colorType == colorTypeEnum {
+                                            colorType = nil
+                                        } else {
+                                            colorType = colorTypeEnum
+                                        }
+                                    }) {
+                                        HStack {
+                                            Text(colorTypeEnum.rawValue)
+                                                .foregroundColor(
+                                                    colorType == colorTypeEnum ? Color.accentColor : Color(UIColor.secondaryLabel)
+                                                )
+                                        }
+                                        .filterCapsule(
+                                            background: colorType == colorTypeEnum
+                                            ? Color.accentColor.opacity(0.2) : Color(UIColor.secondarySystemGroupedBackground),
+                                            border: colorType == colorTypeEnum
+                                            ? Color.accentColor.opacity(0.2) : Color(UIColor.secondaryLabel)
+                                        )
+                                    }
+                                }
+                                
                                 ForEach(namedColors) { colorGroup in
                                     Button(action: {
                                         toggleColorSelection(for: colorGroup)
@@ -179,21 +176,13 @@ struct FilterYarn: View {
                                                 )
                                                 .fixedSize()
                                         }
-                                        .frame(minWidth: 0, maxWidth: .infinity)
-                                        .padding(10)
-                                        .background(
-                                            selectedColors.contains(colorGroup) ?
-                                            Color.accentColor.opacity(0.2) : Color(UIColor.secondarySystemGroupedBackground)
-                                        )
-                                        .clipShape(RoundedRectangle(cornerRadius: 8)) // Apply rounded corners
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 8) // Apply corner radius to the border
-                                                .stroke(
-                                                    selectedColors.contains(colorGroup)
-                                                    ? Color.accentColor.opacity(0.2)
-                                                    : Color(UIColor.secondaryLabel),
-                                                    lineWidth: 0.3
-                                                )
+                                        .filterCapsule(
+                                            background: selectedColors.contains(colorGroup)
+                                            ? Color.accentColor.opacity(0.2)
+                                            : Color(UIColor.secondarySystemGroupedBackground),
+                                            border: selectedColors.contains(colorGroup)
+                                            ? Color.accentColor.opacity(0.2)
+                                            : Color(UIColor.secondaryLabel)
                                         )
                                     }
                                     
@@ -209,8 +198,10 @@ struct FilterYarn: View {
                     Button {
                         dismiss()
                     } label: {
-                        Text("Show \(filteredYarnCount) result\(filteredYarnCount != 1 ? "s" : "")").frame(maxWidth: .infinity)
+                        Text("Show \(filteredYarnCount) result\(filteredYarnCount != 1 ? "s" : "")")
                     }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                     .disabled(!filtersApplied)
                 }
                 .padding(.vertical, 20)
@@ -245,6 +236,7 @@ struct FilterYarn: View {
         selectedColors = []
         selectedWeights = []
         sockSet = -1
+        colorType = nil
     }
     
     func toggleColorSelection(for item: NamedColor) {

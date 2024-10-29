@@ -168,10 +168,9 @@ struct EditComposition: View {
         Form {
             if showComposition {
                 CompositionText(composition: tempComposition)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                .listRowInsets(EdgeInsets())
-                .background(Color(UIColor.systemGroupedBackground))
-                .transition(.slide)
+                    .transition(.slide)
+                    .customFormSection()
+              
             }
             
             ForEach(tempComposition.indices, id: \.self) { index in

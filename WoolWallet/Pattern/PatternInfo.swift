@@ -10,7 +10,7 @@ import SwiftUI
 import CoreData
 
 struct YarnSuggestion {
-    var patternWAndY : WeightAndYardageData
+    var patternWAndY : WeightAndYardage
     var suggestedWAndY : [WeightAndYardage] = []
 }
 
@@ -22,15 +22,25 @@ struct PatternInfo: View {
     @Environment(\.verticalSizeClass) var verticalSizeClass
     
     @ObservedObject var pattern : Pattern
-    var isNewPattern : Bool?
+    var isNewPattern : Bool
+    @Binding var browseMode : Bool
+    @Binding var browsePattern : Pattern?
     
-    init(pattern: Pattern, isNewPattern : Bool? = false) {
+    init(
+        pattern: Pattern,
+        isNewPattern : Bool = false,
+        browseMode: Binding<Bool> = .constant(false),
+        browsePattern : Binding<Pattern?> = .constant(nil)
+    ) {
         self.pattern = pattern
         self.isNewPattern = isNewPattern
+        self._browseMode = browseMode
+        self._browsePattern = browsePattern
     }
     
     // Internal state trackers
     @State private var showEditPatternForm : Bool = false
+    @State private var showAddProjectForm : Bool = false
     @State private var showConfirmationDialog = false
     @State private var animateCheckmark = false
     @State private var yarnSuggestions : [YarnSuggestion] = []
@@ -49,7 +59,7 @@ struct PatternInfo: View {
     
     var body: some View {
         VStack {
-            if isNewPattern! {
+            if isNewPattern {
                 // Toolbar-like header
                 HStack {
                     Spacer()
@@ -66,7 +76,7 @@ struct PatternInfo: View {
             }
             
             ScrollView {
-                if isNewPattern! {
+                if isNewPattern {
                     VStack {
                         Label("", systemImage: "checkmark.circle")
                             .font(.system(size: 60))
@@ -113,7 +123,7 @@ struct PatternInfo: View {
                         .infoCapsule()
                         
                         if pattern.oneSize == 1 {
-                            Label("One Size", systemImage : "tray.and.arrow.down")
+                            Label("One Size", systemImage : "hand.point.up")
                                 .infoCapsule()
                         }
                         
@@ -155,10 +165,7 @@ struct PatternInfo: View {
                                 }
                                 
                                 if let suggestion : YarnSuggestion = yarnSuggestions.first(where: {$0.patternWAndY.id == item.id}) {
-                                    YarnSuggestions(
-                                        weightAndYardage: item,
-                                        matchingWeightAndYardage: suggestion.suggestedWAndY
-                                    )
+                                    YarnSuggestions(yarnSuggestion: suggestion)
                                 }
                             }
                         } else {
@@ -173,10 +180,7 @@ struct PatternInfo: View {
                                 )
                                 
                                 if let suggestion : YarnSuggestion = yarnSuggestions.first(where: {$0.patternWAndY.id == item.id}) {
-                                    YarnSuggestions(
-                                        weightAndYardage: item,
-                                        matchingWeightAndYardage: suggestion.suggestedWAndY
-                                    )
+                                    YarnSuggestions(yarnSuggestion: suggestion)
                                 }
                             }
                         }
@@ -236,22 +240,44 @@ struct PatternInfo: View {
             .navigationBarTitleDisplayMode(.inline)
             .scrollBounceBehavior(.basedOnSize)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button {
-                            showEditPatternForm = true
-                        } label : {
-                            Label("Edit", systemImage : "pencil")
-                        }
-                        
-                        Button(role: .destructive) {
-                            showConfirmationDialog = true
+                if browseMode {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button() {
+                            browsePattern = pattern
+                            browseMode = false
                         } label: {
-                            Label("Delete", systemImage : "trash")
+                            Text("Select")
                         }
-                        
-                    } label: {
-                        Label("more", systemImage : "ellipsis")
+                    }
+                } else if browsePattern != nil {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        ProgressView("")
+                            .progressViewStyle(CircularProgressViewStyle())
+                    }
+                } else {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Menu {
+                            Button {
+                                showEditPatternForm = true
+                            } label : {
+                                Label("Edit", systemImage : "pencil")
+                            }
+                            
+                            Button {
+                                showAddProjectForm = true
+                            } label : {
+                                Label("Start a Project", systemImage : "hammer")
+                            }
+                            
+                            Button(role: .destructive) {
+                                showConfirmationDialog = true
+                            } label: {
+                                Label("Delete", systemImage : "trash")
+                            }
+                            
+                        } label: {
+                            Label("more", systemImage : "ellipsis")
+                        }
                     }
                 }
             }
@@ -264,28 +290,37 @@ struct PatternInfo: View {
                 
                 Button("Cancel", role: .cancel) {}
             }
-            .fullScreenCover(isPresented: $showEditPatternForm) {
+            .fullScreenCover(isPresented: $showEditPatternForm, onDismiss : getSuggestions) {
                 AddOrEditPatternForm(patternToEdit: pattern)
+            }
+            .popover(isPresented: $showAddProjectForm) {
+                AddOrEditProjectForm(projectToEdit: nil, preSelectedPattern: pattern, yarnSuggestions: yarnSuggestions) { newProject in
+                    
+                }
             }
             
         }
         .background(Color(UIColor.systemGroupedBackground))
         .onAppear {
-            DispatchQueue.global(qos: .background).async {
-                var temp : [YarnSuggestion] = []
-                
-                for wAndY in pattern.weightAndYardageItems {
-                    temp.append(
-                        YarnSuggestion(
-                            patternWAndY: wAndY,
-                            suggestedWAndY: PatternUtils.shared.getMatchingYarns(for: wAndY, in: managedObjectContext)
-                        )
+            getSuggestions()
+        }
+    }
+    
+    func getSuggestions() {
+        DispatchQueue.global(qos: .background).async {
+            var temp : [YarnSuggestion] = []
+            
+            for wAndY in pattern.weightAndYardageItems {
+                temp.append(
+                    YarnSuggestion(
+                        patternWAndY: wAndY.existingItem!,
+                        suggestedWAndY: PatternUtils.shared.getMatchingYarns(for: wAndY, in: managedObjectContext)
                     )
-                }
-                
-                DispatchQueue.main.async { // Ensure UI updates are performed on the main thread
-                    self.yarnSuggestions = temp
-                }
+                )
+            }
+            
+            DispatchQueue.main.async { // Ensure UI updates are performed on the main thread
+                self.yarnSuggestions = temp
             }
         }
     }

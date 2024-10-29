@@ -10,7 +10,19 @@ import SwiftUI
 
 struct PatternList: View {
     // @Environment variables
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.managedObjectContext) var managedObjectContext
+    
+    @Binding var browseMode : Bool
+    @Binding var browsePattern : Pattern?
+    
+    init(
+        browseMode: Binding<Bool> = .constant(false),
+        browsePattern : Binding<Pattern?> = .constant(nil)
+    ) {
+        self._browseMode = browseMode
+        self._browsePattern = browsePattern
+    }
     
     private var filteredFetchRequest = FetchRequest<Pattern>(
         sortDescriptors: [SortDescriptor(\.name)],
@@ -55,11 +67,11 @@ struct PatternList: View {
     }
     
     @State private var showConfirmationDialog : Bool = false
-    @State var searchText: String = ""
-    @State private var showAddPatternForm : Bool = false
-    @State private var newPattern : Pattern? = nil
-    @State private var patternToDelete           : Pattern? = nil
-    @State private var patternToEdit           : Pattern? = nil
+    @State var         searchText             : String = ""
+    @State private var showAddPatternForm     : Bool = false
+    @State private var newPattern             : Pattern? = nil
+    @State private var patternToDelete        : Pattern? = nil
+    @State private var patternToEdit          : Pattern? = nil
     
     var body: some View {
         NavigationStack {
@@ -84,16 +96,18 @@ struct PatternList: View {
                                 HStack(spacing: 0) {
                                     Text("Please")
                                     
-                                    Button(action: {
-                                        showAddPatternForm = true
-                                    }) {
-                                        Text(" add a pattern ")
-                                            .foregroundColor(.blue) // Customize the color to look like a link
+                                    if !browseMode {
+                                        Button(action: {
+                                            showAddPatternForm = true
+                                        }) {
+                                            Text(" add a pattern or")
+                                                .foregroundColor(.blue) // Customize the color to look like a link
+                                        }
+                                        .buttonStyle(PlainButtonStyle()) // Remove default button styling
+                                        .padding(0)
                                     }
-                                    .buttonStyle(PlainButtonStyle()) // Remove default button styling
-                                    .padding(0)
                                     
-                                    Text("or modify your search.")
+                                    Text(" modify your search.")
                                         .font(.body)
                                 }
                                 
@@ -106,7 +120,7 @@ struct PatternList: View {
                     List {
                         ForEach(filteredPatterns) { pattern in
                             NavigationLink(
-                                destination: PatternInfo(pattern: pattern)
+                                destination: PatternInfo(pattern: pattern, browseMode: $browseMode, browsePattern : $browsePattern)
                             ) {
                                 let itemDisplay =
                                     PatternUtils.shared.getItemDisplay(
@@ -158,19 +172,21 @@ struct PatternList: View {
                                     }
                                 }
                                 .swipeActions(allowsFullSwipe: false) {
-                                    Button {
-                                        patternToEdit = pattern
-                                    } label: {
-                                        Label("", systemImage : "pencil")
-                                           
-                                    }
-                                    .tint(Color.accentColor)
-                                    
-                                    Button(role: .destructive) {
-                                        patternToDelete = pattern
-                                        showConfirmationDialog = true
-                                    } label: {
-                                        Label("", systemImage : "trash")
+                                    if !browseMode {
+                                        Button {
+                                            patternToEdit = pattern
+                                        } label: {
+                                            Label("", systemImage : "pencil")
+                                            
+                                        }
+                                        .tint(Color.accentColor)
+                                        
+                                        Button(role: .destructive) {
+                                            patternToDelete = pattern
+                                            showConfirmationDialog = true
+                                        } label: {
+                                            Label("", systemImage : "trash")
+                                        }
                                     }
                                 }
                             }
@@ -207,10 +223,14 @@ struct PatternList: View {
             }
             .fullScreenCover(isPresented: $showAddPatternForm) {
                 AddOrEditPatternForm(patternToEdit : nil)  { addedPattern in
-                    // Capture the newly added yarn
-                    newPattern = addedPattern
-                    showAddPatternForm = false
+                    if browseMode {
+                        browsePattern = addedPattern
+                        browseMode = false
+                    } else {
+                        newPattern = addedPattern
+                    }
                     
+                    showAddPatternForm = false
                 }
             }
             .fullScreenCover(item: $patternToEdit, onDismiss: { patternToEdit = nil}) { pattern in
@@ -227,6 +247,9 @@ struct PatternList: View {
                 }
                 
                 Button("Cancel", role: .cancel) {}
+            }
+            .onChange(of: browsePattern) {
+                dismiss()
             }
            
         }

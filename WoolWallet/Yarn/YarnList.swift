@@ -14,6 +14,19 @@ struct YarnList: View {
     // @Environment variables
     @Environment(\.managedObjectContext) var managedObjectContext
     
+    @Binding var browseMode : Bool
+    var preSelectedWeightFilter : [Weight]
+    
+    init(
+        browseMode: Binding<Bool> = .constant(false),
+        preSelectedWeightFilter : [Weight] = []
+    ) {
+        self._browseMode = browseMode
+        self.preSelectedWeightFilter = preSelectedWeightFilter
+        
+        _selectedWeights = State(initialValue: preSelectedWeightFilter)
+    }
+    
     // Internal state trackers
     @State var searchText                     : String = ""
     @State private var showAddYarnForm        : Bool = false
@@ -25,6 +38,7 @@ struct YarnList: View {
     @State private var selectedWeights        : [Weight] = []
     @State private var selectedTab            : Int = 0
     @State private var sockSet                : Int = -1
+    @State private var colorType              : ColorType? = nil
     @State private var showConfirmationDialog : Bool = false
     @State private var yarnToEdit             : Yarn? = nil
     @State private var yarnToDelete           : Yarn? = nil
@@ -43,6 +57,10 @@ struct YarnList: View {
     // Computed property for the count of filtered yarns
     private var filteredYarnCount: Int {
         filteredYarn.count
+    }
+    
+    var showFilterCapsules : Bool {
+        return !selectedColors.isEmpty || searchText != "" || !selectedWeights.isEmpty || sockSet != -1 || colorType != nil
     }
     
     var filteredSuggestions: [String] {
@@ -83,7 +101,7 @@ struct YarnList: View {
         // Apply predicate for weight filter
         if !selectedWeights.isEmpty {
             let weightPredicates = selectedWeights.map { weight in
-                NSPredicate(format: "ANY weight = %@", weight.rawValue)
+                NSPredicate(format: "ANY weightAndYardages.weight = %@", weight.rawValue)
             }
             let compoundPredicate = NSCompoundPredicate(orPredicateWithSubpredicates: weightPredicates)
             predicates.append(compoundPredicate)
@@ -104,6 +122,10 @@ struct YarnList: View {
             }
         }
         
+        if colorType != nil {
+            predicates.append(NSPredicate(format: "colorType = %@", colorType!.rawValue))
+        }
+        
         switch(tabs[selectedTab]) {
         case .active:
             let activePredicate = NSCompoundPredicate(orPredicateWithSubpredicates: [
@@ -122,146 +144,51 @@ struct YarnList: View {
     
     var body: some View {
         NavigationStack {
-            // Custom Tab Bar
-            HStack {
-                ForEach(0..<tabs.count) { index in
-                    Button(action: {
-                        withAnimation {
-                            selectedTab = index
-                        }
-                    }) {
-                        Spacer()
-                        
-                        Text(tabs[index].rawValue)
-                            .padding()
-                            .foregroundColor(selectedTab == index ? Color.accentColor : .gray)
-                            .frame(height: 30)
-                        
-                        Spacer()
-                    }
-                }
-            }
-            .overlay(
-                // Sliding underline
-                GeometryReader { geometry in
-                    let buttonWidth = geometry.size.width / CGFloat(tabs.count)
-                    
-                    Rectangle()
-                        .fill(Color.accentColor)
-                        .frame(width: buttonWidth, height: 2)
-                        .offset(x: CGFloat(selectedTab) * buttonWidth, y: 33)
-                        .animation(.easeInOut, value: selectedTab)
-                }
-            )
-            .padding(.bottom, 5)
-            
-            
-            HStack {
-                if !selectedColors.isEmpty || searchText != "" || !selectedWeights.isEmpty || sockSet != -1 {
-                    LazyVGrid(columns: [.init(.adaptive(minimum:120))], spacing: 10) {
-                        ForEach(selectedWeights, id: \.self) { weight in
-                            Button(action: {
-                                if let index = selectedWeights.firstIndex(where: { $0 == weight }) {
-                                    selectedWeights.remove(at: index)
-                                }
-                            }) {
-                                HStack() {
-                                    Spacer()
-                                    
-                                    Text(weight.rawValue)
-                                        .foregroundColor(Color(UIColor.secondaryLabel))
-                                    
-                                    Spacer()
-                                    
-                                    Image(systemName: "xmark")
-                                        .foregroundColor(Color(UIColor.secondaryLabel))
-                                        .font(.caption)
-                                }
-                                .frame(minWidth: 0, maxWidth: .infinity)
-                                .padding(8)
-                                .background(.clear)
-                                .clipShape(RoundedRectangle(cornerRadius: 8)) // Apply rounded corners
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8) // Apply corner radius to the border
-                                        .stroke(Color(UIColor.secondaryLabel), lineWidth: 0.3)
-                                )
-                            }
-                        }
-                        
-                        if sockSet != -1 {
-                            Button(action: {
-                                sockSet = -1
-                            }) {
-                                HStack() {
-                                    Spacer()
-                                    
-                                    Text(sockSet == 1 ? "Sock Sets Only" : "No Sock Sets")
-                                        .foregroundColor(Color(UIColor.secondaryLabel))
-                                    
-                                    Spacer()
-                                    
-                                    Image(systemName: "xmark")
-                                        .foregroundColor(Color(UIColor.secondaryLabel))
-                                        .font(.caption)
-                                }
-                                .frame(minWidth: 0, maxWidth: .infinity)
-                                .padding(8)
-                                .background(.clear)
-                                .clipShape(RoundedRectangle(cornerRadius: 8)) // Apply rounded corners
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8) // Apply corner radius to the border
-                                        .stroke(Color(UIColor.secondaryLabel), lineWidth: 0.3)
-                                )
-                            }
-                        }
-                        
-                        ForEach(selectedColors) { colorGroup in
-                            Button(action: {
-                                if let index = selectedColors.firstIndex(where: { $0.id == colorGroup.id }) {
-                                    selectedColors.remove(at: index)
-                                }
-                            }) {
-                                HStack() {
-                                    Spacer()
-                                    
-                                    // Diamond-shaped color view
-                                    Circle()
-                                        .fill(Color(uiColor : colorGroup.colors[0]))
-                                        .frame(width: 13, height: 13)
-                                        .overlay(
-                                            Circle()
-                                                .stroke(Color.black, lineWidth: 0.5) // Black border with width
-                                        )
-                                    
-                                    Text(colorGroup.name)
-                                        .foregroundColor(Color(UIColor.secondaryLabel))
-                                        .fixedSize()
-                                    
-                                    Spacer()
-                                    
-                                    Image(systemName: "xmark")
-                                        .foregroundColor(Color(UIColor.secondaryLabel))
-                                        .font(.caption)
-                                }
-                                .frame(minWidth: 0, maxWidth: .infinity)
-                                .padding(8)
-                                .background(.clear)
-                                .clipShape(RoundedRectangle(cornerRadius: 8)) // Apply rounded corners
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8) // Apply corner radius to the border
-                                        .stroke(Color(UIColor.secondaryLabel), lineWidth: 0.3)
-                                )
-                            }
-                        }
-                        
+            if !browseMode {
+                // Custom Tab Bar
+                HStack {
+                    ForEach(0..<tabs.count) { index in
                         Button(action: {
-                            showFilterScreen = true
+                            withAnimation {
+                                selectedTab = index
+                            }
                         }) {
-                            Image(systemName: "plus.circle")
-                                .font(.title2)
+                            Spacer()
+                            
+                            Text(tabs[index].rawValue)
+                                .padding()
+                                .foregroundColor(selectedTab == index ? Color.accentColor : .gray)
+                                .frame(height: 30)
+                            
+                            Spacer()
                         }
                     }
-                    .padding()
+                }
+                .overlay(
+                    // Sliding underline
+                    GeometryReader { geometry in
+                        let buttonWidth = geometry.size.width / CGFloat(tabs.count)
+                        
+                        Rectangle()
+                            .fill(Color.accentColor)
+                            .frame(width: buttonWidth, height: 2)
+                            .offset(x: CGFloat(selectedTab) * buttonWidth, y: 33)
+                            .animation(.easeInOut, value: selectedTab)
+                    }
+                )
+                .padding(.bottom, 5)
+            }
+            
+            
+            HStack {
+                if showFilterCapsules {
+                    FilterCapsules(
+                        showFilterScreen: $showFilterScreen,
+                        selectedColors: $selectedColors,
+                        selectedWeights: $selectedWeights,
+                        sockSet: $sockSet,
+                        colorType: $colorType
+                    )
                 }
                 
             }
@@ -290,16 +217,18 @@ struct YarnList: View {
                                 HStack(spacing: 0) {
                                     Text("Please")
                                     
-                                    Button(action: {
-                                        showAddYarnForm = true
-                                    }) {
-                                        Text(" add some yarn ")
-                                            .foregroundColor(.blue) // Customize the color to look like a link
+                                    if !browseMode {
+                                        Button(action: {
+                                            showAddYarnForm = true
+                                        }) {
+                                            Text(" add some yarn or")
+                                                .foregroundColor(.blue) // Customize the color to look like a link
+                                        }
+                                        .buttonStyle(PlainButtonStyle()) // Remove default button styling
+                                        .padding(0)
                                     }
-                                    .buttonStyle(PlainButtonStyle()) // Remove default button styling
-                                    .padding(0)
                                     
-                                    Text("or modify your search.")
+                                    Text(" modify your search.")
                                         .font(.body)
                                 }
                                 
@@ -318,28 +247,29 @@ struct YarnList: View {
                                     VStack {
                                         ImageCarousel(images: .constant(yarn.uiImages), smallMode: true)
                                             .contextMenu {
-                                                Button {
-                                                    yarnToEdit = yarn
-                                                } label: {
-                                                    Label("Edit", systemImage : "pencil")
-                                                }
-                                                
-                                                Button {
-                                                    YarnUtils.shared.toggleYarnArchived(at: yarn)
+                                                if !browseMode {
+                                                    Button {
+                                                        yarnToEdit = yarn
+                                                    } label: {
+                                                        Label("Edit", systemImage : "pencil")
+                                                    }
                                                     
-                                                    toast = Toast(style: .success, message: "Successfully \(yarn.isArchived ? "" : "un")archived yarn")
-                                                } label: {
-                                                    Label(yarn.isArchived ? "Unarchive" : "Archive", systemImage : yarn.isArchived ? "tray.and.arrow.up" : "tray.and.arrow.down")
-                                                }
-                                                
-                                                Button(role: .destructive) {
-                                                    yarnToDelete = yarn
-                                                    showConfirmationDialog = true
-                                                } label: {
-                                                    Label("Delete", systemImage : "trash")
+                                                    Button {
+                                                        YarnUtils.shared.toggleYarnArchived(at: yarn)
+                                                        
+                                                        toast = Toast(style: .success, message: "Successfully \(yarn.isArchived ? "" : "un")archived yarn")
+                                                    } label: {
+                                                        Label(yarn.isArchived ? "Unarchive" : "Archive", systemImage : yarn.isArchived ? "tray.and.arrow.up" : "tray.and.arrow.down")
+                                                    }
+                                                    
+                                                    Button(role: .destructive) {
+                                                        yarnToDelete = yarn
+                                                        showConfirmationDialog = true
+                                                    } label: {
+                                                        Label("Delete", systemImage : "trash")
+                                                    }
                                                 }
                                             }
-//                                            .cardBackground()
                                         
                                         
                                         Text(yarn.name ?? "No Name")
@@ -366,6 +296,21 @@ struct YarnList: View {
                 
             }
             .navigationTitle("My Stash")
+            .searchable(
+                text: $searchText,
+                placement: .navigationBarDrawer(displayMode: .always),
+                prompt: "Search by Name or Dyer...",
+                suggestions: {
+                    ForEach(filteredSuggestions, id: \.self) { suggestion in
+                        Text(suggestion).searchCompletion(suggestion).padding(.leading, 5)
+                    }
+                }
+            )
+            .onChange(of: searchText) {
+                if searchText.isEmpty {
+                    searchText = ""
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
@@ -376,30 +321,16 @@ struct YarnList: View {
                     }
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        showAddYarnForm = true
-                    }) {
-                        Image(systemName: "plus") // Use a system icon
-                            .imageScale(.large)
+                if !browseMode {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: {
+                            showAddYarnForm = true
+                        }) {
+                            Image(systemName: "plus") // Use a system icon
+                                .imageScale(.large)
+                        }
                     }
                 }
-            }
-        }
-        .scrollBounceBehavior(.basedOnSize)
-        .searchable(
-            text: $searchText,
-            placement: .navigationBarDrawer(displayMode: .always),
-            prompt: "Search by Name or Dyer...",
-            suggestions: {
-                ForEach(filteredSuggestions, id: \.self) { suggestion in
-                    Text(suggestion).searchCompletion(suggestion).padding(.leading, 5)
-                }
-            }
-        )
-        .onChange(of: searchText) {
-            if searchText.isEmpty {
-                searchText = ""
             }
         }
         .popover(isPresented: $showFilterScreen) {
@@ -407,6 +338,7 @@ struct YarnList: View {
                 selectedColors: $selectedColors,
                 selectedWeights: $selectedWeights,
                 sockSet : $sockSet,
+                colorType : $colorType,
                 filteredYarnCount: filteredYarnCount
             )
         }
@@ -438,10 +370,116 @@ struct YarnList: View {
     }
 }
 
-struct CardBackground: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .cornerRadius(20)
-            .shadow(color: Color.black.opacity(0.5), radius: 4)
+struct FilterCapsules : View {
+    @Binding var showFilterScreen : Bool
+    @Binding var selectedColors   : [NamedColor]
+    @Binding var selectedWeights  : [Weight]
+    @Binding var sockSet          : Int
+    @Binding var colorType        : ColorType?
+    
+    var body : some View {
+        LazyVGrid(columns: [.init(.adaptive(minimum:120))], spacing: 10) {
+            ForEach(selectedWeights, id: \.self) { weight in
+                Button(action: {
+                    if let index = selectedWeights.firstIndex(where: { $0 == weight }) {
+                        selectedWeights.remove(at: index)
+                    }
+                }) {
+                    HStack() {
+                        Spacer()
+                        
+                        Text(weight.rawValue)
+                            .foregroundColor(Color(UIColor.secondaryLabel))
+                        
+                        Spacer()
+                        
+                        Image(systemName: "xmark")
+                            .foregroundColor(Color(UIColor.secondaryLabel))
+                            .font(.caption)
+                    }
+                    .filterCapsule()
+                }
+            }
+            
+            if sockSet != -1 {
+                Button(action: {
+                    sockSet = -1
+                }) {
+                    HStack() {
+                        Spacer()
+                        
+                        Text(sockSet == 1 ? "Sock Sets Only" : "No Sock Sets")
+                            .foregroundColor(Color(UIColor.secondaryLabel))
+                        
+                        Spacer()
+                        
+                        Image(systemName: "xmark")
+                            .foregroundColor(Color(UIColor.secondaryLabel))
+                            .font(.caption)
+                    }
+                    .filterCapsule()
+                }
+            }
+            
+            if colorType != nil {
+                Button(action: {
+                    colorType = nil
+                }) {
+                    HStack() {
+                        Spacer()
+                        
+                        Text(colorType!.rawValue)
+                            .foregroundColor(Color(UIColor.secondaryLabel))
+                        
+                        Spacer()
+                        
+                        Image(systemName: "xmark")
+                            .foregroundColor(Color(UIColor.secondaryLabel))
+                            .font(.caption)
+                    }
+                    .filterCapsule()
+                }
+            }
+            
+            ForEach(selectedColors) { colorGroup in
+                Button(action: {
+                    if let index = selectedColors.firstIndex(where: { $0.id == colorGroup.id }) {
+                        selectedColors.remove(at: index)
+                    }
+                }) {
+                    HStack() {
+                        Spacer()
+                        
+                        // Diamond-shaped color view
+                        Circle()
+                            .fill(Color(uiColor : colorGroup.colors[0]))
+                            .frame(width: 13, height: 13)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.black, lineWidth: 0.5) // Black border with width
+                            )
+                        
+                        Text(colorGroup.name)
+                            .foregroundColor(Color(UIColor.secondaryLabel))
+                            .fixedSize()
+                        
+                        Spacer()
+                        
+                        Image(systemName: "xmark")
+                            .foregroundColor(Color(UIColor.secondaryLabel))
+                            .font(.caption)
+                    }
+                    .filterCapsule()
+                }
+            }
+            
+            Button(action: {
+                showFilterScreen = true
+            }) {
+                Image(systemName: "plus.circle")
+                    .font(.title2)
+            }
+        }
+        .padding()
     }
 }

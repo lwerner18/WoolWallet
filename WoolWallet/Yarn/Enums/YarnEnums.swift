@@ -8,14 +8,14 @@
 import Foundation
 
 enum YarnTab : String, CaseIterable, Identifiable {
-    var id : String { UUID().uuidString }
+    var id: String { self.rawValue } 
     
     case active = "Active"
     case archived = "Archived"
 }
 
 enum Weight : String, CaseIterable, Identifiable {
-    var id : String { UUID().uuidString }
+    var id: String { self.rawValue }
     
     case none = "--"
     case zero = "0 - Lace"
@@ -26,10 +26,24 @@ enum Weight : String, CaseIterable, Identifiable {
     case five = "5 - Chunky"
     case six = "6 - Super Bulky"
     case seven = "7 - Jumbo"
+    
+    func getDisplay() -> String {
+        switch self {
+        case .none : return ""
+        case .zero : return "Lace"
+        case .one : return "Fingering"
+        case .two : return "Sport"
+        case .three : return "DK"
+        case .four : return "Worsted"
+        case .five : return "Chunky"
+        case .six : return "Super Bulky"
+        case .seven : return "Jumbo"
+        }
+    }
 }
 
 enum UnitOfMeasure : String, CaseIterable, Identifiable {
-    var id : String { UUID().uuidString }
+    var id: String { self.rawValue }
     
     case yards = "Yards"
     case meters = "Meters"
@@ -37,7 +51,7 @@ enum UnitOfMeasure : String, CaseIterable, Identifiable {
 
 
 enum MaterialCategory : String, CaseIterable, Identifiable {
-    var id : String { UUID().uuidString }
+    var id: String { self.rawValue }
     
     case wool     = "Wool"
     case alpaca   = "Alpaca"
@@ -51,4 +65,11 @@ enum MaterialCategory : String, CaseIterable, Identifiable {
     case nylon    = "Nylon"
     case rayon    = "Rayon"
     case other    = "Other"
+}
+
+enum ColorType : String, CaseIterable, Identifiable {
+    var id: String { self.rawValue }
+    
+    case tonal = "Tonal"
+    case variegated = "Variegated"
 }

@@ -13,39 +13,33 @@ struct PossiblePatterns: View {
     // @Environment variables
     @Environment(\.managedObjectContext) var managedObjectContext
     
-    var weightAndYardage : WeightAndYardageData
-    var matchingWeightAndYardage : [WeightAndYardage]
+    var patternSuggestion : PatternSuggestion
+    @Binding var favoritedPatterns : [FavoritePairing]
     
     @State private var scrollOffset = CGPoint.zero
     
-    var favoritesRequest : FetchRequest<FavoriteYarnForPattern>
-    var favoritePatterns : FetchedResults<FavoriteYarnForPattern>{favoritesRequest.wrappedValue}
-    
-    init(weightAndYardage : WeightAndYardageData, matchingWeightAndYardage : [WeightAndYardage]) {
-        self.weightAndYardage = weightAndYardage
-        self.matchingWeightAndYardage = matchingWeightAndYardage
-        
-        self.favoritesRequest = FetchRequest(
-            entity: FavoriteYarnForPattern.entity(),
-            sortDescriptors: [],
-            predicate: NSPredicate(format: "yarnWeightAndYardageId == %@", weightAndYardage.id as CVarArg)
-        )
+    init(
+        patternSuggestion : PatternSuggestion,
+        favoritedPatterns : Binding<[FavoritePairing]>
+    ) {
+        self.patternSuggestion = patternSuggestion
+        self._favoritedPatterns = favoritedPatterns
     }
     
     var body: some View {
-        if !matchingWeightAndYardage.isEmpty {
+        if !patternSuggestion.suggestedWAndY.isEmpty {
             InfoCard(backgroundColor: Color.accentColor.opacity(0.1)) {
                 CollapsibleView(
                     label : {
-                        Text("Possible Patterns (\(matchingWeightAndYardage.count))").foregroundStyle(Color.primary)
+                        Text("Possible Patterns (\(patternSuggestion.suggestedWAndY.count))").foregroundStyle(Color.primary)
                     },
                     showArrows : true
                 ) {
                     ScrollView(.horizontal) {
                         LazyHStack(spacing: 0) {
-                            let ratio = weightAndYardage.yardage! / Double(weightAndYardage.grams!)
+                            let ratio = patternSuggestion.yarnWAndY.yardage / Double(patternSuggestion.yarnWAndY.grams)
                             
-                            let sorted = matchingWeightAndYardage.sorted {
+                            let sorted = patternSuggestion.suggestedWAndY.sorted {
                                 (getFavoritesIndex(for: $0.id!) != nil ? 0 : 1, abs(($0.yardage / Double($0.grams)) - ratio)) <
                                     (getFavoritesIndex(for: $1.id!) != nil ? 0 : 1, abs(($1.yardage / Double($1.grams)) - ratio))
                             }
@@ -137,11 +131,15 @@ struct PossiblePatterns: View {
                                 .overlay(
                                     Button(action: {
                                         if favoriteIndex != nil {
-                                            managedObjectContext.delete(favoritePatterns[favoriteIndex!])
+                                            managedObjectContext.delete(favoritedPatterns[favoriteIndex!])
+                                            
+                                            favoritedPatterns.remove(at: favoriteIndex!)
                                         } else {
-                                            let newFavorite = FavoriteYarnForPattern(context: managedObjectContext)
-                                            newFavorite.patternWeightAndYardageId = wAndYMatch.id
-                                            newFavorite.yarnWeightAndYardageId = weightAndYardage.id
+                                            let newFavorite = FavoritePairing(context: managedObjectContext)
+                                            newFavorite.patternWeightAndYardage = wAndYMatch
+                                            newFavorite.yarnWeightAndYardage = patternSuggestion.yarnWAndY
+                                            
+                                            favoritedPatterns.append(newFavorite)
                                         }
                                         
                                         PersistenceController.shared.save()
@@ -164,11 +162,11 @@ struct PossiblePatterns: View {
                         )
                     }
                     .overlay(
-                        matchingWeightAndYardage.count > 1
+                        patternSuggestion.suggestedWAndY.count > 1
                         ? AnyView(
                             ScrollDots(
                                 scrollOffset: scrollOffset,
-                                numberOfDots: matchingWeightAndYardage.count,
+                                numberOfDots: patternSuggestion.suggestedWAndY.count,
                                 smallMode: true,
                                 hasBottomPadding: false
                             )
@@ -178,15 +176,15 @@ struct PossiblePatterns: View {
                     )
                     .scrollTargetBehavior(.paging)
                     .scrollIndicators(.hidden)
-                    .scrollDisabled(matchingWeightAndYardage.count <= 1)
+                    .scrollDisabled(patternSuggestion.suggestedWAndY.count <= 1)
                 }
             }
         }
     }
     
     func getFavoritesIndex(for id: UUID) -> Optional<Int> {
-        return favoritePatterns.firstIndex(where: { element in
-            return element.patternWeightAndYardageId == id
+        return favoritedPatterns.firstIndex(where: { element in
+            return element.patternWeightAndYardage?.id == id
         })
     }
 }

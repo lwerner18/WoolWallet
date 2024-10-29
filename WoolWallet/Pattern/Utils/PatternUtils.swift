@@ -25,6 +25,29 @@ class PatternUtils {
     private init() {}
     
     func removePattern(at pattern: Pattern, with context: NSManagedObjectContext) {
+        pattern.hooks?.forEach                { context.delete($0 as! NSManagedObject) }
+        pattern.images?.forEach               { context.delete($0 as! NSManagedObject) }
+        pattern.items?.forEach                { context.delete($0 as! NSManagedObject) }
+        pattern.needles?.forEach              { context.delete($0 as! NSManagedObject) }
+        pattern.projects?.forEach             { context.delete($0 as! NSManagedObject) }
+        pattern.recCompositions?.forEach      { context.delete($0 as! NSManagedObject) }
+        
+        pattern.recWeightAndYardages?.forEach {
+            let item = $0 as! WeightAndYardage
+            
+            let favoritesRequest: NSFetchRequest<FavoritePairing> = FavoritePairing.fetchRequest()
+            
+            favoritesRequest.predicate = NSPredicate(format: "patternWeightAndYardage.id == %@", item.id! as any CVarArg)
+            
+            do {
+                try context.fetch(favoritesRequest).forEach { context.delete($0 as NSManagedObject) }
+            } catch {
+                print("Failed to fetch favorites: \(error)")
+            }
+            
+            context.delete(item)
+        }
+        
         context.delete(pattern)
         
         PersistenceController.shared.save()
@@ -140,6 +163,12 @@ class PatternUtils {
                 NSNumber(value: ratio + allowedDeviation)
             )
         )
+        
+        // active filter
+        predicates.append(NSCompoundPredicate(orPredicateWithSubpredicates: [
+            NSPredicate(format: "yarn.isArchived == %@", NSNumber(value: false)),
+            NSPredicate(format: "yarn.isArchived == nil")
+        ]))
         
         fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
         

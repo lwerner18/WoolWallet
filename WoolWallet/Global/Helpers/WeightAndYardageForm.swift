@@ -110,9 +110,7 @@ struct WeightAndYardageForm: View {
                 }
             }
             .transition(.slide)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            .listRowInsets(EdgeInsets())
-            .background(Color(UIColor.systemGroupedBackground))
+            .customFormSection()
         }
         
         Section(
@@ -123,16 +121,16 @@ struct WeightAndYardageForm: View {
         ) {
             if (order == 0 && isYarn) || isPattern {
                 Picker("Weight", selection: $weightAndYardage.weight) {
-                    ForEach(0..<weights.count, id: \.self) { index in
-                        Text(weights[index].rawValue).tag(weights[index])
+                    ForEach(Weight.allCases, id: \.id) { weight in
+                        Text(weight.rawValue).tag(weight)
                     }
                 }
                 .pickerStyle(.navigationLink)
             }
             
             Picker("Unit of Measure", selection: $weightAndYardage.unitOfMeasure) {
-                ForEach(0..<unitsOfMeasure.count) { index in
-                    Text(unitsOfMeasure[index].rawValue).tag(unitsOfMeasure[index])
+                ForEach(UnitOfMeasure.allCases, id: \.id) { unitOfMeasure in
+                    Text(unitOfMeasure.rawValue).tag(unitOfMeasure)
                 }
             }
             .onChange(of: weightAndYardage.unitOfMeasure) {

@@ -238,7 +238,7 @@ struct SquareColorPickerView: View {
     }
 }
 
-struct ColorPickerItem: Identifiable {
+struct ColorPickerItem: Identifiable, Equatable {
     var id           : UUID = UUID()
     var color        : Color
     var name         : String

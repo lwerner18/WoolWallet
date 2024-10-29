@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import CoreData
 
 struct PatternItemField: Identifiable, Equatable, Hashable {
     var id : UUID = UUID()
@@ -356,7 +357,17 @@ struct AddOrEditPatternForm: View {
         
         // weightAndYardages
         let weightAndYardageArray: [WeightAndYardage] = recWeightAndYardages.enumerated().map { (index, element) in
-            return WeightAndYardage.from(data: element, order: index, context: managedObjectContext)
+            let wAndY = WeightAndYardage.from(data: element, order: index, context: managedObjectContext)
+            
+            wAndY.patternFavorites?.forEach {
+                let item = $0 as! FavoritePairing
+                
+                if WeightAndYardageUtils.shared.doesNotMatch(favorite: item.yarnWeightAndYardage!, second: wAndY) {
+                    managedObjectContext.delete($0 as! NSManagedObject)
+                }
+            }
+            
+            return wAndY
         }
         
         pattern.recWeightAndYardages = NSSet(array: weightAndYardageArray)

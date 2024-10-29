@@ -14,7 +14,8 @@ extension View {
     }
     
     func cardBackground() -> some View {
-        modifier(CardBackground())
+        self.cornerRadius(20)
+            .shadow(color: Color.black.opacity(0.5), radius: 4)
     }
     
     func yarnDataRow() -> some View {
@@ -25,13 +26,27 @@ extension View {
         modifier(ScrollTracker(scrollOffset : scrollOffset, name: name))
     }
     
+    func customFormSection(background : Color = Color(UIColor.systemGroupedBackground)) -> some View {
+        modifier(CustomFormSection(background: background))
+    }
+    
+    func filterCapsule(background : Color = Color.clear, border : Color = Color(UIColor.secondaryLabel)) -> some View {
+        self.frame(minWidth: 0, maxWidth: .infinity)
+            .padding(8)
+            .background(background)
+            .clipShape(RoundedRectangle(cornerRadius: 8)) // Apply rounded corners
+            .overlay(
+                RoundedRectangle(cornerRadius: 8) // Apply corner radius to the border
+                    .stroke(border, lineWidth: 0.3)
+            )
+    }
+    
     func toastView(toast: Binding<Toast?>) -> some View {
         self.modifier(ToastModifier(toast: toast))
     }
     
     func infoCapsule(isSmall : Bool = false) -> some View {
-        self
-            .fixedSize(horizontal: true, vertical: false)
+        self.fixedSize(horizontal: true, vertical: false)
             .foregroundStyle(Color.primary)
             .font(isSmall ? .caption2 : .callout)
             .padding(.vertical, isSmall ? 5 : 8) // Padding for the section
@@ -39,5 +54,16 @@ extension View {
             .background(Color(UIColor.secondarySystemGroupedBackground))
             .cornerRadius(25) // Rounded corners for the section
             .shadow(radius: 0.5)
+    }
+}
+
+struct CustomFormSection: ViewModifier {
+    var background : Color
+    
+    func body(content: Content) -> some View {
+        content
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            .listRowInsets(EdgeInsets())
+            .background(background)
     }
 }

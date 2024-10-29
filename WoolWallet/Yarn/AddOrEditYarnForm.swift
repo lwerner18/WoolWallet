@@ -13,10 +13,6 @@ import UIKit
 import CoreImage
 import Combine
 
-let unitsOfMeasure : [UnitOfMeasure] = [UnitOfMeasure.yards, UnitOfMeasure.meters]
-
-let weights : [Weight] = [Weight.none, Weight.zero, Weight.one, Weight.two, Weight.three, Weight.four, Weight.five, Weight.six, Weight.seven]
-
 struct AddOrEditYarnForm: View {
     // @Environment variables
     @Environment(\.managedObjectContext) var managedObjectContext
@@ -47,6 +43,7 @@ struct AddOrEditYarnForm: View {
     @State private var caked             : Bool = false
     @State private var archive           : Bool = false
     @State private var isMini            : Bool = false
+    @State private var colorType         : ColorType? = nil
     @State private var colorPickers      : [ColorPickerItem] = []
     @State private var composition       : [CompositionItem] = []
     
@@ -63,6 +60,7 @@ struct AddOrEditYarnForm: View {
             _notes             = State(initialValue : yarnToEdit.notes ?? "")
             _caked             = State(initialValue : yarnToEdit.isCaked)
             _isMini            = State(initialValue : yarnToEdit.isMini)
+            _colorType         = State(initialValue : yarnToEdit.colorType != "" ? ColorType(rawValue: yarnToEdit.colorType!) : nil)
             _isSockSet         = State(initialValue : yarnToEdit.isSockSet)
             _archive           = State(initialValue : yarnToEdit.isArchived)
             _images            = State(initialValue : yarnToEdit.uiImages)
@@ -89,9 +87,7 @@ struct AddOrEditYarnForm: View {
         NavigationStack {
             Form {
                 ImageCarousel(images : $images, editMode: true, editExistingImages : yarnToEdit != nil)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                    .listRowInsets(EdgeInsets())
-                    .background(Color(UIColor.systemGroupedBackground))
+                    .customFormSection()
                 
                 if !images.isEmpty {
                     if processingColor {
@@ -111,7 +107,14 @@ struct AddOrEditYarnForm: View {
                             )
                         }
                         
-                        
+                        Section(header: Text("How would you describe the color?")) {
+                            Picker("", selection: $colorType) {
+                                ForEach(ColorType.allCases, id: \.id) { colorTypeEnum in
+                                    Text(colorTypeEnum.rawValue).tag(colorTypeEnum as ColorType?)
+                                }
+                            }
+                            .pickerStyle(SegmentedPickerStyle())
+                        }
                     }
                 }
                 
@@ -152,9 +155,7 @@ struct AddOrEditYarnForm: View {
                         CompositionChart(composition: composition)
                         CompositionText(composition: composition)
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                    .listRowInsets(EdgeInsets())
-                    .background(Color(UIColor.systemGroupedBackground))
+                    .customFormSection()
                     
                     
                 }
@@ -204,6 +205,13 @@ struct AddOrEditYarnForm: View {
             .onChange(of: images) {
                 if yarnToEdit?.colorPickerItems == nil {
                     performSegmentation()
+                }
+            }
+            .onChange(of: colorPickers) {
+                if colorPickers.count > 1 {
+                    colorType = ColorType.variegated
+                } else {
+                    colorType = ColorType.tonal
                 }
             }
             .navigationTitle(yarnToEdit == nil ? "New Yarn" : "Edit Yarn")
@@ -290,6 +298,7 @@ struct AddOrEditYarnForm: View {
         yarn.dyer = dyer
         yarn.isSockSet = isSockSet
         yarn.isMini = isMini
+        yarn.colorType = colorType != nil ? colorType!.rawValue : ""
         yarn.isCaked = caked
         yarn.isArchived = archive
         yarn.notes = notes
@@ -328,7 +337,17 @@ struct AddOrEditYarnForm: View {
                 data.weight = weightAndYardages.first!.weight
             }
             
-            return WeightAndYardage.from(data: data, order: index, context: managedObjectContext)
+            let wAndY = WeightAndYardage.from(data: data, order: index, context: managedObjectContext)
+            
+            wAndY.yarnFavorites?.forEach {
+                let item = $0 as! FavoritePairing
+                
+                if WeightAndYardageUtils.shared.doesNotMatch(favorite: item.patternWeightAndYardage!, second: wAndY) {
+                    managedObjectContext.delete($0 as! NSManagedObject)
+                }
+            }
+            
+            return wAndY
         }
         
         yarn.weightAndYardages = NSSet(array: weightAndYardageArray)
