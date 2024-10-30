@@ -53,6 +53,7 @@ struct AddOrEditPatternForm: View {
     @State private var knittingNeedleSizes  : [Needle] = [Needle(needle: KnitNeedleSize.none)]
     @State private var recWeightAndYardages : [WeightAndYardageData] = [WeightAndYardageData(parent: WeightAndYardageParent.pattern)]
     @State private var notes                : String = ""
+    @State private var images               : [ImageData] = []
     
     init(patternToEdit : Pattern?, onAdd: ((Pattern) -> Void)? = nil) {
         self.patternToEdit = patternToEdit
@@ -70,6 +71,7 @@ struct AddOrEditPatternForm: View {
             _crochetHookSizes     = State(initialValue : patternToEdit.crochetHooks)
             _knittingNeedleSizes  = State(initialValue : patternToEdit.knittingNeedles)
             _recWeightAndYardages = State(initialValue : patternToEdit.weightAndYardageItems)
+            _images               = State(initialValue : patternToEdit.uiImages)
         }
     }
     
@@ -264,6 +266,11 @@ struct AddOrEditPatternForm: View {
                 
                 // notions
                 
+                Section(header: Text("Images")) {
+                    ImageCarousel(images : $images, editMode: true, editExistingImages : patternToEdit != nil)
+                        .customFormSection()
+                }
+                
                 Section(header: Text("Anything else you'd like to note?")) {
                     TextEditor(text: $notes)
                         .frame(height: 100)
@@ -353,6 +360,12 @@ struct AddOrEditPatternForm: View {
                     managedObjectContext.delete(item.existingItem!)
                 }
             }
+            
+            patternToEdit?.uiImages.forEach { item in
+                if !images.contains(where: {element in element.id == item.id}) {
+                    managedObjectContext.delete(item.existingItem!)
+                }
+            }
         }
         
         // weightAndYardages
@@ -393,11 +406,12 @@ struct AddOrEditPatternForm: View {
         
         pattern.needles = NSSet(array: knittingNeedles)
         
-//        let storedImages: [StoredImage] = images.enumerated().map { (index, element) in
-//            return StoredImage.from(image: element, order: index, context: managedObjectContext)
-//        }
-//        
-//        pattern.images = NSSet(array: storedImages)
+        // images
+        let storedImages: [StoredImage] = images.enumerated().map { (index, element) in
+            return StoredImage.from(data: element, order: index, context: managedObjectContext)
+        }
+        
+        pattern.images = NSSet(array: storedImages)
         
         PersistenceController.shared.save()
         

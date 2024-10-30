@@ -86,8 +86,10 @@ struct AddOrEditYarnForm: View {
     var body: some View {
         NavigationStack {
             Form {
-                ImageCarousel(images : $images, editMode: true, editExistingImages : yarnToEdit != nil)
-                    .customFormSection()
+                Section(header: Text("Images")) {
+                    ImageCarousel(images : $images, editMode: true, editExistingImages : yarnToEdit != nil)
+                        .customFormSection()
+                }
                 
                 if !images.isEmpty {
                     if processingColor {

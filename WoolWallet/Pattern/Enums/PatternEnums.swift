@@ -8,7 +8,7 @@
 import Foundation
 
 
-enum PatternType : String, CaseIterable, Identifiable {
+enum PatternType : String, CaseIterable, Identifiable, Equatable {
     var id: String { self.rawValue }
     
     case crochet = "Crochet"
@@ -16,7 +16,7 @@ enum PatternType : String, CaseIterable, Identifiable {
     case tunisianCrochet = "Tunisian Crochet"
 }
 
-enum CrochetHookSize : String, CaseIterable, Identifiable {
+enum CrochetHookSize : String, CaseIterable, Identifiable, Equatable {
     var id: String { self.rawValue }
     
     case none                  = "--"
@@ -50,7 +50,7 @@ enum CrochetHookSize : String, CaseIterable, Identifiable {
     case thirty                = "30mm (T/X)"
 }
 
-enum KnitNeedleSize : String, CaseIterable, Identifiable {
+enum KnitNeedleSize : String, CaseIterable, Identifiable, Equatable {
     var id: String { self.rawValue }
     
     case none                  = "--"
@@ -74,8 +74,8 @@ enum KnitNeedleSize : String, CaseIterable, Identifiable {
     case twentyFive            = "25mm (50)"
 }
 
-enum Item : String, CaseIterable, Identifiable {
-    var id: String { self.rawValue } 
+enum Item : String, CaseIterable, Identifiable, Equatable {
+    var id: String { self.rawValue }
     
     case none          = "--"
     case shirt         = "Shirt"

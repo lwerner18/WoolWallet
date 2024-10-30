@@ -43,7 +43,7 @@ struct YarnSuggestionCollapsible : View {
     var allowEdits : Bool
     var forProject : Bool
     var openByDefault : Bool
-    @Binding var projectPairing: [ProjectPairing]
+    @Binding var projectPairing: [ProjectPairingItem]
     
     @State private var scrollOffset = CGPoint.zero
     
@@ -56,7 +56,7 @@ struct YarnSuggestionCollapsible : View {
         allowEdits : Bool = true,
         forProject : Bool = false,
         openByDefault : Bool = false,
-        projectPairing: Binding<[ProjectPairing]>
+        projectPairing: Binding<[ProjectPairingItem]>
     ) {
         self.weightAndYardage = weightAndYardage
         self.matchingWeightAndYardage = matchingWeightAndYardage
@@ -98,7 +98,7 @@ struct YarnSuggestionCollapsible : View {
                         HStack {
                             VStack {
                                 ImageCarousel(images: .constant(yarn.uiImages), smallMode: true)
-                                    .frame(width: 75, height: 100)
+                                    .xsImageCarousel()
                                 
                                 if yarn.isSockSet {
                                     Label("Sock Set", systemImage : "shoeprints.fill")
@@ -192,8 +192,8 @@ struct YarnSuggestionCollapsible : View {
                                     Button {
                                         withAnimation {
                                             projectPairing.append(
-                                                ProjectPairing(
-                                                    patternWeightAndYardageId: weightAndYardage.id!,
+                                                ProjectPairingItem(
+                                                    patternWeightAndYardage: weightAndYardage,
                                                     yarnWeightAndYardage: wAndYMatch
                                                 )
                                             )

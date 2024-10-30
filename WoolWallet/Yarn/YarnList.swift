@@ -8,7 +8,10 @@
 import Foundation
 import SwiftUI
 
-let tabs : [YarnTab] = [YarnTab.active, YarnTab.archived]
+struct TabCount<T: CaseIterable & Identifiable & Equatable & CustomStringConvertible> {
+    var tab : T
+    var count : Int
+}
 
 struct YarnList: View {
     // @Environment variables
@@ -16,19 +19,19 @@ struct YarnList: View {
     
     @Binding var browseMode : Bool
     var preSelectedWeightFilter : [Weight]
-    @Binding var projectPairing : [ProjectPairing]
-    var patternWAndYIdBrowsingFor : UUID?
+    @Binding var projectPairing : [ProjectPairingItem]
+    var patternWAndYBrowsingFor : WeightAndYardage?
     
     init(
         browseMode: Binding<Bool> = .constant(false),
         preSelectedWeightFilter : [Weight] = [],
-        projectPairing : Binding<[ProjectPairing]> = .constant([]),
-        patternWAndYIdBrowsingFor : UUID? = nil
+        projectPairing : Binding<[ProjectPairingItem]> = .constant([]),
+        patternWAndYBrowsingFor : WeightAndYardage? = nil
     ) {
         self._browseMode = browseMode
         self.preSelectedWeightFilter = preSelectedWeightFilter
         self._projectPairing = projectPairing
-        self.patternWAndYIdBrowsingFor = patternWAndYIdBrowsingFor
+        self.patternWAndYBrowsingFor = patternWAndYBrowsingFor
         
         _selectedWeights = State(initialValue: preSelectedWeightFilter)
     }
@@ -42,7 +45,7 @@ struct YarnList: View {
     @State private var toast                  : Toast? = nil
     @State private var selectedColors         : [NamedColor] = []
     @State private var selectedWeights        : [Weight] = []
-    @State private var selectedTab            : Int = 0
+    @State private var selectedTab            : YarnTab = YarnTab.active
     @State private var sockSet                : Int = -1
     @State private var colorType              : ColorType? = nil
     @State private var showConfirmationDialog : Bool = false
@@ -58,6 +61,22 @@ struct YarnList: View {
         // Extract dyers and remove duplicates
         let dyers = Set(allYarns.compactMap { $0.dyer })
         return Array(dyers).sorted() // Optional: Sort the list of dyers
+    }
+    
+    private var activeNumber: Int {
+        return allYarns.filter {!$0.isArchived}.count
+    }
+    
+    
+    private var archivedNumber: Int {
+        return allYarns.filter {$0.isArchived}.count
+    }
+    
+    private var tabCounts: [TabCount<YarnTab>] {
+        return [
+            TabCount(tab: YarnTab.active, count: allYarns.filter {!$0.isArchived}.count),
+            TabCount(tab: YarnTab.archived, count: allYarns.filter {$0.isArchived}.count),
+        ]
     }
     
     // Computed property for the count of filtered yarns
@@ -132,7 +151,7 @@ struct YarnList: View {
             predicates.append(NSPredicate(format: "colorType = %@", colorType!.rawValue))
         }
         
-        switch(tabs[selectedTab]) {
+        switch(selectedTab) {
         case .active:
             let activePredicate = NSCompoundPredicate(orPredicateWithSubpredicates: [
                 NSPredicate(format: "isArchived == %@", NSNumber(value: false)),
@@ -151,38 +170,7 @@ struct YarnList: View {
     var body: some View {
         NavigationStack {
             if !browseMode {
-                // Custom Tab Bar
-                HStack {
-                    ForEach(0..<tabs.count) { index in
-                        Button(action: {
-                            withAnimation {
-                                selectedTab = index
-                            }
-                        }) {
-                            Spacer()
-                            
-                            Text(tabs[index].rawValue)
-                                .padding()
-                                .foregroundColor(selectedTab == index ? Color.accentColor : .gray)
-                                .frame(height: 30)
-                            
-                            Spacer()
-                        }
-                    }
-                }
-                .overlay(
-                    // Sliding underline
-                    GeometryReader { geometry in
-                        let buttonWidth = geometry.size.width / CGFloat(tabs.count)
-                        
-                        Rectangle()
-                            .fill(Color.accentColor)
-                            .frame(width: buttonWidth, height: 2)
-                            .offset(x: CGFloat(selectedTab) * buttonWidth, y: 33)
-                            .animation(.easeInOut, value: selectedTab)
-                    }
-                )
-                .padding(.bottom, 5)
+                Tabs(selectedTab: $selectedTab, tabCounts: tabCounts)
             }
             
             
@@ -223,18 +211,16 @@ struct YarnList: View {
                                 HStack(spacing: 0) {
                                     Text("Please")
                                     
-                                    if !browseMode {
-                                        Button(action: {
-                                            showAddYarnForm = true
-                                        }) {
-                                            Text(" add some yarn or")
-                                                .foregroundColor(.blue) // Customize the color to look like a link
-                                        }
-                                        .buttonStyle(PlainButtonStyle()) // Remove default button styling
-                                        .padding(0)
+                                    Button(action: {
+                                        showAddYarnForm = true
+                                    }) {
+                                        Text(" add some yarn ")
+                                            .foregroundColor(.blue) // Customize the color to look like a link
                                     }
+                                    .buttonStyle(PlainButtonStyle()) // Remove default button styling
+                                    .padding(0)
                                     
-                                    Text(" modify your search.")
+                                    Text("or modify your search.")
                                         .font(.body)
                                 }
                                 
@@ -254,7 +240,7 @@ struct YarnList: View {
                                         selectedTab : $selectedTab,
                                         browseMode : $browseMode,
                                         projectPairing: $projectPairing,
-                                        patternWAndYIdBrowsingFor : patternWAndYIdBrowsingFor
+                                        patternWAndYBrowsingFor : patternWAndYBrowsingFor
                                     )
                                 ) {
                                     VStack {
@@ -269,8 +255,6 @@ struct YarnList: View {
                                                     
                                                     Button {
                                                         YarnUtils.shared.toggleYarnArchived(at: yarn)
-                                                        
-                                                        toast = Toast(style: .success, message: "Successfully \(yarn.isArchived ? "" : "un")archived yarn")
                                                     } label: {
                                                         Label(yarn.isArchived ? "Unarchive" : "Archive", systemImage : yarn.isArchived ? "tray.and.arrow.up" : "tray.and.arrow.down")
                                                     }
@@ -334,14 +318,12 @@ struct YarnList: View {
                     }
                 }
                 
-                if !browseMode {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(action: {
-                            showAddYarnForm = true
-                        }) {
-                            Image(systemName: "plus") // Use a system icon
-                                .imageScale(.large)
-                        }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        showAddYarnForm = true
+                    }) {
+                        Image(systemName: "plus") // Use a system icon
+                            .imageScale(.large)
                     }
                 }
             }
@@ -357,10 +339,19 @@ struct YarnList: View {
         }
         .fullScreenCover(isPresented: $showAddYarnForm) {
             AddOrEditYarnForm(toast : $toast, yarnToEdit : nil)  { addedYarn in
-                // Capture the newly added yarn
-                newYarn = addedYarn
+                if browseMode {
+                    projectPairing.append(
+                        ProjectPairingItem(
+                            patternWeightAndYardage: patternWAndYBrowsingFor!,
+                            yarnWeightAndYardage: addedYarn.weightAndYardageItems.first!.existingItem!
+                        )
+                    )
+                    browseMode = false
+                } else {
+                    newYarn = addedYarn
+                }
+                
                 showAddYarnForm = false
-            
             }
         }
         .fullScreenCover(item: $yarnToEdit, onDismiss: { yarnToEdit = nil}) { yarn in

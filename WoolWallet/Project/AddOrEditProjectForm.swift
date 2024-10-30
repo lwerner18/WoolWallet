@@ -8,9 +8,11 @@
 import Foundation
 import SwiftUI
 
-struct ProjectPairing : Equatable {
-    var patternWeightAndYardageId : UUID
+struct ProjectPairingItem : Identifiable, Equatable, Hashable {
+    var id : UUID = UUID()
+    var patternWeightAndYardage : WeightAndYardage
     var yarnWeightAndYardage : WeightAndYardage
+    var existingItem : ProjectPairing?
 }
 
 struct AddOrEditProjectForm: View {
@@ -20,23 +22,26 @@ struct AddOrEditProjectForm: View {
     
     var projectToEdit: Project?
     var preSelectedPattern: Pattern?
-    var preSelectedPairings: [ProjectPairing]
+    var preSelectedPairings: [ProjectPairingItem]
     var onAdd: ((Project) -> Void)?
     var yarnSuggestions : [YarnSuggestion] = []
     
     // Form fields
-    @State private var notes   : String = ""
-    @State private var projectPairing : [ProjectPairing] = []
-    @State private var pattern : Pattern? = nil
-    @State private var browsingPattern : Bool = false
-    @State private var browsingYarn : Bool = false
-    @State private var yarnBrowsingWeight : Weight? = nil
-    @State private var patternWAndYIdBrowsingFor : UUID? = nil
+    @State private var notes                   : String = ""
+    @State private var inProgress              : Bool = false
+    @State private var projectPairing          : [ProjectPairingItem] = []
+    @State private var pattern                 : Pattern? = nil
+    @State private var browsingPattern         : Bool = false
+    @State private var browsingYarn            : Bool = false
+    @State private var yarnBrowsingWeight      : Weight? = nil
+    @State private var patternWAndYBrowsingFor : WeightAndYardage? = nil
+    @State private var images                  : [ImageData] = []
+    @State private var statusSelection         : Int = -1
     
     init(
         projectToEdit : Project?,
         preSelectedPattern : Pattern?,
-        preSelectedPairings : [ProjectPairing] = [],
+        preSelectedPairings : [ProjectPairingItem] = [],
         yarnSuggestions : [YarnSuggestion] = [],
         onAdd: ((Project) -> Void)? = nil
     ) {
@@ -52,6 +57,15 @@ struct AddOrEditProjectForm: View {
         
         if !preSelectedPairings.isEmpty {
             _projectPairing = State(initialValue: preSelectedPairings)
+        }
+        
+        if let projectToEdit = projectToEdit {
+            _notes           = State(initialValue : projectToEdit.notes ?? "")
+            _images          = State(initialValue : projectToEdit.uiImages)
+            _inProgress      = State(initialValue : projectToEdit.inProgress)
+            _projectPairing  = State(initialValue : projectToEdit.projectPairingItems)
+            _pattern         = State(initialValue : projectToEdit.pattern)
+            _statusSelection = State(initialValue : projectToEdit.complete ? 1 : (projectToEdit.inProgress ? 0 : -1))
         }
     }
     
@@ -155,7 +169,7 @@ struct AddOrEditProjectForm: View {
                     ForEach(pattern.weightAndYardageItems.indices, id: \.self) { index in
                         let wAndY : WeightAndYardageData = pattern.weightAndYardageItems[index]
                         let header = pattern.weightAndYardageItems.count > 1 ? "Color \(PatternUtils.shared.getLetter(for: index))" : "Yarn"
-                        let pairing : ProjectPairing? = projectPairing.first(where: {$0.patternWeightAndYardageId == wAndY.id}) ?? nil
+                        let pairing : ProjectPairingItem? = projectPairing.first(where: {$0.patternWeightAndYardage.id == wAndY.id}) ?? nil
                         
                         let yarnWandY : WeightAndYardage? = pairing != nil ? pairing!.yarnWeightAndYardage : nil
                         let yarn = yarnWandY != nil ? yarnWandY!.yarn! : nil
@@ -213,7 +227,7 @@ struct AddOrEditProjectForm: View {
                                 HStack {
                                     VStack {
                                         ImageCarousel(images: .constant(yarn.uiImages), smallMode: true)
-                                            .frame(width: 75, height: 100)
+                                            .xsImageCarousel()
                                         
                                         if yarn.isSockSet {
                                             Text("Sock Set")
@@ -273,7 +287,7 @@ struct AddOrEditProjectForm: View {
                                 Button {
                                     browsingYarn = true
                                     yarnBrowsingWeight = wAndY.weight
-                                    patternWAndYIdBrowsingFor = wAndY.id
+                                    patternWAndYBrowsingFor = wAndY.existingItem!
                                 } label : {
                                     HStack {
                                         Label("Browse \(header == "Yarn" ? "yarn" : "yarn for \(header)")", systemImage : "volleyball")
@@ -324,6 +338,25 @@ struct AddOrEditProjectForm: View {
                     }
                 }
                 
+                
+                Section(header: Text(projectToEdit != nil ? "Is this project in progress or complete?" : "Additional Information")) {
+                    if projectToEdit != nil {
+                        Picker("", selection: $statusSelection) {
+                            Text("In Progress").tag(0)
+                            Text("Complete").tag(1)
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                    } else {
+                        Toggle("In Progress", isOn: $inProgress)
+                    }
+                }
+                
+                Section(header: Text("Images")) {
+                    ImageCarousel(images : $images, editMode: true, editExistingImages : projectToEdit != nil)
+                        .customFormSection()
+                }
+                
+                
                 Section(header: Text("Anything else you'd like to note?")) {
                     TextEditor(text: $notes)
                         .frame(height: 100)
@@ -360,9 +393,9 @@ struct AddOrEditProjectForm: View {
             .navigationDestination(isPresented: $browsingYarn) {
                 YarnList(
                     browseMode: $browsingYarn, 
-                    preSelectedWeightFilter : yarnBrowsingWeight != nil ? [yarnBrowsingWeight!] : [],
+                    preSelectedWeightFilter : yarnBrowsingWeight != nil && yarnBrowsingWeight != Weight.none ? [yarnBrowsingWeight!] : [],
                     projectPairing : $projectPairing,
-                    patternWAndYIdBrowsingFor : patternWAndYIdBrowsingFor
+                    patternWAndYBrowsingFor : patternWAndYBrowsingFor
                 )
             }
         }
@@ -381,7 +414,50 @@ struct AddOrEditProjectForm: View {
     
     func persistProject(project : Project) -> Project {
         project.id = project.id != nil ? project.id : UUID()
+        project.inProgress = statusSelection != -1 ? statusSelection == 0 : inProgress
+        project.complete = statusSelection == 1
         project.notes = notes
+        
+        project.pattern = pattern
+        
+        // delete any items that we don't need anymore
+        if projectToEdit != nil {
+            projectToEdit?.uiImages.forEach { item in
+                if !images.contains(where: {element in element.id == item.id}) {
+                    managedObjectContext.delete(item.existingItem!)
+                }
+            }
+            
+            projectToEdit?.projectPairingItems.forEach { item in
+                if !projectPairing.contains(where: {element in element.id == item.id}) {
+                    managedObjectContext.delete(item.existingItem!)
+                }
+            }
+        }
+        
+        if project.inProgress {
+            project.startDate = Date.now
+            project.endDate = nil
+        }
+        
+        if project.complete {
+            project.endDate = Date.now
+        }
+        
+        // images
+        let storedImages: [StoredImage] = images.enumerated().map { (index, element) in
+            return StoredImage.from(data: element, order: index, context: managedObjectContext)
+        }
+        
+        project.images = NSSet(array: storedImages)
+    
+        // pairings
+        let pairings: [ProjectPairing] = projectPairing.enumerated().map { (index, element) in
+            return ProjectPairing.from(data: element, context: managedObjectContext)
+        }
+        
+        project.pairings = NSSet(array: pairings)
+        
         
         PersistenceController.shared.save()
         

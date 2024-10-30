@@ -100,11 +100,13 @@ struct PatternList: View {
                                         Button(action: {
                                             showAddPatternForm = true
                                         }) {
-                                            Text(" add a pattern or")
+                                            Text(" add a pattern ")
                                                 .foregroundColor(.blue) // Customize the color to look like a link
                                         }
                                         .buttonStyle(PlainButtonStyle()) // Remove default button styling
                                         .padding(0)
+                                        
+                                        Text("or")
                                     }
                                     
                                     Text(" modify your search.")
@@ -157,8 +159,6 @@ struct PatternList: View {
                                     }
                                     .padding(.leading, 4)
                                     
-                           
-                                    
                                     Spacer()
                                     
                                     VStack {
@@ -166,7 +166,9 @@ struct PatternList: View {
                                             .foregroundStyle(Color.primary)
                                             .font(.caption)
                                         
-                                        Text("Used in 0 projects")
+                                        let projectsNum = pattern.projects?.count ?? 0
+                                        
+                                        Text("Used in \(projectsNum == 1 ? "1 project" : "\(projectsNum) projects")")
                                             .foregroundStyle(Color(UIColor.secondaryLabel))
                                             .font(.caption)
                                     }

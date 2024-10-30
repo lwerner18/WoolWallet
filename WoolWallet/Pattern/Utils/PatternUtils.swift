@@ -35,15 +35,7 @@ class PatternUtils {
         pattern.recWeightAndYardages?.forEach {
             let item = $0 as! WeightAndYardage
             
-            let favoritesRequest: NSFetchRequest<FavoritePairing> = FavoritePairing.fetchRequest()
-            
-            favoritesRequest.predicate = NSPredicate(format: "patternWeightAndYardage.id == %@", item.id! as any CVarArg)
-            
-            do {
-                try context.fetch(favoritesRequest).forEach { context.delete($0 as NSManagedObject) }
-            } catch {
-                print("Failed to fetch favorites: \(error)")
-            }
+            item.patternFavorites?.forEach{ context.delete($0 as! NSManagedObject) }
             
             context.delete(item)
         }

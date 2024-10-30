@@ -7,14 +7,19 @@
 
 import Foundation
 
-enum YarnTab : String, CaseIterable, Identifiable {
-    var id: String { self.rawValue } 
+enum YarnTab : String, CaseIterable, Identifiable, Equatable, CustomStringConvertible {
+    var id: String { self.rawValue }
     
     case active = "Active"
     case archived = "Archived"
+    
+    // CustomStringConvertible
+    var description: String {
+        self.rawValue
+    }
 }
 
-enum Weight : String, CaseIterable, Identifiable {
+enum Weight : String, CaseIterable, Identifiable, Equatable {
     var id: String { self.rawValue }
     
     case none = "--"
@@ -42,7 +47,7 @@ enum Weight : String, CaseIterable, Identifiable {
     }
 }
 
-enum UnitOfMeasure : String, CaseIterable, Identifiable {
+enum UnitOfMeasure : String, CaseIterable, Identifiable, Equatable {
     var id: String { self.rawValue }
     
     case yards = "Yards"
@@ -50,7 +55,7 @@ enum UnitOfMeasure : String, CaseIterable, Identifiable {
 }
 
 
-enum MaterialCategory : String, CaseIterable, Identifiable {
+enum MaterialCategory : String, CaseIterable, Identifiable, Equatable {
     var id: String { self.rawValue }
     
     case wool     = "Wool"
@@ -67,7 +72,7 @@ enum MaterialCategory : String, CaseIterable, Identifiable {
     case other    = "Other"
 }
 
-enum ColorType : String, CaseIterable, Identifiable {
+enum ColorType : String, CaseIterable, Identifiable, Equatable {
     var id: String { self.rawValue }
     
     case tonal = "Tonal"

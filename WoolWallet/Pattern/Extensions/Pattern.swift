@@ -78,7 +78,17 @@ extension Pattern {
         }
     }
     
-//    var canMakeProject : Bool {
-//        return weightAndYardageItems.allSatisfy({$0.hasBeenEdited()})
-//    }
+    var uiImages: [ImageData] {
+        let storedImages = images?.allObjects as? [StoredImage] ?? []
+        
+        let sortedImages = storedImages.sorted { $0.order < $1.order}
+        
+        return sortedImages.map { storedImage in
+            return ImageData(
+                id : storedImage.id!,
+                image: UIImage(data: storedImage.image ?? Data())!,
+                existingItem: storedImage
+            )
+        }
+    }
 }

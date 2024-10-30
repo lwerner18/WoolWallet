@@ -24,19 +24,19 @@ struct YarnInfo: View {
     
     @ObservedObject var yarn : Yarn
     @Binding var toast: Toast?
-    @Binding var selectedTab: Int
+    @Binding var selectedTab: YarnTab
     @Binding var browseMode : Bool
-    @Binding var projectPairing : [ProjectPairing]
-    var patternWAndYIdBrowsingFor : UUID?
+    @Binding var projectPairing : [ProjectPairingItem]
+    var patternWAndYBrowsingFor : WeightAndYardage?
     var isNewYarn : Bool?
     
     init(
         yarn: Yarn,
         toast : Binding<Toast?>,
-        selectedTab : Binding<Int>,
+        selectedTab : Binding<YarnTab>,
         browseMode: Binding<Bool> = .constant(false),
-        projectPairing : Binding<[ProjectPairing]> = .constant([]),
-        patternWAndYIdBrowsingFor : UUID? = nil,
+        projectPairing : Binding<[ProjectPairingItem]> = .constant([]),
+        patternWAndYBrowsingFor : WeightAndYardage? = nil,
         isNewYarn : Bool? = false
     ) {
         self.yarn = yarn
@@ -44,7 +44,7 @@ struct YarnInfo: View {
         self._selectedTab = selectedTab
         self._browseMode = browseMode
         self._projectPairing = projectPairing
-        self.patternWAndYIdBrowsingFor = patternWAndYIdBrowsingFor
+        self.patternWAndYBrowsingFor = patternWAndYBrowsingFor
         self.isNewYarn = isNewYarn
     }
     
@@ -241,8 +241,8 @@ struct YarnInfo: View {
                             } else {
                                 // TODO: Let user choose skein
                                 projectPairing.append(
-                                    ProjectPairing(
-                                        patternWeightAndYardageId: patternWAndYIdBrowsingFor!,
+                                    ProjectPairingItem(
+                                        patternWeightAndYardage: patternWAndYBrowsingFor!,
                                         yarnWeightAndYardage: yarn.weightAndYardageItems.first!.existingItem!
                                     )
                                 )
@@ -281,7 +281,7 @@ struct YarnInfo: View {
                             Button {
                                 YarnUtils.shared.toggleYarnArchived(at: yarn)
                                 
-                                selectedTab = selectedTab == 0 ? 1 : 0
+                                selectedTab = selectedTab == YarnTab.active ? YarnTab.archived : YarnTab.active
                             } label: {
                                 Label(yarn.isArchived ? "Unarchive" : "Archive", systemImage : yarn.isArchived ? "tray.and.arrow.up" : "tray.and.arrow.down")
                             }
@@ -325,7 +325,7 @@ struct YarnInfo: View {
                 AddOrEditProjectForm(
                     projectToEdit: nil,
                     preSelectedPattern: patternWandY.pattern!,
-                    preSelectedPairings : [ProjectPairing(patternWeightAndYardageId: patternWandY.id!, yarnWeightAndYardage: yarnWandY)]
+                    preSelectedPairings : [ProjectPairingItem(patternWeightAndYardage: patternWandY, yarnWeightAndYardage: yarnWandY)]
                 ) { newProject in
                     
                 }
@@ -353,8 +353,8 @@ struct YarnInfo: View {
                     
                     Button("\(text)") {
                         projectPairing.append(
-                            ProjectPairing(
-                                patternWeightAndYardageId: patternWAndYIdBrowsingFor!,
+                            ProjectPairingItem(
+                                patternWeightAndYardage: patternWAndYBrowsingFor!,
                                 yarnWeightAndYardage: existingItem
                             )
                         )

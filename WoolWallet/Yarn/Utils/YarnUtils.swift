@@ -29,20 +29,13 @@ class YarnUtils {
         yarn.colors?.forEach            { context.delete($0 as! NSManagedObject) }
         yarn.composition?.forEach       { context.delete($0 as! NSManagedObject) }
         yarn.images?.forEach            { context.delete($0 as! NSManagedObject) }
-        yarn.projects?.forEach          { context.delete($0 as! NSManagedObject) }
+            // delete projects with this yarn in a pairing
         
         yarn.weightAndYardages?.forEach {
             let item = $0 as! WeightAndYardage
             
-            let favoritesRequest: NSFetchRequest<FavoritePairing> = FavoritePairing.fetchRequest()
-            
-            favoritesRequest.predicate = NSPredicate(format: "yarnWeightAndYardage.id == %@", item.id! as any CVarArg)
-            
-            do {
-                try context.fetch(favoritesRequest).forEach { context.delete($0 as NSManagedObject) }
-            } catch {
-                print("Failed to fetch favorites: \(error)")
-            }
+            item.yarnFavorites?.forEach{context.delete($0 as! NSManagedObject) }
+            item.yarnPairing?.forEach{context.delete($0 as! NSManagedObject) }
             
             context.delete(item)
         }

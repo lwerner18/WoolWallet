@@ -18,6 +18,12 @@ extension View {
             .shadow(color: Color.black.opacity(0.5), radius: 4)
     }
     
+    
+    func xsImageCarousel() -> some View {
+        self.frame(width: 75, height: 100)
+    }
+      
+    
     func yarnDataRow() -> some View {
         modifier(YarnDataRow())
     }

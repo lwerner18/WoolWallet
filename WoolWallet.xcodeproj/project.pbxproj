@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0411DCCC2CD2835B00007296 /* DateUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0411DCCB2CD2835B00007296 /* DateUtils.swift */; };
 		041265072CC2AF7700D497BF /* YarnSuggestions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 041265062CC2AF7700D497BF /* YarnSuggestions.swift */; };
 		042530BD2CB24DF8008804C7 /* MaterialPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042530BC2CB24DF8008804C7 /* MaterialPicker.swift */; };
 		042699B22CAF90E600F76B10 /* Pattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042699B12CAF90E600F76B10 /* Pattern.swift */; };
@@ -42,6 +43,12 @@
 		047DE4D52B9FFB6900F0A2D5 /* YarnList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4D42B9FFB6900F0A2D5 /* YarnList.swift */; };
 		048746B52CADC24700C3472B /* PatternEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048746B42CADC24700C3472B /* PatternEnums.swift */; };
 		048D66052CA0E9890051D7A3 /* EditComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048D66042CA0E9890051D7A3 /* EditComposition.swift */; };
+		048E0EB92CD17633009DBA67 /* Project.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048E0EB82CD17633009DBA67 /* Project.swift */; };
+		048E0EBB2CD17C43009DBA67 /* ProjectPairing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048E0EBA2CD17C43009DBA67 /* ProjectPairing.swift */; };
+		048E0EBE2CD18304009DBA67 /* ProjectUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048E0EBD2CD18304009DBA67 /* ProjectUtils.swift */; };
+		048E0EC12CD1893E009DBA67 /* ProjectEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048E0EC02CD1893E009DBA67 /* ProjectEnums.swift */; };
+		048E0EC32CD18BF3009DBA67 /* Tabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048E0EC22CD18BF3009DBA67 /* Tabs.swift */; };
+		048E0EC52CD1D346009DBA67 /* ProjectInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048E0EC42CD1D346009DBA67 /* ProjectInfo.swift */; };
 		048ED2E72CC7537A00DB790A /* ScrollDots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048ED2E62CC7537A00DB790A /* ScrollDots.swift */; };
 		048ED2E92CC7554100DB790A /* ScrollTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048ED2E82CC7554100DB790A /* ScrollTracker.swift */; };
 		048ED2EB2CC9522200DB790A /* AddOrEditProjectForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048ED2EA2CC9522200DB790A /* AddOrEditProjectForm.swift */; };
@@ -101,6 +108,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0411DCCB2CD2835B00007296 /* DateUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateUtils.swift; sourceTree = "<group>"; };
 		041265062CC2AF7700D497BF /* YarnSuggestions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnSuggestions.swift; sourceTree = "<group>"; };
 		042530BC2CB24DF8008804C7 /* MaterialPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialPicker.swift; sourceTree = "<group>"; };
 		042699B12CAF90E600F76B10 /* Pattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pattern.swift; sourceTree = "<group>"; };
@@ -139,6 +147,12 @@
 		047DE4D42B9FFB6900F0A2D5 /* YarnList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnList.swift; sourceTree = "<group>"; };
 		048746B42CADC24700C3472B /* PatternEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternEnums.swift; sourceTree = "<group>"; };
 		048D66042CA0E9890051D7A3 /* EditComposition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditComposition.swift; sourceTree = "<group>"; };
+		048E0EB82CD17633009DBA67 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
+		048E0EBA2CD17C43009DBA67 /* ProjectPairing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectPairing.swift; sourceTree = "<group>"; };
+		048E0EBD2CD18304009DBA67 /* ProjectUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectUtils.swift; sourceTree = "<group>"; };
+		048E0EC02CD1893E009DBA67 /* ProjectEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectEnums.swift; sourceTree = "<group>"; };
+		048E0EC22CD18BF3009DBA67 /* Tabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tabs.swift; sourceTree = "<group>"; };
+		048E0EC42CD1D346009DBA67 /* ProjectInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectInfo.swift; sourceTree = "<group>"; };
 		048ED2E62CC7537A00DB790A /* ScrollDots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollDots.swift; sourceTree = "<group>"; };
 		048ED2E82CC7554100DB790A /* ScrollTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollTracker.swift; sourceTree = "<group>"; };
 		048ED2EA2CC9522200DB790A /* AddOrEditProjectForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddOrEditProjectForm.swift; sourceTree = "<group>"; };
@@ -291,6 +305,31 @@
 			path = Enums;
 			sourceTree = "<group>";
 		};
+		048E0EB72CD17627009DBA67 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				048E0EB82CD17633009DBA67 /* Project.swift */,
+				048E0EBA2CD17C43009DBA67 /* ProjectPairing.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		048E0EBC2CD182F8009DBA67 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				048E0EBD2CD18304009DBA67 /* ProjectUtils.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		048E0EBF2CD1892E009DBA67 /* Enums */ = {
+			isa = PBXGroup;
+			children = (
+				048E0EC02CD1893E009DBA67 /* ProjectEnums.swift */,
+			);
+			path = Enums;
+			sourceTree = "<group>";
+		};
 		048ED2EC2CC997BF00DB790A /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
@@ -320,6 +359,7 @@
 			isa = PBXGroup;
 			children = (
 				04ADF9842CCB60EA00C821A5 /* WeightAndYardageUtils.swift */,
+				0411DCCB2CD2835B00007296 /* DateUtils.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -365,9 +405,13 @@
 		04A81CFD2CA47F7D00BF66CC /* Project */ = {
 			isa = PBXGroup;
 			children = (
+				048E0EBF2CD1892E009DBA67 /* Enums */,
+				048E0EBC2CD182F8009DBA67 /* Utils */,
+				048E0EB72CD17627009DBA67 /* Extensions */,
 				048ED2EC2CC997BF00DB790A /* Helpers */,
 				04D5C4502C87E01E00DC9697 /* ProjectList.swift */,
 				048ED2EA2CC9522200DB790A /* AddOrEditProjectForm.swift */,
+				048E0EC42CD1D346009DBA67 /* ProjectInfo.swift */,
 			);
 			path = Project;
 			sourceTree = "<group>";
@@ -517,6 +561,7 @@
 				043E16EE2CBB6B6A005046B6 /* CollapsibleView.swift */,
 				048ED2E62CC7537A00DB790A /* ScrollDots.swift */,
 				048ED2E82CC7554100DB790A /* ScrollTracker.swift */,
+				048E0EC22CD18BF3009DBA67 /* Tabs.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -807,9 +852,12 @@
 				04D5C44F2C87DFCD00DC9697 /* PatternList.swift in Sources */,
 				04BAC0C32BAE13E400C26CD8 /* YarnUtils.swift in Sources */,
 				042B0A712CAF008E003CDCF0 /* PatternInfo.swift in Sources */,
+				048E0EBB2CD17C43009DBA67 /* ProjectPairing.swift in Sources */,
 				04A5C3ED2C4C1E8F00CD5870 /* AnalyzeColorUtils.swift in Sources */,
 				04A5C3E52C4C1DE600CD5870 /* ColorPickerView.swift in Sources */,
+				048E0EBE2CD18304009DBA67 /* ProjectUtils.swift in Sources */,
 				04B15C622C77BAF100A03751 /* FilterYarn.swift in Sources */,
+				048E0EC32CD18BF3009DBA67 /* Tabs.swift in Sources */,
 				04FB6FCA2CB39955008A0FE8 /* InfoCard.swift in Sources */,
 				04A81CF32CA4743D00BF66CC /* StoredImage.swift in Sources */,
 				04A5C3E72C4C1E1600CD5870 /* UIImage.swift in Sources */,
@@ -817,6 +865,7 @@
 				047DE4D52B9FFB6900F0A2D5 /* YarnList.swift in Sources */,
 				0464B6202CC2F78D00EADD48 /* PossiblePatterns.swift in Sources */,
 				04421B6B2BAF48B30034E16A /* OpenCVWrapper.mm in Sources */,
+				048E0EB92CD17633009DBA67 /* Project.swift in Sources */,
 				04A81D042CA4807D00BF66CC /* GlobalEnums.swift in Sources */,
 				04ADF9852CCB60EA00C821A5 /* WeightAndYardageUtils.swift in Sources */,
 				044E55CA2CCFED46004574FD /* FavoritePairing.swift in Sources */,
@@ -826,6 +875,7 @@
 				04B74E752B9B6EFB00D19F52 /* WoolWalletApp.swift in Sources */,
 				043E16ED2CBA0E52005046B6 /* ViewWeightAndYardage.swift in Sources */,
 				047DE4CC2B9FF40600F0A2D5 /* PersistenceController.swift in Sources */,
+				048E0EC52CD1D346009DBA67 /* ProjectInfo.swift in Sources */,
 				04BAC0C12BAE0D1D00C26CD8 /* GlobalSettings.swift in Sources */,
 				04B710272CA1E76900D9292A /* AnyTransition.swift in Sources */,
 				0466F21D2CA91A780094F3DA /* AddOrEditPatternForm.swift in Sources */,
@@ -835,6 +885,7 @@
 				048ED2E72CC7537A00DB790A /* ScrollDots.swift in Sources */,
 				047DE4B02B9EC45600F0A2D5 /* MyTextFieldStyle.swift in Sources */,
 				042BF1562CA61D9D008740FB /* TextFieldTypeahead.swift in Sources */,
+				0411DCCC2CD2835B00007296 /* DateUtils.swift in Sources */,
 				04D596012B9E9BE000E1913C /* ClearButton.swift in Sources */,
 				043E16E92CB9A76D005046B6 /* WeightAndYardage.swift in Sources */,
 				048ED2EB2CC9522200DB790A /* AddOrEditProjectForm.swift in Sources */,
@@ -852,6 +903,7 @@
 				048746B52CADC24700C3472B /* PatternEnums.swift in Sources */,
 				041265072CC2AF7700D497BF /* YarnSuggestions.swift in Sources */,
 				04D596032B9E9C2200E1913C /* AccessCamera.swift in Sources */,
+				048E0EC12CD1893E009DBA67 /* ProjectEnums.swift in Sources */,
 				04A5C3E02C4C1D8300CD5870 /* Color.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
