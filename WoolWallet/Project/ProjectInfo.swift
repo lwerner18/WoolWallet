@@ -17,7 +17,7 @@ struct ProjectInfo: View {
     @Environment(\.verticalSizeClass) var verticalSizeClass
     
     @ObservedObject var project : Project
-    var isNewProject : Bool
+    var isNewProject : Bool = false
     
     init(
         project: Project,
@@ -25,7 +25,17 @@ struct ProjectInfo: View {
     ) {
         self.project = project
         self.isNewProject = isNewProject
+        
+        self.rowCountersRequest = FetchRequest(
+            entity: RowCounter.entity(),
+            sortDescriptors: [],
+            predicate: NSPredicate(format: "project.id == %@", project.id! as any CVarArg)
+        )
     }
+    
+    
+    var rowCountersRequest : FetchRequest<RowCounter>
+    var rowCounters : FetchedResults<RowCounter>{rowCountersRequest.wrappedValue}
     
     // Computed property to calculate if device is most likely in portrait mode
     var isPortraitMode: Bool {
@@ -34,25 +44,15 @@ struct ProjectInfo: View {
     
     // Internal state trackers
     @State private var showEditProjectForm : Bool = false
+    @State private var showRowCounter : Bool = false
     @State private var showConfirmationDialog = false
     @State private var animateCheckmark = false
+    @State private var rowCounter : RowCounter? = nil
     
     var body: some View {
         VStack {
             if isNewProject {
-                // Toolbar-like header
-                HStack {
-                    Spacer()
-                    
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text("Close")
-                    }
-                }
-                .padding(.bottom, 10) // Padding around the button
-                .padding(.top, 20) // Padding around the button
-                .padding(.horizontal, 20) // Padding around the button
+                NewItemHeader(onClose: { dismiss() })
             }
             
             ScrollView {
@@ -66,6 +66,7 @@ struct ProjectInfo: View {
                         
                         Text("Successfully created project")
                             .font(.title2)
+                            .foregroundStyle(Color.primary)
                     }
                     .onAppear {
                         animateCheckmark.toggle()
@@ -114,9 +115,108 @@ struct ProjectInfo: View {
                         
                         Spacer()
                     }
+                    
+                    InfoCard() {
+                        PatternPreview(pattern: project.pattern!)
+                    }
+                    
+                    SimpleHorizontalScroll(count: project.projectPairingItems.count) {
+                        ForEach(project.projectPairingItems, id : \.id) { projectPairingItem in
+                            
+                            let yarnWAndY = projectPairingItem.yarnWeightAndYardage
+                            let patternWAndY = projectPairingItem.patternWeightAndYardage
+                            let yarn = yarnWAndY.yarn!
+                            
+                            InfoCard(header : {
+                                project.projectPairingItems.count > 1 
+                                ? AnyView(Text("COLOR \(PatternUtils.shared.getLetter(for: Int(patternWAndY.order)))")
+                                    .foregroundStyle(Color(UIColor.secondaryLabel))
+                                    .font(.caption2))
+                                : AnyView(EmptyView())
+                            }) {
+                                HStack {
+                                    VStack {
+                                        ImageCarousel(images: .constant(yarn.uiImages), smallMode: true)
+                                            .xsImageCarousel()
+                                        
+                                        if yarn.isSockSet {
+                                            Label("Sock Set", systemImage : "shoeprints.fill")
+                                                .infoCapsule(isSmall: true)
+                                            
+                                            if yarn.isSockSet {
+                                                ZStack {
+                                                    switch yarnWAndY.order {
+                                                    case 0: Text("Main Skein").font(.caption)
+                                                    case 1: Text("Mini Skein").font(.caption)
+                                                    case 2: Text("Mini #2").font(.caption)
+                                                    default: EmptyView()
+                                                    }
+                                                }
+                                                .foregroundStyle(Color(UIColor.secondaryLabel))
+                                            }
+                                        }
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    VStack(alignment: .center) {
+                                        Text(yarn.name!)
+                                            .foregroundStyle(Color.primary)
+                                            .bold()
+                                        
+                                        Text(yarn.dyer!)
+                                            .foregroundStyle(Color(UIColor.secondaryLabel))
+                                            .font(.caption)
+                                            .bold()
+                                        
+                                        Spacer()
+                                        
+                                        ViewLengthAndYardage(weightAndYardage: yarnWAndY)
+                                    }
+                                    
+                                    Spacer()
+                                }
+                            }
+                            .simpleScrollItem(count: project.projectPairingItems.count)
+                        }
+                    }
+                    
+                    VStack {
+                        ForEach(rowCounters, id : \.id) { rowCounterItem in
+                            InfoCard() {
+                                Button {
+                                    rowCounter = rowCounterItem
+                                } label : {
+                                    HStack {
+                                        HStack {
+                                            Text("\(rowCounterItem.name!)")
+                                                .foregroundStyle(Color(UIColor.secondaryLabel))
+                                            
+                                            Spacer()
+                                            
+                                            Text("\(rowCounterItem.count)")
+                                                .font(.headline).bold().foregroundStyle(Color.primary)
+                                        }
+                                    }
+                                    .alignmentGuide(.listRowSeparatorLeading) { viewDimensions in
+                                        return 0
+                                    }
+                                }
+                            }
+                        }
+                        
+                    }
+                    
+                    if project.notes != "" {
+                        InfoCard() {
+                            Text(project.notes!)
+                                .frame(maxWidth: .infinity)
+                        }
+                    }
                 }
                 .foregroundStyle(Color.black)
                 .padding()
+             
             }
             .navigationTitle(project.pattern?.name! ?? "N/A")
             .navigationBarTitleDisplayMode(.inline)
@@ -177,6 +277,18 @@ struct ProjectInfo: View {
                             }
                         }
                         
+                        Button {
+                            let newRowCounter = RowCounter(context: managedObjectContext)
+                            newRowCounter.name = "Row Counter \(project.rowCounterItems.count)"
+                            newRowCounter.project = project
+                            
+                            PersistenceController.shared.save()
+                            
+                            rowCounter = newRowCounter
+                        } label : {
+                            Label("Add Row Counter", systemImage : "number")
+                        }
+                        
                         Button(role: .destructive) {
                             showConfirmationDialog = true
                         } label: {
@@ -199,6 +311,14 @@ struct ProjectInfo: View {
             }
             .fullScreenCover(isPresented: $showEditProjectForm) {
                 AddOrEditProjectForm(projectToEdit: project, preSelectedPattern : nil)
+            }
+            .fullScreenCover(
+                item: $rowCounter,
+                onDismiss: {
+                    PersistenceController.shared.save()
+                }
+            ) { counter in
+                RowCounterForm(rowCounter: counter)
             }
         }
         .background(Color(UIColor.systemGroupedBackground))

@@ -57,6 +57,7 @@ struct YarnList: View {
         sortDescriptors: [NSSortDescriptor(keyPath: \Yarn.name, ascending: true)] // Optional: Sort by name
     ) private var allYarns: FetchedResults<Yarn>
     
+    
     private var uniqueDyers: [String] {
         // Extract dyers and remove duplicates
         let dyers = Set(allYarns.compactMap { $0.dyer })
@@ -232,7 +233,7 @@ struct YarnList: View {
                 } else {
                     ScrollView {
                         LazyVGrid(columns: [.init(.adaptive(minimum:150))], spacing: 5) {
-                            ForEach(filteredYarn) { yarn in
+                            ForEach(filteredYarn, id: \.id) { yarn in
                                 NavigationLink(
                                     destination: YarnInfo(
                                         yarn: yarn,
@@ -383,7 +384,7 @@ struct FilterCapsules : View {
     
     var body : some View {
         LazyVGrid(columns: [.init(.adaptive(minimum:120))], spacing: 10) {
-            ForEach(selectedWeights, id: \.self) { weight in
+            ForEach(selectedWeights, id: \.id) { weight in
                 Button(action: {
                     if let index = selectedWeights.firstIndex(where: { $0 == weight }) {
                         selectedWeights.remove(at: index)
@@ -445,7 +446,7 @@ struct FilterCapsules : View {
                 }
             }
             
-            ForEach(selectedColors) { colorGroup in
+            ForEach(selectedColors, id: \.id) { colorGroup in
                 Button(action: {
                     if let index = selectedColors.firstIndex(where: { $0.id == colorGroup.id }) {
                         selectedColors.remove(at: index)

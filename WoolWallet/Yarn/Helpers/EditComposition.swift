@@ -32,7 +32,7 @@ struct CompositionText : View {
         HStack {
             let sortedCompositions = composition.sorted { $0.percentage > $1.percentage}
             
-            ForEach(sortedCompositions, id: \.self) { compositionItem in
+            ForEach(sortedCompositions, id: \.id) { compositionItem in
                 let material = YarnUtils.shared.getMaterial(item: compositionItem)
                 
                 if compositionItem.percentage != 0 && material != "" {
@@ -80,7 +80,7 @@ struct CompositionChart : View {
                 }
             }
             
-            ForEach(composition.reversed(), id: \.self) { compositionItem in
+            ForEach(composition.reversed(), id: \.id) { compositionItem in
                 if compositionItem.percentage != 0 && YarnUtils.shared.getMaterial(item: compositionItem) != "" {
                     SectorMark(
                         angle: .value("Percentage", compositionItem.percentage),

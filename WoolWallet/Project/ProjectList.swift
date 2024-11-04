@@ -125,7 +125,7 @@ struct ProjectList: View {
                     }
                 } else {
                     List {
-                        ForEach(filteredProjects) { project in
+                        ForEach(filteredProjects, id : \.id) { project in
                             NavigationLink(
                                 destination: ProjectInfo(project: project)
                             ) {
@@ -172,13 +172,11 @@ struct ProjectList: View {
                                             if daysPassed > 0 {
                                                 HStack {
                                                     Image(systemName : "timer")
-                                                        .foregroundStyle(Color(UIColor.secondaryLabel))
-                                                        .font(.caption2)
                                                     
                                                     Text("\(daysPassed) day\(daysPassed > 1 ? "s" : "")")
-                                                        .foregroundStyle(Color(UIColor.secondaryLabel))
-                                                        .font(.caption2)
                                                 }
+                                                .foregroundStyle(Color(UIColor.secondaryLabel))
+                                                .font(.caption2)
                                             }
                                         } else if project.complete {
                                             Text("Completed \(DateUtils.shared.formatDate(project.endDate!)!)")
@@ -187,18 +185,16 @@ struct ProjectList: View {
                                             
                                             Spacer()
                                             
-                                            let daysPassed = Calendar.current.dateComponents([.day], from: project.endDate!, to: Date.now).day ?? 0
+                                            let daysPassed = Calendar.current.dateComponents([.day], from: project.startDate!, to: project.endDate!).day ?? 0
                                             
                                             if daysPassed > 0 {
                                                 HStack {
                                                     Image(systemName : "timer")
-                                                        .foregroundStyle(Color(UIColor.secondaryLabel))
-                                                        .font(.caption2)
                                                     
                                                     Text("Took \(daysPassed) day\(daysPassed > 1 ? "s" : "")")
-                                                        .foregroundStyle(Color(UIColor.secondaryLabel))
-                                                        .font(.caption2)
                                                 }
+                                                .foregroundStyle(Color(UIColor.secondaryLabel))
+                                                .font(.caption2)
                                             }
                                         }
                                     }
@@ -207,13 +203,15 @@ struct ProjectList: View {
                                     Spacer()
                                 }
                                 .swipeActions(allowsFullSwipe: false) {
-                                    Button {
-                                        projectToEdit = project
-                                    } label: {
-                                        Label("", systemImage : "pencil")
-                                        
+                                    if !showConfirmationDialog {
+                                        Button {
+                                            projectToEdit = project
+                                        } label: {
+                                            Label("", systemImage : "pencil")
+                                            
+                                        }
+                                        .tint(Color.accentColor)
                                     }
-                                    .tint(Color.accentColor)
                                     
                                     Button(role: .destructive) {
                                         projectToDelete = project
@@ -256,6 +254,9 @@ struct ProjectList: View {
                     newProject = addedProject
                     showAddProjectForm = false
                 }
+            }
+            .popover(item: $newProject) { project in
+                ProjectInfo(project: project, isNewProject : true)
             }
             .fullScreenCover(item: $projectToEdit, onDismiss: { projectToEdit = nil}) { project in
                 AddOrEditProjectForm(projectToEdit : project, preSelectedPattern: nil)

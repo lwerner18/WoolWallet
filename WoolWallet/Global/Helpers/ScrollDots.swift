@@ -12,8 +12,8 @@ import SwiftUI
 struct ScrollDots:  View {
     var scrollOffset : CGPoint
     var numberOfDots : Int
-    var smallMode : Bool = false
-    var hasBottomPadding : Bool = true
+    var smallMode : Bool
+    var hasBottomPadding : Bool
     
     var body: some View {
         HStack {
@@ -21,14 +21,14 @@ struct ScrollDots:  View {
             let screenWidth = UIScreen.main.bounds.size.width
             let pagesSwiped = (scrollOffset.x / screenWidth) * -1.0
             let currentItemIndex = Int(pagesSwiped.rounded(.up))
-            let size : CGFloat = smallMode ? 4 : 7
+            let size : CGFloat = smallMode ? 3 : 6
             
             // Create a ZStack to overlay the dots on a capsule
             ZStack {
                 // Light gray capsule background
                 Capsule()
                     .fill(Color.black.opacity(0.5)) // Adjust opacity for light gray
-                    .frame(width: CGFloat(numberOfDots) * (size + 11), height: size + 11) // Adjust the frame based on the number of dots
+                    .frame(width: CGFloat(numberOfDots) * (size + 9), height: size + 9) // Adjust the frame based on the number of dots
                 
                 // Dots
                 HStack(spacing: 6) { // Adjust spacing between dots
@@ -41,6 +41,6 @@ struct ScrollDots:  View {
             }
             
         }
-        .padding(.bottom, hasBottomPadding ? (smallMode ? 4 : 8) : 0)
+        .padding(.bottom, hasBottomPadding ? (smallMode ? 8 : 10) : 0)
     }
 }

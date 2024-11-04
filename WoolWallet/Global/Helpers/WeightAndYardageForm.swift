@@ -22,7 +22,7 @@ struct WeightAndYardageData {
     var unitOfMeasure     : UnitOfMeasure = UnitOfMeasure.yards
     var yardage           : Double? = nil
     var grams             : Int? = nil
-    var hasBeenWeighed    : Int = -1
+    var hasBeenWeighed    : Int = 0
     var totalGrams        : Double? = nil
     var skeins            : Double = 1
     var hasPartialSkein   : Bool = false

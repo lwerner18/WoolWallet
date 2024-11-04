@@ -22,6 +22,10 @@ extension View {
     func xsImageCarousel() -> some View {
         self.frame(width: 75, height: 100)
     }
+    
+    func simpleScrollItem(count : Int) -> some View {
+        self.frame(width: UIScreen.main.bounds.width * (count > 1 ? 0.85 : 0.92))
+    }
       
     
     func yarnDataRow() -> some View {

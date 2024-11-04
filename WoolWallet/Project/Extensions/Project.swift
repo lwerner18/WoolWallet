@@ -36,4 +36,8 @@ extension Project {
             )
         }
     }
+    
+    var rowCounterItems: [RowCounter] {
+        return rowCounters?.allObjects as? [RowCounter] ?? []
+    }
 }

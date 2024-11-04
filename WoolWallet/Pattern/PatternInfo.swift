@@ -44,6 +44,7 @@ struct PatternInfo: View {
     @State private var showConfirmationDialog = false
     @State private var animateCheckmark = false
     @State private var yarnSuggestions : [YarnSuggestion] = []
+    @State private var newProject             : Project? = nil
     
     
     // Computed property to calculate if device is most likely in portrait mode
@@ -60,19 +61,7 @@ struct PatternInfo: View {
     var body: some View {
         VStack {
             if isNewPattern {
-                // Toolbar-like header
-                HStack {
-                    Spacer()
-                    
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text("Close")
-                    }
-                }
-                .padding(.bottom, 10) // Padding around the button
-                .padding(.top, 20) // Padding around the button
-                .padding(.horizontal, 20) // Padding around the button
+                NewItemHeader(onClose: { dismiss() })
             }
             
             ScrollView {
@@ -106,11 +95,12 @@ struct PatternInfo: View {
                     }
                     
                     VStack {
-                        Text(pattern.name ?? "N/A").bold().font(.largeTitle).foregroundStyle(Color.primary)
+                        Text(pattern.name ?? "N/A").font(.largeTitle).foregroundStyle(Color.primary)
                             .frame(maxWidth: .infinity)
                         
-                        Text(pattern.designer ?? "N/A").bold().foregroundStyle(Color(UIColor.secondaryLabel))
+                        Text(pattern.designer ?? "N/A").foregroundStyle(Color(UIColor.secondaryLabel))
                     }
+                    .bold()
                     
                     HStack {
                         HStack {
@@ -201,7 +191,7 @@ struct PatternInfo: View {
                                     Text("Hook\(pattern.crochetHooks.count > 1 ? "s" : "")").foregroundStyle(Color(UIColor.secondaryLabel))
                                     Spacer()
                                     VStack {
-                                        ForEach(pattern.crochetHooks) { hook in
+                                        ForEach(pattern.crochetHooks, id : \.id) { hook in
                                             Text(hook.hook.rawValue).font(.headline).bold().foregroundStyle(Color.primary)
                                         }
                                     }
@@ -216,7 +206,7 @@ struct PatternInfo: View {
                                     Text("Hook\(pattern.knittingNeedles.count > 1 ? "s" : "")").foregroundStyle(Color(UIColor.secondaryLabel))
                                     Spacer()
                                     VStack {
-                                        ForEach(pattern.knittingNeedles) { needle in
+                                        ForEach(pattern.knittingNeedles, id : \.id) { needle in
                                             Text(needle.needle.rawValue).font(.headline).bold().foregroundStyle(Color.primary)
                                         }
                                     }
@@ -294,11 +284,15 @@ struct PatternInfo: View {
                 AddOrEditPatternForm(patternToEdit: pattern)
             }
             .popover(isPresented: $showAddProjectForm) {
-                AddOrEditProjectForm(projectToEdit: nil, preSelectedPattern: pattern, yarnSuggestions: yarnSuggestions) { newProject in
-                    
+                AddOrEditProjectForm(projectToEdit: nil, preSelectedPattern: pattern, yarnSuggestions: yarnSuggestions) { addedProject in
+                    // Capture the newly added project
+                    newProject = addedProject
+                    showAddProjectForm = false
                 }
             }
-            
+            .popover(item: $newProject) { project in
+                ProjectInfo(project: project, isNewProject : true)
+            }
         }
         .background(Color(UIColor.systemGroupedBackground))
         .onAppear {

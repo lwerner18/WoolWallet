@@ -23,13 +23,11 @@ struct YarnSuggestions: View {
     
     var body: some View {
         if !yarnSuggestion.suggestedWAndY.isEmpty {
-            InfoCard(backgroundColor: Color.accentColor.opacity(0.1)) {
-                YarnSuggestionCollapsible(
-                    weightAndYardage: yarnSuggestion.patternWAndY,
-                    matchingWeightAndYardage: yarnSuggestion.suggestedWAndY,
-                    projectPairing : .constant([])
-                )
-            }
+            YarnSuggestionCollapsible(
+                weightAndYardage: yarnSuggestion.patternWAndY,
+                matchingWeightAndYardage: yarnSuggestion.suggestedWAndY,
+                projectPairing : .constant([])
+            )
         }
     }
 }
@@ -43,9 +41,8 @@ struct YarnSuggestionCollapsible : View {
     var allowEdits : Bool
     var forProject : Bool
     var openByDefault : Bool
+    var title : String
     @Binding var projectPairing: [ProjectPairingItem]
-    
-    @State private var scrollOffset = CGPoint.zero
     
     var favoritesRequest : FetchRequest<FavoritePairing>
     var favoriteYarns : FetchedResults<FavoritePairing>{favoritesRequest.wrappedValue}
@@ -56,6 +53,7 @@ struct YarnSuggestionCollapsible : View {
         allowEdits : Bool = true,
         forProject : Bool = false,
         openByDefault : Bool = false,
+        title : String = "Yarn Suggestions",
         projectPairing: Binding<[ProjectPairingItem]>
     ) {
         self.weightAndYardage = weightAndYardage
@@ -63,6 +61,7 @@ struct YarnSuggestionCollapsible : View {
         self.allowEdits = allowEdits
         self.forProject = forProject
         self.openByDefault = openByDefault
+        self.title = title
         self._projectPairing = projectPairing
         
         self.favoritesRequest = FetchRequest(
@@ -76,25 +75,26 @@ struct YarnSuggestionCollapsible : View {
     var body : some View {
         CollapsibleView(
             label : {
-                Text("Yarn suggestions (\(matchingWeightAndYardage.count))").foregroundStyle(Color.primary)
+                Text("\(title) (\(matchingWeightAndYardage.count))").foregroundStyle(Color.primary)
             },
             showArrows : true,
-            openByDefault : openByDefault
+            openByDefault : openByDefault,
+            useInfoCard : true
         ) {
-            ScrollView(.horizontal) {
-                LazyHStack(spacing: 0) {
-                    let ratio = weightAndYardage.yardage / Double(weightAndYardage.grams)
+            SimpleHorizontalScroll(count: matchingWeightAndYardage.count) {
+                let ratio = weightAndYardage.yardage / Double(weightAndYardage.grams)
+                
+                let sorted = matchingWeightAndYardage.sorted {
+                    (getFavoritesIndex(for: $0.id!) != nil ? 0 : 1, abs(($0.yardage / Double($0.grams)) - ratio)) <
+                        (getFavoritesIndex(for: $1.id!) != nil ? 0 : 1, abs(($1.yardage / Double($1.grams)) - ratio))
+                }
+                
+                ForEach(sorted, id : \.id) { wAndYMatch in
+                    let favoriteIndex = getFavoritesIndex(for: wAndYMatch.id!)
                     
-                    let sorted = matchingWeightAndYardage.sorted {
-                        (getFavoritesIndex(for: $0.id!) != nil ? 0 : 1, abs(($0.yardage / Double($0.grams)) - ratio)) <
-                            (getFavoritesIndex(for: $1.id!) != nil ? 0 : 1, abs(($1.yardage / Double($1.grams)) - ratio))
-                    }
+                    let yarn = wAndYMatch.yarn!
                     
-                    ForEach(sorted) { wAndYMatch in
-                        let favoriteIndex = getFavoritesIndex(for: wAndYMatch.id!)
-                        
-                        let yarn = wAndYMatch.yarn!
-                        
+                    InfoCard(backgroundColor: Color.accentColor.opacity(0.1)) {
                         HStack {
                             VStack {
                                 ImageCarousel(images: .constant(yarn.uiImages), smallMode: true)
@@ -104,14 +104,17 @@ struct YarnSuggestionCollapsible : View {
                                     Label("Sock Set", systemImage : "shoeprints.fill")
                                         .infoCapsule(isSmall: true)
                                     
-                                    if yarn.isSockSet {
-                                        switch wAndYMatch.order {
-                                        case 0: Text("Main Skein").font(.caption).foregroundStyle(Color(UIColor.secondaryLabel))
-                                        case 1: Text("Mini Skein").font(.caption).foregroundStyle(Color(UIColor.secondaryLabel))
-                                        case 2: Text("Mini #2").font(.caption).foregroundStyle(Color(UIColor.secondaryLabel))
-                                        default: EmptyView()
+                                    ZStack {
+                                        if yarn.isSockSet {
+                                            switch wAndYMatch.order {
+                                            case 0: Text("Main Skein").font(.caption)
+                                            case 1: Text("Mini Skein").font(.caption)
+                                            case 2: Text("Mini #2").font(.caption)
+                                            default: EmptyView()
+                                            }
                                         }
                                     }
+                                    .foregroundStyle(Color(UIColor.secondaryLabel))
                                 }
                             }
                             
@@ -119,7 +122,6 @@ struct YarnSuggestionCollapsible : View {
                             
                             VStack(alignment: .center) {
                                 Text(yarn.name!)
-                                    .multilineTextAlignment(.center)
                                     .foregroundStyle(Color.primary)
                                     .bold()
                                 
@@ -130,64 +132,35 @@ struct YarnSuggestionCollapsible : View {
                                 
                                 Spacer()
                                 
-                                let unit = wAndYMatch.unitOfMeasure!.lowercased()
                                 
-                                
-                                if wAndYMatch.exactLength > 0 {
-                                    Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: wAndYMatch.exactLength)) ?? "1") \(unit)")
-                                        .font(.title3)
-                                        .foregroundStyle(Color.primary)
-                                } else {
-                                    Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: wAndYMatch.approxLength)) ?? "1") \(unit)")
-                                        .font(.title3)
-                                        .foregroundStyle(Color.primary)
-                                }
-                                
-                                Spacer()
-                                
-                                if wAndYMatch.yardage > 0 && wAndYMatch.grams > 0 {
-                                    Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: wAndYMatch.yardage)) ?? "") \(unit) / \(wAndYMatch.grams) grams")
-                                        .font(.caption)
-                                        .foregroundStyle(Color(UIColor.secondaryLabel))
-                                }
+                                ViewLengthAndYardage(weightAndYardage: wAndYMatch)
                                 
                             }
                             
                             Spacer()
                         }
-                        .containerRelativeFrame(.horizontal)
-                        .scrollTransition(.animated, axis: .horizontal) { content, phase in
-                            content
-                                .opacity(phase.isIdentity ? 1.0 : 0.8)
-                                .scaleEffect(phase.isIdentity ? 1.0 : 0.8)
-                        }
+                        .overlay(
+                            Button(action: {
+                                if favoriteIndex != nil {
+                                    managedObjectContext.delete(favoriteYarns[favoriteIndex!])
+                                } else {
+                                    let newFavorite = FavoritePairing(context: managedObjectContext)
+                                    newFavorite.yarnWeightAndYardage = wAndYMatch
+                                    newFavorite.patternWeightAndYardage = weightAndYardage
+                                }
+                                
+                                PersistenceController.shared.save()
+                            }) {
+                                Label("", systemImage : favoriteIndex != nil ? "heart.fill" : "heart")
+                                    .font(.title3)
+                                    .foregroundStyle(Color(UIColor.systemPink))
+                                    .contentTransition(.symbolEffect(.replace))
+                            },
+                            alignment: .topTrailing
+                            
+                        )
                         .overlay(
                             HStack {
-                                if allowEdits {
-                                    Button(action: {
-                                        if favoriteIndex != nil {
-                                            managedObjectContext.delete(favoriteYarns[favoriteIndex!])
-                                        } else {
-                                            let newFavorite = FavoritePairing(context: managedObjectContext)
-                                            newFavorite.yarnWeightAndYardage = wAndYMatch
-                                            newFavorite.patternWeightAndYardage = weightAndYardage
-                                        }
-                                        
-                                        PersistenceController.shared.save()
-                                    }) {
-                                        Label("", systemImage : favoriteIndex != nil ? "heart.fill" : "heart")
-                                            .font(.title3)
-                                            .foregroundStyle(Color(UIColor.systemPink))
-                                            .contentTransition(.symbolEffect(.replace))
-                                    }
-                                } else {
-                                    Label("", systemImage : favoriteIndex != nil ? "heart.fill" : "heart")
-                                        .font(.title3)
-                                        .foregroundStyle(Color(UIColor.systemPink))
-                                        .contentTransition(.symbolEffect(.replace))
-                                }
-                             
-                                
                                 if forProject {
                                     Button {
                                         withAnimation {
@@ -202,35 +175,16 @@ struct YarnSuggestionCollapsible : View {
                                         Label("", systemImage : "plus.circle").font(.title3)
                                     }
                                 }
-                            }
-                                .padding(.leading, 10),
-                            alignment: .topTrailing
+                            },
+                            alignment: .bottomTrailing
                             
                         )
-                        .padding(.vertical, 4)
                     }
+                    .simpleScrollItem(count: matchingWeightAndYardage.count)
+                    .padding(.top, forProject ? 5 : 0)
                 }
-                .scrollTracker(
-                    scrollOffset : $scrollOffset,
-                    name: "scroll"
-                )
+               
             }
-            .overlay(
-                matchingWeightAndYardage.count > 1
-                ? AnyView(
-                    ScrollDots(
-                        scrollOffset: scrollOffset,
-                        numberOfDots: matchingWeightAndYardage.count,
-                        smallMode: true,
-                        hasBottomPadding: false
-                    )
-                )
-                : AnyView(EmptyView()),
-                alignment: .bottomTrailing
-            )
-            .scrollTargetBehavior(.paging)
-            .scrollIndicators(.hidden)
-            .scrollDisabled(matchingWeightAndYardage.count <= 1)
         }
     }
         

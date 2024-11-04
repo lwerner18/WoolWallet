@@ -23,7 +23,6 @@ struct ImageCarousel: View {
 
     @State private var showPhotoPicker : Bool = false
     @State private var selectedImages = [PhotosPickerItem]()
-    @State private var scrollOffset = CGPoint.zero
     @State private var showCamera : Bool = false
     @State private var capturedImage : UIImage?
     
@@ -57,70 +56,47 @@ struct ImageCarousel: View {
                 
             } else {
                 VStack {
-                    ScrollView(.horizontal) {
-                        LazyHStack(spacing: 0) {
-                            ForEach(0..<images.count,id: \.self){ imageIndex in
-                                Image(uiImage: images[imageIndex].image)
-                                    .resizable()
-                                    .aspectRatio(contentMode: smallMode ? .fill : .fit)
-                                    .clipShape(RoundedRectangle(cornerRadius: 25.0))
-                                    .tag(imageIndex)
-                                    .containerRelativeFrame(.horizontal)
-                                    .overlay(
-                                        editMode
-                                        ? AnyView(Button(action: {
-                                            // Delete action
-                                            images.remove(at: imageIndex)
-                                        }) {
-                                            Image(systemName: "xmark.circle")
-                                                .font(.title)
-                                                .foregroundColor(Color.black.opacity(0.75))
-                                                .background(.white)
-                                                .clipShape(Circle())
-                                        }
-                                            .padding(.top, 15)
-                                            .padding(.trailing, 20))
-                                        : AnyView(EmptyView()),
-                                        alignment: .topTrailing
-                                        
-                                    )
-                                    .overlay(
-                                        editMode
-                                        ? AnyView(Button(action: {
-                                            showPhotoPicker = true
-                                        }) {
-                                            Label("", systemImage : "photo.badge.plus").font(.title2)
-                                        }
-                                            .padding(.bottom, 10)
-                                            .padding(.trailing, 20))
-                                        : AnyView(EmptyView()),
-                                        alignment: .bottomTrailing
-                                        
-                                    )
-                                    .scrollTransition(.animated, axis: .horizontal) { content, phase in
-                                        content
-                                            .opacity(phase.isIdentity ? 1.0 : 0.8)
-                                            .scaleEffect(phase.isIdentity ? 1.0 : 0.8)
+                    FancyHorizontalScroll(count: images.count, smallMode: smallMode, trailing: false) {
+                        ForEach(0..<images.count, id: \.self){ imageIndex in
+                            Image(uiImage: images[imageIndex].image)
+                                .resizable()
+                                .aspectRatio(contentMode: smallMode ? .fill : .fit)
+                                .clipShape(RoundedRectangle(cornerRadius: 25.0))
+                                .tag(imageIndex)
+                                .containerRelativeFrame(.horizontal)
+                                .overlay(
+                                    editMode
+                                    ? AnyView(Button(action: {
+                                        // Delete action
+                                        images.remove(at: imageIndex)
+                                    }) {
+                                        Image(systemName: "xmark.circle")
+                                            .font(.title)
+                                            .foregroundColor(Color.black.opacity(0.75))
+                                            .background(.white)
+                                            .clipShape(Circle())
                                     }
-                            }
+                                        .padding(.top, 15)
+                                        .padding(.trailing, 20))
+                                    : AnyView(EmptyView()),
+                                    alignment: .topTrailing
+                                    
+                                )
+                                .overlay(
+                                    editMode
+                                    ? AnyView(Button(action: {
+                                        showPhotoPicker = true
+                                    }) {
+                                        Label("", systemImage : "photo.badge.plus").font(.title2)
+                                    }
+                                        .padding(.bottom, 10)
+                                        .padding(.trailing, 20))
+                                    : AnyView(EmptyView()),
+                                    alignment: .bottomTrailing
+                                    
+                                )
                         }
-                        .scrollTracker(
-                            scrollOffset : $scrollOffset,
-                            name: "scroll"
-                        )
                     }
-                    .overlay(
-                        images.count > 1
-                        ? AnyView(
-                            ScrollDots(scrollOffset: scrollOffset, numberOfDots: images.count, smallMode: smallMode)
-                        )
-                        : AnyView(EmptyView()),
-                        alignment: .bottom
-                    )
-                    .coordinateSpace(name: "scroll")
-                    .scrollTargetBehavior(.paging)
-                    .scrollIndicators(.hidden)
-                    .scrollDisabled(images.count <= 1)
                 }
                 .padding(0)
             }

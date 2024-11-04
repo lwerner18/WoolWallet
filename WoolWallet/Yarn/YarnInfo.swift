@@ -60,6 +60,7 @@ struct YarnInfo: View {
     @State private var patternSuggestions : [PatternSuggestion] = []
     @State private var favoritedPatterns : [FavoritePairing] = []
     @State private var patternWAndYForProject : WeightAndYardage? = nil
+    @State private var newProject             : Project? = nil
     
     
     // Computed property to calculate if device is most likely in portrait mode
@@ -70,19 +71,7 @@ struct YarnInfo: View {
     var body: some View {
         VStack {
             if isNewYarn! {
-                // Toolbar-like header
-                HStack {
-                    Spacer()
-                    
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text("Close")
-                    }
-                }
-                .padding(.bottom, 10) // Padding around the button
-                .padding(.top, 20) // Padding around the button
-                .padding(.horizontal, 20) // Padding around the button
+                NewItemHeader(onClose: { dismiss() })
             }
             
             ScrollView {
@@ -117,31 +106,25 @@ struct YarnInfo: View {
                     if yarn.isArchived || yarn.isCaked || yarn.isSockSet || yarn.isMini || yarn.colorType != nil {
                         HStack {
                             if yarn.isArchived {
-                                Label("Archived", systemImage : "tray.and.arrow.down")
-                                    .infoCapsule()
+                                Label("Archived", systemImage : "tray.and.arrow.down").infoCapsule()
                             }
                             
                             if yarn.isCaked {
-                                Label("Caked", systemImage : "birthday.cake")
-                                    .infoCapsule()
+                                Label("Caked", systemImage : "birthday.cake").infoCapsule()
                             }
                             
                             if yarn.isSockSet {
-                                Label("Sock Set", systemImage : "shoeprints.fill")
-                                    .infoCapsule()
+                                Label("Sock Set", systemImage : "shoeprints.fill").infoCapsule()
                             }
                             
                             if yarn.isMini {
-                                Label("Mini", systemImage : "arrow.down.right.and.arrow.up.left")
-                                    .infoCapsule()
+                                Label("Mini", systemImage : "arrow.down.right.and.arrow.up.left").infoCapsule()
                             }
                             
                             if yarn.colorType == ColorType.variegated.rawValue {
-                                Label("Variegated", systemImage : "swirl.circle.righthalf.filled")
-                                    .infoCapsule()
+                                Label("Variegated", systemImage : "swirl.circle.righthalf.filled").infoCapsule()
                             } else if yarn.colorType == ColorType.tonal.rawValue {
-                                Label("Tonal", systemImage : "circle.fill")
-                                    .infoCapsule()
+                                Label("Tonal", systemImage : "circle.fill").infoCapsule()
                             }
                             
                             Spacer()
@@ -190,7 +173,7 @@ struct YarnInfo: View {
                         }
                         
                         InfoCard(noPadding: true) {
-                            ForEach(yarn.colorPickerItems) { colorPickerItem in
+                            ForEach(yarn.colorPickerItems, id: \.id) { colorPickerItem in
                                 VStack {
                                     colorPickerItem.color
                                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
@@ -326,12 +309,17 @@ struct YarnInfo: View {
                     projectToEdit: nil,
                     preSelectedPattern: patternWandY.pattern!,
                     preSelectedPairings : [ProjectPairingItem(patternWeightAndYardage: patternWandY, yarnWeightAndYardage: yarnWandY)]
-                ) { newProject in
-                    
+                ) { addedProject in
+                    // Capture the newly added project
+                    newProject = addedProject
+                    showAddProjectForm = false
                 }
             }
+            .popover(item: $newProject) { project in
+                ProjectInfo(project: project, isNewProject : true)
+            }
             .confirmationDialog("", isPresented: $showChoosePatternDialog) {
-                ForEach(favoritedPatterns, id: \.self) {element in
+                ForEach(favoritedPatterns, id: \.id) {element in
                     let wAndY = element.patternWeightAndYardage!
                     
                     let text = "\(wAndY.pattern!.name!) \(wAndY.pattern!.weightAndYardageItems.count > 1 ? "(Color \(PatternUtils.shared.getLetter(for: Int(wAndY.order))))" : "")"

@@ -120,7 +120,7 @@ struct PatternList: View {
                     }
                 } else {
                     List {
-                        ForEach(filteredPatterns) { pattern in
+                        ForEach(filteredPatterns, id: \.id) { pattern in
                             NavigationLink(
                                 destination: PatternInfo(pattern: pattern, browseMode: $browseMode, browsePattern : $browsePattern)
                             ) {

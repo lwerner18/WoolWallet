@@ -90,64 +90,7 @@ struct AddOrEditProjectForm: View {
                     }
                 ) {
                     if let pattern = pattern {
-                        HStack {
-                            VStack {
-                                let itemDisplay =
-                                PatternUtils.shared.getItemDisplay(
-                                    for: pattern.patternItems.isEmpty ? nil : pattern.patternItems.first?.item
-                                )
-                                
-                                if itemDisplay.custom {
-                                    Image(itemDisplay.icon)
-                                        .iconCircle(background: itemDisplay.color, xl: true)
-                                } else {
-                                    Image(systemName: itemDisplay.icon)
-                                        .iconCircle(background: itemDisplay.color, xl: true)
-                                }
-                                
-                                Text(pattern.type!)
-                                    .font(.caption)
-                            }
-                            
-                            
-                            Spacer()
-                            
-                            
-                            VStack(alignment: .center) {
-                                Text(pattern.name!)
-                                    .multilineTextAlignment(.center)
-                                    .foregroundStyle(Color.primary)
-                                    .font(.title3)
-                                    .bold()
-                                
-                                Text(pattern.designer!)
-                                    .foregroundStyle(Color(UIColor.secondaryLabel))
-                                    .font(.footnote)
-                                    .bold()
-                                
-                                Spacer()
-                                
-                                Text(
-                                    PatternUtils.shared.joinedItems(patternItems: pattern.patternItems)
-                                )
-                                .foregroundStyle(Color(UIColor.secondaryLabel))
-                                
-                                Spacer()
-                                
-                                if pattern.oneSize != 0 {
-                                    Text("One Size")
-                                    .foregroundStyle(Color(UIColor.secondaryLabel))
-                                    .font(.caption)
-                                } else if pattern.intendedSize != nil {
-                                    Text("Intended size: \(pattern.intendedSize!)")
-                                        .foregroundStyle(Color(UIColor.secondaryLabel))
-                                        .font(.caption)
-                                }
-                            }
-                            
-                            Spacer()
-                        }
-                        .padding(.vertical, 4)
+                        PatternPreview(pattern: pattern)
                     } else {
                         Button {
                             browsingPattern = true
@@ -180,23 +123,20 @@ struct AddOrEditProjectForm: View {
 //                                .listRowInsets(EdgeInsets())
 //                                .background(Color(UIColor.systemGroupedBackground))
 //                        }
-                        
                         Section(
                             header : HStack {
                                 Text(header)
                                 
                                 Spacer()
                                 
-                                if yarn != nil {
-                                    Button(action: {
-                                        withAnimation {
-                                            projectPairing.removeAll(where: {$0 == pairing})
-                                        }
-                                    }) {
-                                        Label("", systemImage : "xmark.circle")
-                                            .foregroundColor(.red)
-                                            .font(.title3)
+                                Button(action: {
+                                    withAnimation {
+                                        projectPairing.removeAll(where: {$0 == pairing})
                                     }
+                                }) {
+                                    Label("", systemImage : "xmark.circle")
+                                        .foregroundColor(.red)
+                                        .font(.title3)
                                 }
                             },
                             footer: HStack {
@@ -257,27 +197,7 @@ struct AddOrEditProjectForm: View {
                                         
                                         Spacer()
                                         
-                                        let unit = yarnWandY!.unitOfMeasure!.lowercased()
-                                        
-                                        
-                                        if yarnWandY!.exactLength > 0 {
-                                            Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: yarnWandY!.exactLength)) ?? "1") \(unit)")
-                                                .font(.title3)
-                                                .foregroundStyle(Color.primary)
-                                        } else {
-                                            Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: yarnWandY!.approxLength)) ?? "1") \(unit)")
-                                                .font(.title3)
-                                                .foregroundStyle(Color.primary)
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        if yarnWandY!.yardage > 0 && yarnWandY!.grams > 0 {
-                                            Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: yarnWandY!.yardage)) ?? "") \(unit) / \(yarnWandY!.grams) grams")
-                                                .font(.caption)
-                                                .foregroundStyle(Color(UIColor.secondaryLabel))
-                                        }
-                                        
+                                        ViewLengthAndYardage(weightAndYardage: yarnWandY!)
                                     }
                                     
                                     Spacer()
@@ -299,40 +219,47 @@ struct AddOrEditProjectForm: View {
                                     
                                 }
                                 .buttonStyle(PlainButtonStyle())
-                                
-                                if !yarnSuggestions.isEmpty {
-                                    if let suggestion : YarnSuggestion = yarnSuggestions.first(where: {$0.patternWAndY.id == wAndY.id}) {
-                                        if !suggestion.suggestedWAndY.isEmpty {
-                                            YarnSuggestionCollapsible(
-                                                weightAndYardage: wAndY.existingItem!,
-                                                matchingWeightAndYardage: suggestion.suggestedWAndY,
-                                                allowEdits : false,
-                                                forProject: true,
-                                                openByDefault : true,
-                                                projectPairing: $projectPairing
-                                            )
-                                            .padding()
-                                            .customFormSection(background: Color.accentColor.opacity(0.1))
-                                           
-                                        }
-                                    }
-                                } else {
-                                    let matchingWeightAndYardage = PatternUtils.shared.getMatchingYarns(for: wAndY, in: managedObjectContext)
-                                    
-                                    if !matchingWeightAndYardage.isEmpty {
+                            }
+                        }
+                        
+                        if yarn == nil {
+                            if !yarnSuggestions.isEmpty {
+                                if let suggestion : YarnSuggestion = yarnSuggestions.first(where: {$0.patternWAndY.id == wAndY.id}) {
+                                    if !suggestion.suggestedWAndY.isEmpty {
                                         YarnSuggestionCollapsible(
                                             weightAndYardage: wAndY.existingItem!,
-                                            matchingWeightAndYardage: matchingWeightAndYardage,
+                                            matchingWeightAndYardage: suggestion.suggestedWAndY,
                                             allowEdits : false,
-                                            forProject : true,
+                                            forProject: true,
                                             openByDefault : true,
+                                            title : pattern.weightAndYardageItems.count > 1
+                                            ? "Color \(PatternUtils.shared.getLetter(for: Int(wAndY.existingItem!.order)))"
+                                            : "Yarn Suggestions",
                                             projectPairing: $projectPairing
-                                         
                                         )
-                                        .padding()
-                                        .customFormSection(background: Color.accentColor.opacity(0.1))
+                                        .listRowSeparator(.hidden)
+                                        .customFormSection()
                                     }
                                 }
+                            } else {
+                                let matchingWeightAndYardage = PatternUtils.shared.getMatchingYarns(for: wAndY, in: managedObjectContext)
+                                
+                                if !matchingWeightAndYardage.isEmpty {
+                                    YarnSuggestionCollapsible(
+                                        weightAndYardage: wAndY.existingItem!,
+                                        matchingWeightAndYardage: matchingWeightAndYardage,
+                                        allowEdits : false,
+                                        forProject : true,
+                                        openByDefault : true,
+                                        title : pattern.weightAndYardageItems.count > 1
+                                        ? "Color \(PatternUtils.shared.getLetter(for: Int(wAndY.existingItem!.order))) Suggestions"
+                                        : "Yarn Suggestions",
+                                        projectPairing: $projectPairing
+                                    )
+                                    .listRowSeparator(.hidden)
+                                    .customFormSection()
+                                }
+                                
                             }
                         }
                     }

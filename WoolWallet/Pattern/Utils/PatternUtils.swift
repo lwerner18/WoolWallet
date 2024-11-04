@@ -143,8 +143,8 @@ class PatternUtils {
         
         // length filter
         predicates.append(NSCompoundPredicate(orPredicateWithSubpredicates: [
-            NSPredicate(format: "exactLength > 0 AND exactLength > %@", NSNumber(value: length)),
-            NSPredicate(format: "approxLength > 0 AND approxLength > %@", NSNumber(value: length))
+            NSPredicate(format: "exactLength > 0 AND exactLength >= %@", NSNumber(value: length)),
+            NSPredicate(format: "approxLength > 0 AND approxLength >= %@", NSNumber(value: length))
         ]))
         
         // ratio filter
