@@ -44,3 +44,19 @@ struct ScrollDots:  View {
         .padding(.bottom, hasBottomPadding ? (smallMode ? 8 : 10) : 0)
     }
 }
+
+struct ScrollTracker: ViewModifier {
+    @Binding var scrollOffset: CGPoint
+    var name : String
+    
+    func body(content: Content) -> some View {
+        content
+            .background(GeometryReader { geometry in
+                Color.clear
+                    .preference(key: ScrollOffsetPreferenceKey.self, value: geometry.frame(in: .named(name)).origin)
+            })
+            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+                scrollOffset = value
+            }
+    }
+}

@@ -30,6 +30,7 @@
 		04421B602BAE7A050034E16A /* UIImageColors in Frameworks */ = {isa = PBXBuildFile; productRef = 04421B5F2BAE7A050034E16A /* UIImageColors */; };
 		04421B6B2BAF48B30034E16A /* OpenCVWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04421B6A2BAF48B30034E16A /* OpenCVWrapper.mm */; };
 		044E55CA2CCFED46004574FD /* FavoritePairing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044E55C92CCFED46004574FD /* FavoritePairing.swift */; };
+		0458137B2CD9382700784519 /* FilterPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0458137A2CD9382700784519 /* FilterPattern.swift */; };
 		0462D00B2C7FBB7700EBB11C /* ButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0462D00A2C7FBB7700EBB11C /* ButtonStyles.swift */; };
 		0464B6202CC2F78D00EADD48 /* PossiblePatterns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0464B61F2CC2F78D00EADD48 /* PossiblePatterns.swift */; };
 		0466F21B2CA919CE0094F3DA /* View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0466F21A2CA919CE0094F3DA /* View.swift */; };
@@ -40,7 +41,6 @@
 		04726D992C9A98BC008769A3 /* Composition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04726D982C9A98BC008769A3 /* Composition.swift */; };
 		0473B97C2BA4021400595BE7 /* YarnInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0473B97B2BA4021400595BE7 /* YarnInfo.swift */; };
 		047D02B32CC0178800DDF4F3 /* RecYarnHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047D02B22CC0178800DDF4F3 /* RecYarnHeader.swift */; };
-		047DE4B02B9EC45600F0A2D5 /* MyTextFieldStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4AF2B9EC45600F0A2D5 /* MyTextFieldStyle.swift */; };
 		047DE4CC2B9FF40600F0A2D5 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4CB2B9FF40600F0A2D5 /* PersistenceController.swift */; };
 		047DE4CF2B9FF78700F0A2D5 /* Data.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4CD2B9FF78700F0A2D5 /* Data.xcdatamodeld */; };
 		047DE4D52B9FFB6900F0A2D5 /* YarnList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047DE4D42B9FFB6900F0A2D5 /* YarnList.swift */; };
@@ -55,7 +55,6 @@
 		048E0EC32CD18BF3009DBA67 /* Tabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048E0EC22CD18BF3009DBA67 /* Tabs.swift */; };
 		048E0EC52CD1D346009DBA67 /* ProjectInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048E0EC42CD1D346009DBA67 /* ProjectInfo.swift */; };
 		048ED2E72CC7537A00DB790A /* ScrollDots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048ED2E62CC7537A00DB790A /* ScrollDots.swift */; };
-		048ED2E92CC7554100DB790A /* ScrollTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048ED2E82CC7554100DB790A /* ScrollTracker.swift */; };
 		048ED2EB2CC9522200DB790A /* AddOrEditProjectForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048ED2EA2CC9522200DB790A /* AddOrEditProjectForm.swift */; };
 		049FAA4F2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 049FAA4E2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage */; };
 		04A15AA02CD5652B00EA4B1D /* PatternPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A15A9F2CD5652B00EA4B1D /* PatternPreview.swift */; };
@@ -64,7 +63,6 @@
 		04A5C3E22C4C1DA600CD5870 /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3E12C4C1DA600CD5870 /* UIColor.swift */; };
 		04A5C3E52C4C1DE600CD5870 /* ColorPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3E42C4C1DE600CD5870 /* ColorPickerView.swift */; };
 		04A5C3E72C4C1E1600CD5870 /* UIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3E62C4C1E1600CD5870 /* UIImage.swift */; };
-		04A5C3E92C4C1E3600CD5870 /* TextFieldLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3E82C4C1E3600CD5870 /* TextFieldLabel.swift */; };
 		04A5C3EB2C4C1E5200CD5870 /* FormRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3EA2C4C1E5200CD5870 /* FormRow.swift */; };
 		04A5C3ED2C4C1E8F00CD5870 /* AnalyzeColorUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3EC2C4C1E8F00CD5870 /* AnalyzeColorUtils.swift */; };
 		04A81CF32CA4743D00BF66CC /* StoredImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A81CF22CA4743D00BF66CC /* StoredImage.swift */; };
@@ -84,13 +82,16 @@
 		04B74E922B9B6EFE00D19F52 /* WoolWalletUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B74E912B9B6EFE00D19F52 /* WoolWalletUITestsLaunchTests.swift */; };
 		04BAC0C12BAE0D1D00C26CD8 /* GlobalSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04BAC0C02BAE0D1D00C26CD8 /* GlobalSettings.swift */; };
 		04BAC0C32BAE13E400C26CD8 /* YarnUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04BAC0C22BAE13E400C26CD8 /* YarnUtils.swift */; };
+		04CA29212CDC17D30073DB20 /* PatternItemDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04CA29202CDC17D30073DB20 /* PatternItemDisplay.swift */; };
+		04CA29232CDC17F70073DB20 /* ProjectDateDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04CA29222CDC17F70073DB20 /* ProjectDateDisplay.swift */; };
 		04D415122C9F61BD004E1AFD /* AddOrEditYarnForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D415112C9F61BD004E1AFD /* AddOrEditYarnForm.swift */; };
-		04D596012B9E9BE000E1913C /* ClearButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D596002B9E9BE000E1913C /* ClearButton.swift */; };
 		04D596032B9E9C2200E1913C /* AccessCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D596022B9E9C2200E1913C /* AccessCamera.swift */; };
 		04D5C44F2C87DFCD00DC9697 /* PatternList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D5C44E2C87DFCD00DC9697 /* PatternList.swift */; };
 		04D5C4512C87E01E00DC9697 /* ProjectList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D5C4502C87E01E00DC9697 /* ProjectList.swift */; };
 		04E2329B2C9FE802007C8863 /* Sequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E2329A2C9FE802007C8863 /* Sequence.swift */; };
 		04E6018E2CA915C100865991 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 04E6018D2CA915C100865991 /* .gitignore */; };
+		04F083E82CDB35DD002E40A0 /* FilterCapsule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F083E72CDB35DD002E40A0 /* FilterCapsule.swift */; };
+		04F083EA2CDBBF63002E40A0 /* ProjectPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F083E92CDBBF63002E40A0 /* ProjectPreview.swift */; };
 		04FB6FCA2CB39955008A0FE8 /* InfoCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FB6FC92CB39955008A0FE8 /* InfoCard.swift */; };
 		974625F5C064D7615C374F39 /* Pods_WoolWalletTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CB342E0EDA72B2FE304CA5EF /* Pods_WoolWalletTests.framework */; };
 		D245718BC4A8FD5685EB8A47 /* Pods_WoolWallet_WoolWalletUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4405C73761C0C80F39C184FE /* Pods_WoolWallet_WoolWalletUITests.framework */; };
@@ -141,6 +142,7 @@
 		04421B6C2BAF48E00034E16A /* WoolWallet-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "WoolWallet-Bridging-Header.h"; sourceTree = "<group>"; };
 		04421B6D2BAF491B0034E16A /* PrefixHeader.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrefixHeader.pch; sourceTree = "<group>"; };
 		044E55C92CCFED46004574FD /* FavoritePairing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritePairing.swift; sourceTree = "<group>"; };
+		0458137A2CD9382700784519 /* FilterPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterPattern.swift; sourceTree = "<group>"; };
 		0462D00A2C7FBB7700EBB11C /* ButtonStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonStyles.swift; sourceTree = "<group>"; };
 		0464B61F2CC2F78D00EADD48 /* PossiblePatterns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PossiblePatterns.swift; sourceTree = "<group>"; };
 		0466F21A2CA919CE0094F3DA /* View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = View.swift; sourceTree = "<group>"; };
@@ -151,7 +153,6 @@
 		04726D982C9A98BC008769A3 /* Composition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Composition.swift; sourceTree = "<group>"; };
 		0473B97B2BA4021400595BE7 /* YarnInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnInfo.swift; sourceTree = "<group>"; };
 		047D02B22CC0178800DDF4F3 /* RecYarnHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecYarnHeader.swift; sourceTree = "<group>"; };
-		047DE4AF2B9EC45600F0A2D5 /* MyTextFieldStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyTextFieldStyle.swift; sourceTree = "<group>"; };
 		047DE4CB2B9FF40600F0A2D5 /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceController.swift; sourceTree = "<group>"; };
 		047DE4CE2B9FF78700F0A2D5 /* Data.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Data.xcdatamodel; sourceTree = "<group>"; };
 		047DE4D42B9FFB6900F0A2D5 /* YarnList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnList.swift; sourceTree = "<group>"; };
@@ -166,7 +167,6 @@
 		048E0EC22CD18BF3009DBA67 /* Tabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tabs.swift; sourceTree = "<group>"; };
 		048E0EC42CD1D346009DBA67 /* ProjectInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectInfo.swift; sourceTree = "<group>"; };
 		048ED2E62CC7537A00DB790A /* ScrollDots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollDots.swift; sourceTree = "<group>"; };
-		048ED2E82CC7554100DB790A /* ScrollTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollTracker.swift; sourceTree = "<group>"; };
 		048ED2EA2CC9522200DB790A /* AddOrEditProjectForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddOrEditProjectForm.swift; sourceTree = "<group>"; };
 		049FAA4E2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = yarn_segmentation_model.mlpackage; sourceTree = "<group>"; };
 		04A15A9F2CD5652B00EA4B1D /* PatternPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternPreview.swift; sourceTree = "<group>"; };
@@ -175,7 +175,6 @@
 		04A5C3E12C4C1DA600CD5870 /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
 		04A5C3E42C4C1DE600CD5870 /* ColorPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerView.swift; sourceTree = "<group>"; };
 		04A5C3E62C4C1E1600CD5870 /* UIImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImage.swift; sourceTree = "<group>"; };
-		04A5C3E82C4C1E3600CD5870 /* TextFieldLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldLabel.swift; sourceTree = "<group>"; };
 		04A5C3EA2C4C1E5200CD5870 /* FormRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormRow.swift; sourceTree = "<group>"; };
 		04A5C3EC2C4C1E8F00CD5870 /* AnalyzeColorUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyzeColorUtils.swift; sourceTree = "<group>"; };
 		04A81CF22CA4743D00BF66CC /* StoredImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredImage.swift; sourceTree = "<group>"; };
@@ -199,13 +198,16 @@
 		04BAC0C02BAE0D1D00C26CD8 /* GlobalSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalSettings.swift; sourceTree = "<group>"; };
 		04BAC0C22BAE13E400C26CD8 /* YarnUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnUtils.swift; sourceTree = "<group>"; };
 		04BAC0C52BAE23C000C26CD8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		04CA29202CDC17D30073DB20 /* PatternItemDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternItemDisplay.swift; sourceTree = "<group>"; };
+		04CA29222CDC17F70073DB20 /* ProjectDateDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectDateDisplay.swift; sourceTree = "<group>"; };
 		04D415112C9F61BD004E1AFD /* AddOrEditYarnForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddOrEditYarnForm.swift; sourceTree = "<group>"; };
-		04D596002B9E9BE000E1913C /* ClearButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClearButton.swift; sourceTree = "<group>"; };
 		04D596022B9E9C2200E1913C /* AccessCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessCamera.swift; sourceTree = "<group>"; };
 		04D5C44E2C87DFCD00DC9697 /* PatternList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternList.swift; sourceTree = "<group>"; };
 		04D5C4502C87E01E00DC9697 /* ProjectList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectList.swift; sourceTree = "<group>"; };
 		04E2329A2C9FE802007C8863 /* Sequence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sequence.swift; sourceTree = "<group>"; };
 		04E6018D2CA915C100865991 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		04F083E72CDB35DD002E40A0 /* FilterCapsule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterCapsule.swift; sourceTree = "<group>"; };
+		04F083E92CDBBF63002E40A0 /* ProjectPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectPreview.swift; sourceTree = "<group>"; };
 		04FB6FC92CB39955008A0FE8 /* InfoCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoCard.swift; sourceTree = "<group>"; };
 		05E59D743EE22A611AB12A69 /* Pods-WoolWallet-WoolWalletUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WoolWallet-WoolWalletUITests.debug.xcconfig"; path = "Target Support Files/Pods-WoolWallet-WoolWalletUITests/Pods-WoolWallet-WoolWalletUITests.debug.xcconfig"; sourceTree = "<group>"; };
 		4405C73761C0C80F39C184FE /* Pods_WoolWallet_WoolWalletUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WoolWallet_WoolWalletUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -296,9 +298,12 @@
 		047D02B12CC0176F00DDF4F3 /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				04A15A9F2CD5652B00EA4B1D /* PatternPreview.swift */,
+				04CA29202CDC17D30073DB20 /* PatternItemDisplay.swift */,
 				043E16E62CB9A0E1005046B6 /* RecYarnForm.swift */,
 				047D02B22CC0178800DDF4F3 /* RecYarnHeader.swift */,
 				041265062CC2AF7700D497BF /* YarnSuggestions.swift */,
+				0458137A2CD9382700784519 /* FilterPattern.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -348,8 +353,9 @@
 		048ED2EC2CC997BF00DB790A /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				04F083E92CDBBF63002E40A0 /* ProjectPreview.swift */,
 				046DB2B72CD33D3400BAB71F /* RowCounterForm.swift */,
-				04A15A9F2CD5652B00EA4B1D /* PatternPreview.swift */,
+				04CA29222CDC17F70073DB20 /* ProjectDateDisplay.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -398,7 +404,6 @@
 				04A81D002CA47FF600BF66CC /* Helpers */,
 				04A81CFF2CA47FC900BF66CC /* Utils */,
 				04D415112C9F61BD004E1AFD /* AddOrEditYarnForm.swift */,
-				04B15C612C77BAF100A03751 /* FilterYarn.swift */,
 				0473B97B2BA4021400595BE7 /* YarnInfo.swift */,
 				047DE4D42B9FFB6900F0A2D5 /* YarnList.swift */,
 			);
@@ -460,6 +465,7 @@
 		04A81D002CA47FF600BF66CC /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				04B15C612C77BAF100A03751 /* FilterYarn.swift */,
 				048D66042CA0E9890051D7A3 /* EditComposition.swift */,
 				04A5C3E42C4C1DE600CD5870 /* ColorPickerView.swift */,
 				042530BC2CB24DF8008804C7 /* MaterialPicker.swift */,
@@ -564,11 +570,8 @@
 		04D595FF2B9E9BC400E1913C /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
-				04D596002B9E9BE000E1913C /* ClearButton.swift */,
 				04D596022B9E9C2200E1913C /* AccessCamera.swift */,
-				047DE4AF2B9EC45600F0A2D5 /* MyTextFieldStyle.swift */,
 				042CC1E72BAB9BFF008DD2F6 /* ConditionalStack.swift */,
-				04A5C3E82C4C1E3600CD5870 /* TextFieldLabel.swift */,
 				04A5C3EA2C4C1E5200CD5870 /* FormRow.swift */,
 				04A81CF42CA47C6100BF66CC /* ImageCarousel.swift */,
 				042BF1552CA61D9D008740FB /* TextFieldTypeahead.swift */,
@@ -577,12 +580,12 @@
 				043E16EC2CBA0E52005046B6 /* ViewWeightAndYardage.swift */,
 				043E16EE2CBB6B6A005046B6 /* CollapsibleView.swift */,
 				048ED2E62CC7537A00DB790A /* ScrollDots.swift */,
-				048ED2E82CC7554100DB790A /* ScrollTracker.swift */,
 				048E0EC22CD18BF3009DBA67 /* Tabs.swift */,
 				0411DCCD2CD28F5200007296 /* NewItemHeader.swift */,
 				04A15AA12CD5EE0100EA4B1D /* FancyHorizontalScroll.swift */,
 				0486973A2CD6C2B100C69076 /* ViewLengthAndYardage.swift */,
 				0486973C2CD7418C00C69076 /* SimpleHorizontalScroll.swift */,
+				04F083E72CDB35DD002E40A0 /* FilterCapsule.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -864,8 +867,6 @@
 				04726D992C9A98BC008769A3 /* Composition.swift in Sources */,
 				04A81CF52CA47C6100BF66CC /* ImageCarousel.swift in Sources */,
 				042B0A682CAE6300003CDCF0 /* PatternItem.swift in Sources */,
-				048ED2E92CC7554100DB790A /* ScrollTracker.swift in Sources */,
-				04A5C3E92C4C1E3600CD5870 /* TextFieldLabel.swift in Sources */,
 				04A5C3EB2C4C1E5200CD5870 /* FormRow.swift in Sources */,
 				0486973D2CD7418C00C69076 /* SimpleHorizontalScroll.swift in Sources */,
 				042699B22CAF90E600F76B10 /* Pattern.swift in Sources */,
@@ -882,6 +883,7 @@
 				04B15C622C77BAF100A03751 /* FilterYarn.swift in Sources */,
 				048E0EC32CD18BF3009DBA67 /* Tabs.swift in Sources */,
 				04FB6FCA2CB39955008A0FE8 /* InfoCard.swift in Sources */,
+				0458137B2CD9382700784519 /* FilterPattern.swift in Sources */,
 				04A81CF32CA4743D00BF66CC /* StoredImage.swift in Sources */,
 				04A5C3E72C4C1E1600CD5870 /* UIImage.swift in Sources */,
 				049FAA4F2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage in Sources */,
@@ -894,6 +896,7 @@
 				04A81D042CA4807D00BF66CC /* GlobalEnums.swift in Sources */,
 				04ADF9852CCB60EA00C821A5 /* WeightAndYardageUtils.swift in Sources */,
 				04A15AA22CD5EE0100EA4B1D /* FancyHorizontalScroll.swift in Sources */,
+				04CA29212CDC17D30073DB20 /* PatternItemDisplay.swift in Sources */,
 				044E55CA2CCFED46004574FD /* FavoritePairing.swift in Sources */,
 				0466F21B2CA919CE0094F3DA /* View.swift in Sources */,
 				048D66052CA0E9890051D7A3 /* EditComposition.swift in Sources */,
@@ -909,10 +912,8 @@
 				043E16E72CB9A0E1005046B6 /* RecYarnForm.swift in Sources */,
 				047D02B32CC0178800DDF4F3 /* RecYarnHeader.swift in Sources */,
 				048ED2E72CC7537A00DB790A /* ScrollDots.swift in Sources */,
-				047DE4B02B9EC45600F0A2D5 /* MyTextFieldStyle.swift in Sources */,
 				042BF1562CA61D9D008740FB /* TextFieldTypeahead.swift in Sources */,
 				0411DCCC2CD2835B00007296 /* DateUtils.swift in Sources */,
-				04D596012B9E9BE000E1913C /* ClearButton.swift in Sources */,
 				043E16E92CB9A76D005046B6 /* WeightAndYardage.swift in Sources */,
 				048ED2EB2CC9522200DB790A /* AddOrEditProjectForm.swift in Sources */,
 				046A96442BA17B1C00E83055 /* Toast.swift in Sources */,
@@ -921,12 +922,15 @@
 				04D415122C9F61BD004E1AFD /* AddOrEditYarnForm.swift in Sources */,
 				042B0A6C2CAE641C003CDCF0 /* KnittingNeedle.swift in Sources */,
 				0411DCCE2CD28F5200007296 /* NewItemHeader.swift in Sources */,
+				04F083EA2CDBBF63002E40A0 /* ProjectPreview.swift in Sources */,
 				042B0A6A2CAE63B0003CDCF0 /* CrochetHook.swift in Sources */,
 				042CC1E82BAB9BFF008DD2F6 /* ConditionalStack.swift in Sources */,
 				04B15C602C76220300A03751 /* Yarn.swift in Sources */,
 				04A15AA02CD5652B00EA4B1D /* PatternPreview.swift in Sources */,
+				04CA29232CDC17F70073DB20 /* ProjectDateDisplay.swift in Sources */,
 				0462D00B2C7FBB7700EBB11C /* ButtonStyles.swift in Sources */,
 				042B0A6F2CAEFFBA003CDCF0 /* PatternUtils.swift in Sources */,
+				04F083E82CDB35DD002E40A0 /* FilterCapsule.swift in Sources */,
 				042530BD2CB24DF8008804C7 /* MaterialPicker.swift in Sources */,
 				048746B52CADC24700C3472B /* PatternEnums.swift in Sources */,
 				041265072CC2AF7700D497BF /* YarnSuggestions.swift in Sources */,

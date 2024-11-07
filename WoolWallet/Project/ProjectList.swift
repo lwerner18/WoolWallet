@@ -26,7 +26,7 @@ struct ProjectList: View {
     ) private var allProjects: FetchedResults<Project>
     
     private var filteredFetchRequest = FetchRequest<Project>(
-        sortDescriptors: [],
+        sortDescriptors: [NSSortDescriptor(keyPath: \Project.startDate, ascending: true)],
         predicate: NSPredicate(value: true),
         animation: .default
     )
@@ -134,18 +134,7 @@ struct ProjectList: View {
                                     Text("").frame(maxWidth: 0)
                                     
                                     if project.uiImages.isEmpty {
-                                        let itemDisplay =
-                                        PatternUtils.shared.getItemDisplay(
-                                            for: project.pattern!.patternItems.isEmpty ? nil : project.pattern!.patternItems.first?.item
-                                        )
-                                        
-                                        if itemDisplay.custom {
-                                            Image(itemDisplay.icon)
-                                                .iconCircle(background: itemDisplay.color, xl: true)
-                                        } else {
-                                            Image(systemName: itemDisplay.icon)
-                                                .iconCircle(background: itemDisplay.color, xl: true)
-                                        }
+                                        PatternItemDisplay(pattern: project.pattern!, size: Size.medium)
                                     } else {
                                         ImageCarousel(images: .constant(project.uiImages), smallMode: true)
                                             .xsImageCarousel()
@@ -160,48 +149,13 @@ struct ProjectList: View {
                                         
                                         Spacer()
                                         
-                                        if project.inProgress {
-                                            Text("Started \(DateUtils.shared.formatDate(project.startDate!)!)")
-                                                .foregroundStyle(Color(UIColor.secondaryLabel))
-                                                .font(.footnote)
-                                            
-                                            Spacer()
-                                            
-                                            let daysPassed = Calendar.current.dateComponents([.day], from: project.startDate!, to: Date.now).day ?? 0
-                                            
-                                            if daysPassed > 0 {
-                                                HStack {
-                                                    Image(systemName : "timer")
-                                                    
-                                                    Text("\(daysPassed) day\(daysPassed > 1 ? "s" : "")")
-                                                }
-                                                .foregroundStyle(Color(UIColor.secondaryLabel))
-                                                .font(.caption2)
-                                            }
-                                        } else if project.complete {
-                                            Text("Completed \(DateUtils.shared.formatDate(project.endDate!)!)")
-                                                .foregroundStyle(Color(UIColor.secondaryLabel))
-                                                .font(.footnote)
-                                            
-                                            Spacer()
-                                            
-                                            let daysPassed = Calendar.current.dateComponents([.day], from: project.startDate!, to: project.endDate!).day ?? 0
-                                            
-                                            if daysPassed > 0 {
-                                                HStack {
-                                                    Image(systemName : "timer")
-                                                    
-                                                    Text("Took \(daysPassed) day\(daysPassed > 1 ? "s" : "")")
-                                                }
-                                                .foregroundStyle(Color(UIColor.secondaryLabel))
-                                                .font(.caption2)
-                                            }
-                                        }
+                                        ProjectDateDisplay(project: project)
                                     }
-                                    .padding(.vertical, 4)
+                                    
                                     
                                     Spacer()
                                 }
+                                .padding(.vertical, 4)
                                 .swipeActions(allowsFullSwipe: false) {
                                     if !showConfirmationDialog {
                                         Button {
@@ -256,7 +210,7 @@ struct ProjectList: View {
                 }
             }
             .popover(item: $newProject) { project in
-                ProjectInfo(project: project, isNewProject : true)
+                ProjectInfo(project: project, isNewProject : true, isPopover : true)
             }
             .fullScreenCover(item: $projectToEdit, onDismiss: { projectToEdit = nil}) { project in
                 AddOrEditProjectForm(projectToEdit : project, preSelectedPattern: nil)
@@ -269,6 +223,9 @@ struct ProjectList: View {
                 }
                 
                 Button("Cancel", role: .cancel) {}
+            }
+            .onAppear {
+                managedObjectContext.refreshAllObjects()
             }
     
         }

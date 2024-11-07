@@ -33,6 +33,7 @@ struct AddOrEditYarnForm: View {
     @State private var existingYarn          : Yarn? = nil
     @State private var processingColor       : Bool = false
     @State private var maskImage             : UIImage? // This will hold the segmentation mask image
+    @State private var imagesChanged         : Bool = false
     
     // Form fields
     @State private var name              : String = ""
@@ -65,8 +66,11 @@ struct AddOrEditYarnForm: View {
             _archive           = State(initialValue : yarnToEdit.isArchived)
             _images            = State(initialValue : yarnToEdit.uiImages)
             _composition       = State(initialValue : yarnToEdit.compositionItems)
-            _colorPickers      = State(initialValue : yarnToEdit.colorPickerItems)
             _weightAndYardages = State(initialValue : yarnToEdit.weightAndYardageItems)
+            _colorPickers      = State(initialValue : !yarnToEdit.colorPickerItems.isEmpty
+                                       ? yarnToEdit.colorPickerItems
+                                       : [ColorPickerItem(color: Color.white, name: "White")]
+            )
         }
     }
     
@@ -237,6 +241,9 @@ struct AddOrEditYarnForm: View {
                 }
                
             }
+            .onChange(of: images) {
+                imagesChanged = true
+            }
         }
     }
     
@@ -309,7 +316,11 @@ struct AddOrEditYarnForm: View {
         if yarnToEdit != nil {
             yarnToEdit?.weightAndYardageItems.forEach { item in
                 if !weightAndYardages.contains(where: {element in element.id == item.id}) {
-                    managedObjectContext.delete(item.existingItem!)
+                    let existingItem = item.existingItem!
+                    
+                    existingItem.yarnPairing?.forEach { managedObjectContext.delete($0 as! NSManagedObject) }
+                    
+                    managedObjectContext.delete(existingItem)
                 }
             }
             
@@ -325,9 +336,11 @@ struct AddOrEditYarnForm: View {
                 }
             }
             
-            yarnToEdit?.uiImages.forEach { item in
-                if !images.contains(where: {element in element.id == item.id}) {
-                    managedObjectContext.delete(item.existingItem!)
+            if imagesChanged {
+                yarnToEdit?.uiImages.forEach { item in
+                    if !images.contains(where: {element in element.id == item.id}) {
+                        managedObjectContext.delete(item.existingItem!)
+                    }
                 }
             }
         }
@@ -368,12 +381,14 @@ struct AddOrEditYarnForm: View {
         
         yarn.composition = NSSet(array: compositions)
         
-        // images
-        let storedImages: [StoredImage] = images.enumerated().map { (index, element) in
-            return StoredImage.from(data: element, order: index, context: managedObjectContext)
+        if imagesChanged {
+            // images
+            let storedImages: [StoredImage] = images.enumerated().map { (index, element) in
+                return StoredImage.from(data: element, order: index, context: managedObjectContext)
+            }
+            
+            yarn.images = NSSet(array: storedImages)
         }
-        
-        yarn.images = NSSet(array: storedImages)
         
         PersistenceController.shared.save()
         

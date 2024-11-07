@@ -49,23 +49,34 @@ struct YarnInfo: View {
     }
     
     // Internal state trackers
-    @State private var showEditYarnForm : Bool = false
-    @State private var isImageMaximized = false
-    @State private var yarnInfoToast: Toast? = nil
-    @State private var showDeleteConfirmation = false
-    @State private var showChoosePatternDialog = false
-    @State private var showChooseSkeinDialog = false
-    @State private var showAddProjectForm : Bool = false
-    @State private var animateCheckmark = false
-    @State private var patternSuggestions : [PatternSuggestion] = []
-    @State private var favoritedPatterns : [FavoritePairing] = []
-    @State private var patternWAndYForProject : WeightAndYardage? = nil
-    @State private var newProject             : Project? = nil
+    @State private var showEditYarnForm        : Bool = false
+    @State private var yarnInfoToast           : Toast? = nil
+    @State private var showDeleteConfirmation  : Bool = false
+    @State private var showChoosePatternDialog : Bool = false
+    @State private var showChooseSkeinDialog   : Bool = false
+    @State private var showAddProjectForm      : Bool = false
+    @State private var animateCheckmark        : Bool = false
+    @State private var patternSuggestions      : [PatternSuggestion] = []
+    @State private var favoritedPatterns       : [FavoritePairing] = []
+    @State private var patternWAndYForProject  : WeightAndYardage? = nil
+    @State private var newProject              : Project? = nil
     
     
     // Computed property to calculate if device is most likely in portrait mode
     var isPortraitMode: Bool {
         return horizontalSizeClass == .compact && verticalSizeClass == .regular
+    }
+    
+    var projectsNum: Int {
+        var num = 0
+        
+        yarn.weightAndYardageItems.forEach { wAndY in
+            if wAndY.existingItem!.yarnPairing != nil && wAndY.existingItem!.yarnPairing!.count > 0 {
+                num += 1
+            }
+        }
+        
+        return num
     }
     
     var body: some View {
@@ -103,32 +114,33 @@ struct YarnInfo: View {
                         Text(yarn.dyer ?? "N/A").bold().foregroundStyle(Color(UIColor.secondaryLabel))
                     }
                     
-                    if yarn.isArchived || yarn.isCaked || yarn.isSockSet || yarn.isMini || yarn.colorType != nil {
-                        HStack {
-                            if yarn.isArchived {
-                                Label("Archived", systemImage : "tray.and.arrow.down").infoCapsule()
-                            }
-                            
-                            if yarn.isCaked {
-                                Label("Caked", systemImage : "birthday.cake").infoCapsule()
-                            }
-                            
-                            if yarn.isSockSet {
-                                Label("Sock Set", systemImage : "shoeprints.fill").infoCapsule()
-                            }
-                            
-                            if yarn.isMini {
-                                Label("Mini", systemImage : "arrow.down.right.and.arrow.up.left").infoCapsule()
-                            }
-                            
-                            if yarn.colorType == ColorType.variegated.rawValue {
-                                Label("Variegated", systemImage : "swirl.circle.righthalf.filled").infoCapsule()
-                            } else if yarn.colorType == ColorType.tonal.rawValue {
-                                Label("Tonal", systemImage : "circle.fill").infoCapsule()
-                            }
-                            
-                            Spacer()
+                    HStack {
+                        if yarn.isArchived {
+                            Label("Archived", systemImage : "tray.and.arrow.down").infoCapsule()
                         }
+                        
+                        if yarn.isCaked {
+                            Label("Caked", systemImage : "birthday.cake").infoCapsule()
+                        }
+                        
+                        if yarn.isSockSet {
+                            Label("Sock Set", systemImage : "shoeprints.fill").infoCapsule()
+                        }
+                        
+                        if yarn.isMini {
+                            Label("Mini", systemImage : "arrow.down.right.and.arrow.up.left").infoCapsule()
+                        }
+                        
+                        if yarn.colorType == ColorType.variegated.rawValue {
+                            Label("Variegated", systemImage : "swirl.circle.righthalf.filled").infoCapsule()
+                        } else if yarn.colorType == ColorType.tonal.rawValue {
+                            Label("Tonal", systemImage : "circle.fill").infoCapsule()
+                        }
+                        
+                        Label("\(projectsNum == 1 ? "1 project" : "\(projectsNum) projects")", systemImage : "hammer")
+                            .infoCapsule()
+                        
+                        Spacer()
                     }
                     
                     VStack {
@@ -202,9 +214,12 @@ struct YarnInfo: View {
                         if yarn.notes != "" {
                             InfoCard() {
                                 Text(yarn.notes!)
+                                    .foregroundStyle(Color.primary)
                                     .frame(maxWidth: .infinity)
                             }
                         }
+                        
+                        
                     }
                     
                 }
@@ -316,7 +331,7 @@ struct YarnInfo: View {
                 }
             }
             .popover(item: $newProject) { project in
-                ProjectInfo(project: project, isNewProject : true)
+                ProjectInfo(project: project, isNewProject : true, isPopover: true)
             }
             .confirmationDialog("", isPresented: $showChoosePatternDialog) {
                 ForEach(favoritedPatterns, id: \.id) {element in

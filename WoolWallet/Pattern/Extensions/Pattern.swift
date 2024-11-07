@@ -91,4 +91,12 @@ extension Pattern {
             )
         }
     }
+    
+    var projectsArray: [Project] {
+        return projects?.allObjects as? [Project] ?? []
+    }
+    
+    var hasProjects: Bool {
+        return !projectsArray.isEmpty
+    }
 }

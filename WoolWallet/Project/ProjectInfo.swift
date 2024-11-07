@@ -15,22 +15,34 @@ struct ProjectInfo: View {
     @Environment(\.managedObjectContext) var managedObjectContext
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.verticalSizeClass) var verticalSizeClass
+    @Environment(\.defaultMinListRowHeight) var minRowHeight
     
     @ObservedObject var project : Project
-    var isNewProject : Bool = false
+    var isNewProject : Bool
+    var isPopover : Bool
     
     init(
         project: Project,
-        isNewProject : Bool = false
+        isNewProject : Bool = false,
+        isPopover : Bool = false
     ) {
         self.project = project
         self.isNewProject = isNewProject
+        self.isPopover = isPopover
         
         self.rowCountersRequest = FetchRequest(
             entity: RowCounter.entity(),
-            sortDescriptors: [],
+            sortDescriptors: [NSSortDescriptor(keyPath: \RowCounter.order, ascending: true)],
             predicate: NSPredicate(format: "project.id == %@", project.id! as any CVarArg)
         )
+        
+        if project.startDate != nil {
+            _startDateInput = State(initialValue: project.startDate!)
+        }
+        
+        if project.endDate != nil {
+            _endDateInput = State(initialValue: project.endDate!)
+        }
     }
     
     
@@ -48,10 +60,12 @@ struct ProjectInfo: View {
     @State private var showConfirmationDialog = false
     @State private var animateCheckmark = false
     @State private var rowCounter : RowCounter? = nil
+    @State private var startDateInput : Date = Date()
+    @State private var endDateInput : Date = Date()
     
     var body: some View {
         VStack {
-            if isNewProject {
+            if isPopover {
                 NewItemHeader(onClose: { dismiss() })
             }
             
@@ -75,18 +89,7 @@ struct ProjectInfo: View {
                 
                 ConditionalStack(useVerticalLayout: isPortraitMode) {
                     if project.uiImages.isEmpty {
-                        let itemDisplay =
-                        PatternUtils.shared.getItemDisplay(
-                            for: project.pattern!.patternItems.isEmpty ? nil : project.pattern!.patternItems.first?.item
-                        )
-                        
-                        if itemDisplay.custom {
-                            Image(itemDisplay.icon)
-                                .iconCircle(background: itemDisplay.color, xl: true)
-                        } else {
-                            Image(systemName: itemDisplay.icon)
-                                .iconCircle(background: itemDisplay.color, xl: true)
-                        }
+                        PatternItemDisplay(pattern: project.pattern!, size: Size.large)
                     } else {
                         ImageCarousel(images: .constant(project.uiImages))
                     }
@@ -116,6 +119,100 @@ struct ProjectInfo: View {
                         Spacer()
                     }
                     
+                    if project.startDate != nil || project.endDate != nil {
+                        InfoCard() {
+                            VStack {
+                                if project.startDate != nil {
+                                    HStack {
+                                        Text("Start Date")
+                                            .foregroundStyle(Color(UIColor.secondaryLabel))
+                                        
+                                        Spacer()
+                                        
+                                        DatePicker("", selection: $startDateInput,  in: ...Date(), displayedComponents: [.date])
+                                            .onChange(of: startDateInput) {
+                                                project.startDate = startDateInput
+                                                
+                                                PersistenceController.shared.save()
+                                            }
+                                    }
+                                    .yarnDataRow()
+                                }
+                                
+                                if project.endDate != nil {
+                                    Divider()
+                                    
+                                    HStack {
+                                        Text("End Date")
+                                            .foregroundStyle(Color(UIColor.secondaryLabel))
+                                        
+                                        Spacer()
+                                        
+                                        DatePicker("", selection: $endDateInput, in: startDateInput..., displayedComponents: [.date])
+                                            .onChange(of: endDateInput) {
+                                                project.endDate = endDateInput
+                                                
+                                                PersistenceController.shared.save()
+                                            }
+                                    }
+                                    .yarnDataRow()
+                                }
+                                
+                                if project.inProgress {
+                                    let daysPassed = Calendar.current.dateComponents([.day], from: startDateInput, to: Date.now).day ?? 0
+            
+                                    if daysPassed > 0 {
+                                        Divider()
+                                        
+                                        HStack {
+                                            Spacer()
+                                            
+                                            Image(systemName : "timer")
+            
+                                            Text("\(daysPassed) day\(daysPassed != 1 ? "s" : "") passed")
+                                            
+                                            Spacer()
+                                        }
+                                        .foregroundStyle(Color(UIColor.secondaryLabel))
+                                        .yarnDataRow()
+                                    }
+                                }
+                                
+                                if project.complete {
+                                    let daysPassed = Calendar.current.dateComponents([.day], from: startDateInput, to: endDateInput).day ?? 0
+                                    
+                                    Divider()
+                                    
+                                    HStack {
+                                        Spacer()
+                                        
+                                        Image(systemName : "calendar")
+                                        
+                                        Text("Took \(daysPassed) day\(daysPassed != 1 ? "s" : "")")
+                                        
+                                        Spacer()
+                                    }
+                                    .foregroundStyle(Color(UIColor.secondaryLabel))
+                                    .yarnDataRow()
+                                }
+                            }
+                        }
+                        
+//                        Spacer()
+//                        
+//                        let daysPassed = Calendar.current.dateComponents([.day], from: project.startDate!, to: Date.now).day ?? 0
+//                        
+//                        if daysPassed > 0 {
+//                            HStack {
+//                                Image(systemName : "timer")
+//                                
+//                                Text("\(daysPassed) day\(daysPassed > 1 ? "s" : "")")
+//                            }
+//                            .foregroundStyle(Color(UIColor.secondaryLabel))
+//                            .font(.caption2)
+//                        }
+                    }
+                    
                     InfoCard() {
                         PatternPreview(pattern: project.pattern!)
                     }
@@ -128,10 +225,8 @@ struct ProjectInfo: View {
                             let yarn = yarnWAndY.yarn!
                             
                             InfoCard(header : {
-                                project.projectPairingItems.count > 1 
-                                ? AnyView(Text("COLOR \(PatternUtils.shared.getLetter(for: Int(patternWAndY.order)))")
-                                    .foregroundStyle(Color(UIColor.secondaryLabel))
-                                    .font(.caption2))
+                                project.projectPairingItems.count > 1
+                                ? AnyView(Text("COLOR \(PatternUtils.shared.getLetter(for: Int(patternWAndY.order)))"))
                                 : AnyView(EmptyView())
                             }) {
                                 HStack {
@@ -181,9 +276,34 @@ struct ProjectInfo: View {
                         }
                     }
                     
-                    VStack {
-                        ForEach(rowCounters, id : \.id) { rowCounterItem in
-                            InfoCard() {
+                    // only show when in progress?
+                    if !rowCounters.isEmpty {
+                        InfoCard(
+                            header : {
+                                Text("Row Counters")
+                            },
+                            footer : {
+                                HStack {
+                                    Spacer()
+                                    
+                                    Button {
+                                        let newRowCounter = RowCounter(context: managedObjectContext)
+                                        newRowCounter.name = "Row Counter \(rowCounters.count)"
+                                        newRowCounter.project = project
+                                        newRowCounter.order = Int16(rowCounters.count)
+                                        
+                                        PersistenceController.shared.save()
+                                        
+                                        rowCounter = newRowCounter
+                                    } label : {
+                                        Text("Need another counter?")
+                                            .foregroundStyle(Color.accentColor)
+                                    }
+                                }
+                            }
+                        ) {
+                            ForEach(rowCounters, id : \.id) { rowCounterItem in
+                                
                                 Button {
                                     rowCounter = rowCounterItem
                                 } label : {
@@ -202,14 +322,15 @@ struct ProjectInfo: View {
                                         return 0
                                     }
                                 }
+                                
                             }
                         }
-                        
                     }
                     
                     if project.notes != "" {
                         InfoCard() {
                             Text(project.notes!)
+                                .foregroundStyle(Color.primary)
                                 .frame(maxWidth: .infinity)
                         }
                     }
@@ -312,13 +433,13 @@ struct ProjectInfo: View {
             .fullScreenCover(isPresented: $showEditProjectForm) {
                 AddOrEditProjectForm(projectToEdit: project, preSelectedPattern : nil)
             }
-            .fullScreenCover(
-                item: $rowCounter,
-                onDismiss: {
-                    PersistenceController.shared.save()
-                }
+            .popover(
+                item: $rowCounter
             ) { counter in
                 RowCounterForm(rowCounter: counter)
+            }
+            .onChange(of: rowCounter) {
+                PersistenceController.shared.save()
             }
         }
         .background(Color(UIColor.systemGroupedBackground))

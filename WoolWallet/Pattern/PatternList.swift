@@ -45,6 +45,42 @@ struct PatternList: View {
             predicates.append(compoundPredicate)
         }
         
+        // Apply predicate for item filter
+        if !selectedItems.isEmpty {
+            let itemsPredicate = selectedItems.map { item in
+                NSPredicate(format: "ANY items.item = %@", item.rawValue)
+            }
+            let compoundPredicate = NSCompoundPredicate(orPredicateWithSubpredicates: itemsPredicate)
+            predicates.append(compoundPredicate)
+        }
+        
+        // Apply predicate for type filter
+        if !selectedTypes.isEmpty {
+            let typesPredicate = selectedTypes.map { type in
+                NSPredicate(format: "type = %@", type.rawValue)
+            }
+            let compoundPredicate = NSCompoundPredicate(orPredicateWithSubpredicates: typesPredicate)
+            predicates.append(compoundPredicate)
+        }
+        
+        // Apply predicate for weight filter
+        if !selectedWeights.isEmpty {
+            let weightPredicates = selectedWeights.map { weight in
+                NSPredicate(format: "ANY recWeightAndYardages.weight = %@", weight.rawValue)
+            }
+            let compoundPredicate = NSCompoundPredicate(orPredicateWithSubpredicates: weightPredicates)
+            predicates.append(compoundPredicate)
+        }
+        
+        switch(selectedTab) {
+        case .notUsed:
+            predicates.append(NSPredicate(format: "projects.@count == 0"))
+        case .used:
+            predicates.append(NSPredicate(format: "projects.@count > 0"))
+        case .all:
+            print("")
+        }
+        
         filteredFetchRequest.wrappedValue.nsPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
         
         return filteredFetchRequest.wrappedValue
@@ -61,62 +97,94 @@ struct PatternList: View {
         return Array(designers).sorted() // Optional: Sort the list of designers
     }
     
+    private var tabCounts: [TabCount<PatternTab>] {
+        return [
+            TabCount(tab: PatternTab.all, count: allPatterns.count),
+            TabCount(tab: PatternTab.notUsed, count: allPatterns.filter {!$0.hasProjects}.count),
+            TabCount(tab: PatternTab.used, count: allPatterns.filter {$0.hasProjects}.count),
+        ]
+    }
+    
     var filteredSuggestions: [String] {
         guard !searchText.isEmpty else { return [] }
         return uniqueDesigners.filter { $0.lowercased().contains(searchText.lowercased()) }
     }
     
+    var showFilterCapsules : Bool {
+        return !selectedItems.isEmpty || !selectedTypes.isEmpty || !selectedWeights.isEmpty
+    }
+    
     @State private var showConfirmationDialog : Bool = false
-    @State var         searchText             : String = ""
+    @State private var showFilterScreen       : Bool = false
+    @State         var searchText             : String = ""
     @State private var showAddPatternForm     : Bool = false
     @State private var newPattern             : Pattern? = nil
     @State private var patternToDelete        : Pattern? = nil
     @State private var patternToEdit          : Pattern? = nil
+    @State private var selectedItems          : [Item] = []
+    @State private var selectedTypes          : [PatternType] = []
+    @State private var selectedWeights        : [Weight] = []
+    @State private var selectedTab            : PatternTab = PatternTab.all
+    @State private var isRefreshing           : Bool = false
+                     
     
     var body: some View {
         NavigationStack {
+            Tabs(selectedTab: $selectedTab, tabCounts: tabCounts)
+            
+            if showFilterCapsules {
+                PatternFilterCapsules(
+                    showFilterScreen: $showFilterScreen,
+                    selectedItems: $selectedItems,
+                    selectedTypes : $selectedTypes,
+                    selectedWeights : $selectedWeights
+                )
+            }
+            
             VStack {
                 if filteredPatterns.isEmpty {
-                    ZStack {
-                        // Reserve space matching the scroll view's frame
-                        Spacer().containerRelativeFrame([.horizontal, .vertical])
-                        
-                        VStack {
-                            Image("moSearch") // Replace with your image's name
-                                .resizable() // If you want to adjust the size
-                                .scaledToFit() // Adjust the image's aspect ratio
-                                .frame(width: 300, height: 225) // Set desired frame size
-                            
-                            Text("There doesn't seem to be anything here.")
-                                .font(.title)
-                                .bold()
-                                .multilineTextAlignment(.center)
+                    ScrollView {
+                        ZStack {
+                            // Reserve space matching the scroll view's frame
+                            Spacer().containerRelativeFrame([.horizontal, .vertical])
                             
                             VStack {
-                                HStack(spacing: 0) {
-                                    Text("Please")
-                                    
-                                    if !browseMode {
-                                        Button(action: {
-                                            showAddPatternForm = true
-                                        }) {
-                                            Text(" add a pattern ")
-                                                .foregroundColor(.blue) // Customize the color to look like a link
-                                        }
-                                        .buttonStyle(PlainButtonStyle()) // Remove default button styling
-                                        .padding(0)
+                                Image("moSearch") // Replace with your image's name
+                                    .resizable() // If you want to adjust the size
+                                    .scaledToFit() // Adjust the image's aspect ratio
+                                    .frame(width: 300, height: 225) // Set desired frame size
+                                
+                                Text("There doesn't seem to be anything here.")
+                                    .font(.title)
+                                    .bold()
+                                    .multilineTextAlignment(.center)
+                                
+                                VStack {
+                                    HStack(spacing: 0) {
+                                        Text("Please")
                                         
-                                        Text("or")
+                                        if !browseMode {
+                                            Button(action: {
+                                                showAddPatternForm = true
+                                            }) {
+                                                Text(" add a pattern ")
+                                                    .foregroundColor(.blue) // Customize the color to look like a link
+                                            }
+                                            .buttonStyle(PlainButtonStyle()) // Remove default button styling
+                                            .padding(0)
+                                            
+                                            Text("or")
+                                        }
+                                        
+                                        Text(" modify your search.")
+                                            .font(.body)
                                     }
                                     
-                                    Text(" modify your search.")
-                                        .font(.body)
                                 }
-                                
+                                .padding(.top, 5)
                             }
-                            .padding(.top, 5)
+                            .padding()
                         }
-                        .padding()
                     }
                 } else {
                     List {
@@ -124,22 +192,13 @@ struct PatternList: View {
                             NavigationLink(
                                 destination: PatternInfo(pattern: pattern, browseMode: $browseMode, browsePattern : $browsePattern)
                             ) {
-                                let itemDisplay =
-                                    PatternUtils.shared.getItemDisplay(
-                                        for: pattern.patternItems.isEmpty ? nil : pattern.patternItems.first?.item
-                                    )
+                                
                                 HStack {
                                     
                                     Text("").frame(maxWidth: 0)
                                     
-                                    if itemDisplay.custom {
-                                        Image(itemDisplay.icon)
-                                            .iconCircle(background: itemDisplay.color)
-                                    } else {
-                                        Image(systemName: itemDisplay.icon)
-                                            .iconCircle(background: itemDisplay.color)
-                                    }
-                          
+                                    PatternItemDisplay(pattern: pattern)
+                                    
                                     
                                     VStack(alignment: .leading) {
                                         Spacer()
@@ -161,16 +220,26 @@ struct PatternList: View {
                                     
                                     Spacer()
                                     
-                                    VStack {
+                                    VStack(spacing: 3) {
                                         Text(pattern.type ?? "")
                                             .foregroundStyle(Color.primary)
                                             .font(.caption)
                                         
                                         let projectsNum = pattern.projects?.count ?? 0
                                         
-                                        Text("Used in \(projectsNum == 1 ? "1 project" : "\(projectsNum) projects")")
+                                        if projectsNum != 0 {
+                                            Text("Used in \(projectsNum == 1 ? "1 project" : "\(projectsNum) projects")")
+                                                .foregroundStyle(Color(UIColor.secondaryLabel))
+                                                .font(.caption)
+                                        }
+                                        
+                                        if pattern.patternItems.first?.item == Item.other {
+                                            Text(
+                                                PatternUtils.shared.joinedItems(patternItems: pattern.patternItems)
+                                            )
                                             .foregroundStyle(Color(UIColor.secondaryLabel))
-                                            .font(.caption)
+                                            .font(.caption2)
+                                        }
                                     }
                                 }
                                 .swipeActions(allowsFullSwipe: false) {
@@ -216,6 +285,15 @@ struct PatternList: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
+                        showFilterScreen = true
+                    }) {
+                        Image(systemName: "slider.horizontal.3") // Use a system icon
+                            .imageScale(.large)
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
                         showAddPatternForm = true
                     }) {
                         Image(systemName: "plus") // Use a system icon
@@ -250,6 +328,14 @@ struct PatternList: View {
                 
                 Button("Cancel", role: .cancel) {}
             }
+            .popover(isPresented: $showFilterScreen) {
+                FilterPattern(
+                    selectedItems: $selectedItems,
+                    selectedTypes: $selectedTypes,
+                    selectedWeights: $selectedWeights,
+                    filteredPatternCount: filteredPatterns.count
+                )
+            }
             .onChange(of: browsePattern) {
                 dismiss()
             }
@@ -257,3 +343,58 @@ struct PatternList: View {
         }
     }
 }
+
+struct PatternFilterCapsules : View {
+    @Binding var showFilterScreen : Bool
+    @Binding var selectedItems    : [Item]
+    @Binding var selectedTypes    : [PatternType]
+    @Binding var selectedWeights  : [Weight]
+    
+    var body : some View {
+        LazyVGrid(columns: [.init(.adaptive(minimum:120))], spacing: 10) {
+            ForEach(selectedTypes, id: \.id) { type in
+                FilterCapsule(text : type.rawValue, showX: true, onClick : {
+                    if let index = selectedTypes.firstIndex(where: { $0 == type }) {
+                        selectedTypes.remove(at: index)
+                    }
+                })
+            }
+            
+            ForEach(selectedWeights, id: \.id) { weight in
+                FilterCapsule(
+                    text : weight.rawValue,
+                    showX: true,
+                    onClick : {
+                        if let index = selectedWeights.firstIndex(where: { $0 == weight }) {
+                            selectedWeights.remove(at: index)
+                        }
+                    }
+                )
+            }
+            
+            ForEach(selectedItems, id: \.id) { item in
+                FilterCapsule(showX: true, onClick : {
+                    if let index = selectedItems.firstIndex(where: { $0 == item }) {
+                        selectedItems.remove(at: index)
+                    }
+                }) {
+                    if item != Item.none {
+                        PatternItemDisplayWithItem(item: item, size: Size.extraSmall)
+                    }
+                    
+                    Text(item.rawValue)
+                        .foregroundColor(Color(UIColor.secondaryLabel))
+                }
+            }
+                        
+            Button(action: {
+                showFilterScreen = true
+            }) {
+                Image(systemName: "plus.circle")
+                    .font(.title2)
+            }
+        }
+        .padding()
+    }
+}
+

@@ -37,7 +37,7 @@ struct WeightAndYardageData {
         || unitOfMeasure != UnitOfMeasure.yards
         || yardage != nil
         || grams != nil
-        || hasBeenWeighed != -1
+        || hasBeenWeighed != 0
         || totalGrams != nil
         || skeins != 1
         || hasPartialSkein != false

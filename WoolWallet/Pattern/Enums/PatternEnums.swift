@@ -7,6 +7,18 @@
 
 import Foundation
 
+enum PatternTab : String, CaseIterable, Identifiable, Equatable, CustomStringConvertible {
+    var id: String { self.rawValue }
+    
+    case all = "All"
+    case notUsed = "Not Used"
+    case used = "Used"
+    
+    // CustomStringConvertible
+    var description: String {
+        self.rawValue
+    }
+}
 
 enum PatternType : String, CaseIterable, Identifiable, Equatable {
     var id: String { self.rawValue }
@@ -77,17 +89,17 @@ enum KnitNeedleSize : String, CaseIterable, Identifiable, Equatable {
 enum Item : String, CaseIterable, Identifiable, Equatable {
     var id: String { self.rawValue }
     
-    case none          = "--"
-    case shirt         = "Shirt"
-    case sweater       = "Sweater"
-    case beanie        = "Beanie"
-    case socks         = "Socks"
-    case blanket       = "Blanket"
-    case scarf         = "Scarf"
-    case mittens       = "Mittens"
-    case cardigan      = "Cardigan"
-    case bag           = "Bag"
-    case tankTop       = "Tank Top"
-    case householdItem = "Household Item"
-    case other         = "Other"
+    case none      = "--"
+    case shirt     = "Shirt"
+    case sweater   = "Sweater"
+    case beanie    = "Beanie"
+    case socks     = "Socks"
+    case blanket   = "Blanket"
+    case scarf     = "Scarf"
+    case mittens   = "Mittens"
+    case cardigan  = "Cardigan"
+    case bag       = "Bag"
+    case tankTop   = "Tank Top"
+    case household = "Household"
+    case other     = "Other"
 }

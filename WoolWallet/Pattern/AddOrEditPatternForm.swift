@@ -40,7 +40,8 @@ struct AddOrEditPatternForm: View {
     var patternToEdit: Pattern?
     var onAdd: ((Pattern) -> Void)?
     
-    @State private var showExistingPatternAlert   : Bool = false
+    @State private var showExistingPatternAlert : Bool = false
+    @State private var imagesChanged            : Bool = false
     
     // Form fields
     @State private var patternType          : PatternType = PatternType.crochet
@@ -104,7 +105,6 @@ struct AddOrEditPatternForm: View {
                     TextFieldTypeahead(field: $designer, label: "Designer", allResults: uniqueDesigners)
                 }
                 
-                // TODO: List of common ones or free text
                 Section(
                     header: Text("What does this pattern make?"),
                     footer:
@@ -124,13 +124,7 @@ struct AddOrEditPatternForm: View {
                                 ForEach(Item.allCases, id: \.id) { item in
                                     HStack {
                                         if item != Item.none {
-                                            let itemDisplay = PatternUtils.shared.getItemDisplay(for: item)
-                                            
-                                            if itemDisplay.custom {
-                                                Image(itemDisplay.icon).iconCircle(background: itemDisplay.color, smallMode : true)
-                                            } else {
-                                                Image(systemName: itemDisplay.icon).iconCircle(background: itemDisplay.color, smallMode : true)
-                                            }
+                                            PatternItemDisplayWithItem(item: item, size: Size.small)
                                         }
                                         
                                         Text(item.rawValue)
@@ -301,6 +295,9 @@ struct AddOrEditPatternForm: View {
                     .disabled(name.isEmpty)
                 }
             }
+            .onChange(of: images) {
+                imagesChanged = true
+            }
         }
     }
     
@@ -339,7 +336,11 @@ struct AddOrEditPatternForm: View {
         if patternToEdit != nil {
             patternToEdit?.weightAndYardageItems.forEach { item in
                 if !recWeightAndYardages.contains(where: {element in element.id == item.id}) {
-                    managedObjectContext.delete(item.existingItem!)
+                    let existingItem = item.existingItem!
+                    
+                    existingItem.patternPairing?.forEach { managedObjectContext.delete($0 as! NSManagedObject) }
+                    
+                    managedObjectContext.delete(existingItem)
                 }
             }
             
@@ -361,9 +362,11 @@ struct AddOrEditPatternForm: View {
                 }
             }
             
-            patternToEdit?.uiImages.forEach { item in
-                if !images.contains(where: {element in element.id == item.id}) {
-                    managedObjectContext.delete(item.existingItem!)
+            if imagesChanged {
+                patternToEdit?.uiImages.forEach { item in
+                    if !images.contains(where: {element in element.id == item.id}) {
+                        managedObjectContext.delete(item.existingItem!)
+                    }
                 }
             }
         }
@@ -406,12 +409,14 @@ struct AddOrEditPatternForm: View {
         
         pattern.needles = NSSet(array: knittingNeedles)
         
-        // images
-        let storedImages: [StoredImage] = images.enumerated().map { (index, element) in
-            return StoredImage.from(data: element, order: index, context: managedObjectContext)
+        if imagesChanged {
+            // images
+            let storedImages: [StoredImage] = images.enumerated().map { (index, element) in
+                return StoredImage.from(data: element, order: index, context: managedObjectContext)
+            }
+            
+            pattern.images = NSSet(array: storedImages)
         }
-        
-        pattern.images = NSSet(array: storedImages)
         
         PersistenceController.shared.save()
         

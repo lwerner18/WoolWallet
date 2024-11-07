@@ -8,14 +8,31 @@
 import Foundation
 import SwiftUI
 
+enum Size {
+    case extraSmall
+    case small
+    case medium
+    case large
+}
+
 extension Image {
-    func iconCircle(background : Color, smallMode : Bool = false, xl : Bool = false) -> some View {
-        self
+    func iconCircle(background : Color, size : Size = Size.medium) -> some View {
+        var frameSize : CGFloat
+        var padding : CGFloat
+        
+        switch size {
+        case .extraSmall: frameSize = 11; padding = 5
+        case .small: frameSize = 15; padding = 8
+        case .medium: frameSize = 25; padding = 15
+        case .large: frameSize = 40; padding = 28
+        }
+        
+        return self
             .resizable()
             .scaledToFit()
-            .frame(width: smallMode ? 15 : xl ? 35 : 22, height: smallMode ? 15 : xl ? 35 : 22) // Adjust size as needed
+            .frame(width: frameSize, height: frameSize) // Adjust size as needed
             .foregroundColor(.white) // Icon color
-            .padding(smallMode ? 8 : xl ? 20 : 13) // Padding inside the circle
+            .padding(padding) // Padding inside the circle
             .background(background) // Circle background color
             .clipShape(Circle()) // Clip to circle shape
     }

@@ -18,9 +18,8 @@ extension View {
             .shadow(color: Color.black.opacity(0.5), radius: 4)
     }
     
-    
     func xsImageCarousel() -> some View {
-        self.frame(width: 75, height: 100)
+        self.frame(width: 100, height: 125)
     }
     
     func simpleScrollItem(count : Int) -> some View {

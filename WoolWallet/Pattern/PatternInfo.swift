@@ -45,17 +45,12 @@ struct PatternInfo: View {
     @State private var animateCheckmark = false
     @State private var yarnSuggestions : [YarnSuggestion] = []
     @State private var newProject             : Project? = nil
+    @State private var displayedProject       : Project? = nil
     
     
     // Computed property to calculate if device is most likely in portrait mode
     var isPortraitMode: Bool {
         return horizontalSizeClass == .compact && verticalSizeClass == .regular
-    }
-    
-    var itemDisplay : ItemDisplay {
-        return PatternUtils.shared.getItemDisplay(
-            for: pattern.patternItems.isEmpty ? nil : pattern.patternItems.first?.item
-        )
     }
     
     var body: some View {
@@ -86,13 +81,7 @@ struct PatternInfo: View {
                 }
                 
                 ConditionalStack(useVerticalLayout: isPortraitMode) {
-                    if itemDisplay.custom {
-                        Image(itemDisplay.icon)
-                            .iconCircle(background: itemDisplay.color, xl: true)
-                    } else {
-                        Image(systemName: itemDisplay.icon)
-                            .iconCircle(background: itemDisplay.color, xl: true)
-                    }
+                    PatternItemDisplay(pattern: pattern, size: Size.large)
                     
                     VStack {
                         Text(pattern.name ?? "N/A").font(.largeTitle).foregroundStyle(Color.primary)
@@ -117,6 +106,11 @@ struct PatternInfo: View {
                                 .infoCapsule()
                         }
                         
+                        let projectsNum = pattern.projects?.count ?? 0
+                        
+                        Label("\(projectsNum == 1 ? "1 project" : "\(projectsNum) projects")", systemImage : "hammer")
+                            .infoCapsule()
+                        
                         Spacer()
                     }
                     
@@ -130,6 +124,21 @@ struct PatternInfo: View {
                                 .bold()
                                 .foregroundStyle(Color.primary)
                                 .frame(maxWidth: .infinity)
+                            }
+                        }
+                        
+                        if pattern.hasProjects {
+                            Text("Projects")
+                                .padding(.top, 15) // Add some padding below the header
+                                .foregroundStyle(Color(UIColor.secondaryLabel))
+                                .font(.footnote)
+                                .textCase(.uppercase)
+                            
+                            SimpleHorizontalScroll(count: pattern.projectsArray.count) {
+                                ForEach(pattern.projectsArray, id : \.id) { project in
+                                    ProjectPreview(project: project, displayedProject: $displayedProject)
+                                        .simpleScrollItem(count: pattern.projectsArray.count)
+                                }
                             }
                         }
                         
@@ -218,6 +227,7 @@ struct PatternInfo: View {
                         if pattern.notes != "" {
                             InfoCard() {
                                 Text(pattern.notes!)
+                                    .foregroundStyle(Color.primary)
                                     .frame(maxWidth: .infinity)
                             }
                         }
@@ -291,8 +301,12 @@ struct PatternInfo: View {
                 }
             }
             .popover(item: $newProject) { project in
-                ProjectInfo(project: project, isNewProject : true)
+                ProjectInfo(project: project, isNewProject : true, isPopover : true)
             }
+            .popover(item: $displayedProject) { project in
+                ProjectInfo(project: project, isPopover: true)
+            }
+            
         }
         .background(Color(UIColor.systemGroupedBackground))
         .onAppear {

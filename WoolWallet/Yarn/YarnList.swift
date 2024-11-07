@@ -16,6 +16,7 @@ struct TabCount<T: CaseIterable & Identifiable & Equatable & CustomStringConvert
 struct YarnList: View {
     // @Environment variables
     @Environment(\.managedObjectContext) var managedObjectContext
+    @Environment(\.dismiss) private var dismiss
     
     @Binding var browseMode : Bool
     var preSelectedWeightFilter : [Weight]
@@ -64,25 +65,11 @@ struct YarnList: View {
         return Array(dyers).sorted() // Optional: Sort the list of dyers
     }
     
-    private var activeNumber: Int {
-        return allYarns.filter {!$0.isArchived}.count
-    }
-    
-    
-    private var archivedNumber: Int {
-        return allYarns.filter {$0.isArchived}.count
-    }
-    
     private var tabCounts: [TabCount<YarnTab>] {
         return [
             TabCount(tab: YarnTab.active, count: allYarns.filter {!$0.isArchived}.count),
             TabCount(tab: YarnTab.archived, count: allYarns.filter {$0.isArchived}.count),
         ]
-    }
-    
-    // Computed property for the count of filtered yarns
-    private var filteredYarnCount: Int {
-        filteredYarn.count
     }
     
     var showFilterCapsules : Bool {
@@ -174,10 +161,9 @@ struct YarnList: View {
                 Tabs(selectedTab: $selectedTab, tabCounts: tabCounts)
             }
             
-            
             HStack {
                 if showFilterCapsules {
-                    FilterCapsules(
+                    YarnFilterCapsules(
                         showFilterScreen: $showFilterScreen,
                         selectedColors: $selectedColors,
                         selectedWeights: $selectedWeights,
@@ -335,7 +321,7 @@ struct YarnList: View {
                 selectedWeights: $selectedWeights,
                 sockSet : $sockSet,
                 colorType : $colorType,
-                filteredYarnCount: filteredYarnCount
+                filteredYarnCount: filteredYarn.count
             )
         }
         .fullScreenCover(isPresented: $showAddYarnForm) {
@@ -370,12 +356,15 @@ struct YarnList: View {
             
             Button("Cancel", role: .cancel) {}
         }
+        .onChange(of: projectPairing) {
+            dismiss()
+        }
         .toastView(toast: $toast)
         .scrollBounceBehavior(.basedOnSize)
     }
 }
 
-struct FilterCapsules : View {
+struct YarnFilterCapsules : View {
     @Binding var showFilterScreen : Bool
     @Binding var selectedColors   : [NamedColor]
     @Binding var selectedWeights  : [Weight]
@@ -385,96 +374,54 @@ struct FilterCapsules : View {
     var body : some View {
         LazyVGrid(columns: [.init(.adaptive(minimum:120))], spacing: 10) {
             ForEach(selectedWeights, id: \.id) { weight in
-                Button(action: {
-                    if let index = selectedWeights.firstIndex(where: { $0 == weight }) {
-                        selectedWeights.remove(at: index)
+                FilterCapsule(
+                    text : weight.rawValue,
+                    showX: true,
+                    onClick : {
+                        if let index = selectedWeights.firstIndex(where: { $0 == weight }) {
+                            selectedWeights.remove(at: index)
+                        }
                     }
-                }) {
-                    HStack() {
-                        Spacer()
-                        
-                        Text(weight.rawValue)
-                            .foregroundColor(Color(UIColor.secondaryLabel))
-                        
-                        Spacer()
-                        
-                        Image(systemName: "xmark")
-                            .foregroundColor(Color(UIColor.secondaryLabel))
-                            .font(.caption)
-                    }
-                    .filterCapsule()
-                }
+                )
             }
             
             if sockSet != -1 {
-                Button(action: {
-                    sockSet = -1
-                }) {
-                    HStack() {
-                        Spacer()
-                        
-                        Text(sockSet == 1 ? "Sock Sets Only" : "No Sock Sets")
-                            .foregroundColor(Color(UIColor.secondaryLabel))
-                        
-                        Spacer()
-                        
-                        Image(systemName: "xmark")
-                            .foregroundColor(Color(UIColor.secondaryLabel))
-                            .font(.caption)
-                    }
-                    .filterCapsule()
-                }
+                FilterCapsule(
+                    text : sockSet == 1 ? "Sock Sets Only" : "No Sock Sets",
+                    showX: true,
+                    onClick : { sockSet = -1 }
+                )
             }
             
             if colorType != nil {
-                Button(action: {
-                    colorType = nil
-                }) {
-                    HStack() {
-                        Spacer()
-                        
-                        Text(colorType!.rawValue)
-                            .foregroundColor(Color(UIColor.secondaryLabel))
-                        
-                        Spacer()
-                        
-                        Image(systemName: "xmark")
-                            .foregroundColor(Color(UIColor.secondaryLabel))
-                            .font(.caption)
-                    }
-                    .filterCapsule()
-                }
+                FilterCapsule(
+                    text : colorType!.rawValue,
+                    showX: true,
+                    onClick : { colorType = nil }
+                )
             }
             
             ForEach(selectedColors, id: \.id) { colorGroup in
-                Button(action: {
-                    if let index = selectedColors.firstIndex(where: { $0.id == colorGroup.id }) {
-                        selectedColors.remove(at: index)
+                FilterCapsule(
+                    showX: true,
+                    onClick : {
+                        if let index = selectedColors.firstIndex(where: { $0.id == colorGroup.id }) {
+                            selectedColors.remove(at: index)
+                        }
                     }
-                }) {
-                    HStack() {
-                        Spacer()
-                        
-                        // Diamond-shaped color view
-                        Circle()
-                            .fill(Color(uiColor : colorGroup.colors[0]))
-                            .frame(width: 13, height: 13)
-                            .overlay(
-                                Circle()
-                                    .stroke(Color.black, lineWidth: 0.5) // Black border with width
-                            )
-                        
-                        Text(colorGroup.name)
-                            .foregroundColor(Color(UIColor.secondaryLabel))
-                            .fixedSize()
-                        
-                        Spacer()
-                        
-                        Image(systemName: "xmark")
-                            .foregroundColor(Color(UIColor.secondaryLabel))
-                            .font(.caption)
-                    }
-                    .filterCapsule()
+                ) {
+                    // Diamond-shaped color view
+                    Circle()
+                        .fill(Color(uiColor : colorGroup.colors[0]))
+                        .frame(width: 13, height: 13)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.black, lineWidth: 0.5) // Black border with width
+                        )
+                    
+                    Text(colorGroup.name)
+                        .foregroundColor(Color(UIColor.secondaryLabel))
+                        .fixedSize()
                 }
             }
             

@@ -37,6 +37,8 @@ struct AddOrEditProjectForm: View {
     @State private var patternWAndYBrowsingFor : WeightAndYardage? = nil
     @State private var images                  : [ImageData] = []
     @State private var statusSelection         : Int = -1
+    @State private var persisting              : Bool = false
+    @State private var imagesChanged           : Bool = false
     
     init(
         projectToEdit : Project?,
@@ -129,14 +131,16 @@ struct AddOrEditProjectForm: View {
                                 
                                 Spacer()
                                 
-                                Button(action: {
-                                    withAnimation {
-                                        projectPairing.removeAll(where: {$0 == pairing})
+                                if pairing != nil {
+                                    Button(action: {
+                                        withAnimation {
+                                            projectPairing.removeAll(where: {$0 == pairing})
+                                        }
+                                    }) {
+                                        Label("", systemImage : "xmark.circle")
+                                            .foregroundColor(.red)
+                                            .font(.title3)
                                     }
-                                }) {
-                                    Label("", systemImage : "xmark.circle")
-                                        .foregroundColor(.red)
-                                        .font(.title3)
                                 }
                             },
                             footer: HStack {
@@ -266,7 +270,7 @@ struct AddOrEditProjectForm: View {
                 }
                 
                 
-                Section(header: Text(projectToEdit != nil ? "Is this project in progress or complete?" : "Additional Information")) {
+                Section(header: Text(projectToEdit != nil ? "Is this project in progress or complete?" : "")) {
                     if projectToEdit != nil {
                         Picker("", selection: $statusSelection) {
                             Text("In Progress").tag(0)
@@ -309,7 +313,13 @@ struct AddOrEditProjectForm: View {
                     Button(action: {
                         createOrUpdatePattern()
                     }) {
-                        Text(projectToEdit == nil ? "Add" : "Save")
+                        if persisting {
+                            ProgressView("")
+                                .progressViewStyle(CircularProgressViewStyle())
+                        } else {
+                            Text(projectToEdit == nil ? "Add" : "Save")
+                        }
+                      
                     }
                     .disabled(pattern == nil)
                 }
@@ -325,10 +335,17 @@ struct AddOrEditProjectForm: View {
                     patternWAndYBrowsingFor : patternWAndYBrowsingFor
                 )
             }
+            .onChange(of: images) {
+                imagesChanged = true
+            }
         }
     }
     
     private func createOrUpdatePattern() {
+        withAnimation {
+            persisting = true
+        }
+        
         let newProject = persistProject(project: projectToEdit == nil ? Project(context: managedObjectContext) : projectToEdit!)
         
         if onAdd != nil {
@@ -349,34 +366,38 @@ struct AddOrEditProjectForm: View {
         
         // delete any items that we don't need anymore
         if projectToEdit != nil {
-            projectToEdit?.uiImages.forEach { item in
-                if !images.contains(where: {element in element.id == item.id}) {
-                    managedObjectContext.delete(item.existingItem!)
-                }
-            }
-            
             projectToEdit?.projectPairingItems.forEach { item in
                 if !projectPairing.contains(where: {element in element.id == item.id}) {
                     managedObjectContext.delete(item.existingItem!)
                 }
             }
+            
+            if imagesChanged {
+                projectToEdit?.uiImages.forEach { item in
+                    if !images.contains(where: {element in element.id == item.id}) {
+                        managedObjectContext.delete(item.existingItem!)
+                    }
+                }
+            }
         }
         
-        if project.inProgress {
+        if project.inProgress && project.startDate == nil {
             project.startDate = Date.now
             project.endDate = nil
         }
         
-        if project.complete {
+        if project.complete && project.endDate == nil {
             project.endDate = Date.now
         }
         
-        // images
-        let storedImages: [StoredImage] = images.enumerated().map { (index, element) in
-            return StoredImage.from(data: element, order: index, context: managedObjectContext)
+        if imagesChanged {
+            // images
+            let storedImages: [StoredImage] = images.enumerated().map { (index, element) in
+                return StoredImage.from(data: element, order: index, context: managedObjectContext)
+            }
+            
+            project.images = NSSet(array: storedImages)
         }
-        
-        project.images = NSSet(array: storedImages)
     
         // pairings
         let pairings: [ProjectPairing] = projectPairing.enumerated().map { (index, element) in

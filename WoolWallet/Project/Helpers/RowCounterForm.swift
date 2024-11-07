@@ -24,6 +24,7 @@ struct RowCounterForm: View {
     init(rowCounter: RowCounter) {
         self.rowCounter = rowCounter
         self._displayedCount = State(initialValue: Int(rowCounter.count)) // Initialize the temporary count
+        self._showMinus = State(initialValue: rowCounter.count > 0)
     }
     
     var body: some View {

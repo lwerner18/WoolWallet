@@ -57,7 +57,7 @@
         <attribute name="startDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="images" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="StoredImage" inverseName="project" inverseEntity="StoredImage"/>
         <relationship name="pairings" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ProjectPairing" inverseName="project" inverseEntity="ProjectPairing"/>
-        <relationship name="pattern" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Pattern" inverseName="projects" inverseEntity="Pattern"/>
+        <relationship name="pattern" maxCount="1" deletionRule="Nullify" destinationEntity="Pattern" inverseName="projects" inverseEntity="Pattern"/>
         <relationship name="rowCounters" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="RowCounter" inverseName="project" inverseEntity="RowCounter"/>
     </entity>
     <entity name="ProjectPairing" representedClassName="ProjectPairing" syncable="YES" codeGenerationType="class">
@@ -70,6 +70,7 @@
         <attribute name="count" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="name" attributeType="String"/>
+        <attribute name="order" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="project" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="rowCounters" inverseEntity="Project"/>
     </entity>
     <entity name="StoredColor" representedClassName="StoredColor" syncable="YES" codeGenerationType="class">

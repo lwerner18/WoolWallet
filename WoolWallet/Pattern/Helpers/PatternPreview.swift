@@ -13,23 +13,12 @@ struct PatternPreview: View {
     @Environment(\.managedObjectContext) var managedObjectContext
     @Environment(\.dismiss) private var dismiss
     
-    var pattern : Pattern
+    @ObservedObject var pattern : Pattern
     
     var body: some View {
         HStack {
             VStack {
-                let itemDisplay =
-                PatternUtils.shared.getItemDisplay(
-                    for: pattern.patternItems.isEmpty ? nil : pattern.patternItems.first?.item
-                )
-                
-                if itemDisplay.custom {
-                    Image(itemDisplay.icon)
-                        .iconCircle(background: itemDisplay.color, xl: true)
-                } else {
-                    Image(systemName: itemDisplay.icon)
-                        .iconCircle(background: itemDisplay.color, xl: true)
-                }
+                PatternItemDisplay(pattern: pattern, size: Size.medium)
                 
                 Text(pattern.type!)
                     .font(.caption)

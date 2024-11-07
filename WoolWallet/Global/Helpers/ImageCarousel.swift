@@ -26,11 +26,6 @@ struct ImageCarousel: View {
     @State private var showCamera : Bool = false
     @State private var capturedImage : UIImage?
     
-    @GestureState private var zoom = 1.0
-    
-    @State var scale = 1.0
-    @State var lastScale = 0.0
-    
     var body: some View {
         VStack {
             if images.isEmpty && editMode {
@@ -60,8 +55,8 @@ struct ImageCarousel: View {
                         ForEach(0..<images.count, id: \.self){ imageIndex in
                             Image(uiImage: images[imageIndex].image)
                                 .resizable()
-                                .aspectRatio(contentMode: smallMode ? .fill : .fit)
-                                .clipShape(RoundedRectangle(cornerRadius: 25.0))
+                                .aspectRatio(contentMode: .fit)
+                                .clipShape(RoundedRectangle(cornerRadius: 20.0))
                                 .tag(imageIndex)
                                 .containerRelativeFrame(.horizontal)
                                 .overlay(
@@ -120,10 +115,6 @@ struct ImageCarousel: View {
                 }
             }
         }
-    }
-    
-    private func handleScaleChange(_ zoom: CGFloat) -> CGFloat {
-        min(max((lastScale + zoom - (lastScale == 0 ? 0 : 1)), 1.0), 3.0)
     }
 }
 
