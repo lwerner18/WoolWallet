@@ -223,7 +223,6 @@ struct YarnList: View {
                                 NavigationLink(
                                     destination: YarnInfo(
                                         yarn: yarn,
-                                        toast : $toast,
                                         selectedTab : $selectedTab,
                                         browseMode : $browseMode,
                                         projectPairing: $projectPairing,
@@ -325,7 +324,7 @@ struct YarnList: View {
             )
         }
         .fullScreenCover(isPresented: $showAddYarnForm) {
-            AddOrEditYarnForm(toast : $toast, yarnToEdit : nil)  { addedYarn in
+            AddOrEditYarnForm(yarnToEdit : nil)  { addedYarn in
                 if browseMode {
                     projectPairing.append(
                         ProjectPairingItem(
@@ -342,10 +341,10 @@ struct YarnList: View {
             }
         }
         .fullScreenCover(item: $yarnToEdit, onDismiss: { yarnToEdit = nil}) { yarn in
-            AddOrEditYarnForm(toast : $toast, yarnToEdit : yarn)
+            AddOrEditYarnForm(yarnToEdit : yarn)
         }
         .popover(item: $newYarn) { yarn in
-            YarnInfo(yarn: yarn, toast : $toast, selectedTab : $selectedTab, isNewYarn : true)
+            YarnInfo(yarn: yarn, selectedTab : $selectedTab, isNewYarn : true)
         }
         .alert("Are you sure you want to delete this yarn?", isPresented: $showConfirmationDialog) {
             if let yarnToDelete = yarnToDelete {
@@ -364,6 +363,14 @@ struct YarnList: View {
     }
 }
 
+struct YarnFilter : Hashable {
+    var color : NamedColor? = nil
+    var weight : Weight? = nil
+    var sockSet : Int = -1
+    var colorType : ColorType? = nil
+    var last : Bool = false
+}
+
 struct YarnFilterCapsules : View {
     @Binding var showFilterScreen : Bool
     @Binding var selectedColors   : [NamedColor]
@@ -371,66 +378,88 @@ struct YarnFilterCapsules : View {
     @Binding var sockSet          : Int
     @Binding var colorType        : ColorType?
     
+    var yarnFilters: [YarnFilter] {
+        var filterItems : [YarnFilter] = []
+        
+        selectedWeights.forEach { weight in
+            filterItems.append(YarnFilter(weight : weight))
+        }
+        
+        if sockSet != -1 {
+            filterItems.append(YarnFilter(sockSet : sockSet))
+        }
+        
+        if colorType != nil {
+            filterItems.append(YarnFilter(colorType : colorType!))
+        }
+        
+        selectedColors.forEach { color in
+            filterItems.append(YarnFilter(color : color))
+        }
+        
+        filterItems.append(YarnFilter(last: true))
+        
+        return filterItems
+    }
+    
     var body : some View {
-        LazyVGrid(columns: [.init(.adaptive(minimum:120))], spacing: 10) {
-            ForEach(selectedWeights, id: \.id) { weight in
-                FilterCapsule(
-                    text : weight.rawValue,
-                    showX: true,
-                    onClick : {
-                        if let index = selectedWeights.firstIndex(where: { $0 == weight }) {
-                            selectedWeights.remove(at: index)
+        FlexView(data: yarnFilters, spacing: 6) { yarnFilter in
+            HStack {
+                if yarnFilter.weight != nil {
+                    FilterCapsule(
+                        text : yarnFilter.weight!.rawValue,
+                        showX: true,
+                        onClick : {
+                            if let index = selectedWeights.firstIndex(where: { $0 == yarnFilter.weight! }) {
+                                selectedWeights.remove(at: index)
+                            }
                         }
-                    }
-                )
-            }
-            
-            if sockSet != -1 {
-                FilterCapsule(
-                    text : sockSet == 1 ? "Sock Sets Only" : "No Sock Sets",
-                    showX: true,
-                    onClick : { sockSet = -1 }
-                )
-            }
-            
-            if colorType != nil {
-                FilterCapsule(
-                    text : colorType!.rawValue,
-                    showX: true,
-                    onClick : { colorType = nil }
-                )
-            }
-            
-            ForEach(selectedColors, id: \.id) { colorGroup in
-                FilterCapsule(
-                    showX: true,
-                    onClick : {
-                        if let index = selectedColors.firstIndex(where: { $0.id == colorGroup.id }) {
-                            selectedColors.remove(at: index)
+                    )
+                } else if yarnFilter.sockSet != -1 {
+                    FilterCapsule(
+                        text : yarnFilter.sockSet == 1 ? "Sock Sets Only" : "No Sock Sets",
+                        showX: true,
+                        onClick : { sockSet = -1 }
+                    )
+                } else if yarnFilter.colorType != nil {
+                    FilterCapsule(
+                        text : yarnFilter.colorType!.rawValue,
+                        showX: true,
+                        onClick : { colorType = nil }
+                    )
+                } else if yarnFilter.color != nil {
+                    FilterCapsule(
+                        showX: true,
+                        onClick : {
+                            if let index = selectedColors.firstIndex(where: { $0.id == yarnFilter.color!.id }) {
+                                selectedColors.remove(at: index)
+                            }
                         }
+                    ) {
+                        // Diamond-shaped color view
+                        Circle()
+                            .fill(Color(uiColor : yarnFilter.color!.colors[0]))
+                            .frame(width: 13, height: 13)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.black, lineWidth: 0.5) // Black border with width
+                            )
+    
+                        Text(yarnFilter.color!.name)
+                            .foregroundColor(Color(UIColor.secondaryLabel))
                     }
-                ) {
-                    // Diamond-shaped color view
-                    Circle()
-                        .fill(Color(uiColor : colorGroup.colors[0]))
-                        .frame(width: 13, height: 13)
-                        .overlay(
-                            Circle()
-                                .stroke(Color.black, lineWidth: 0.5) // Black border with width
-                        )
                     
-                    Text(colorGroup.name)
-                        .foregroundColor(Color(UIColor.secondaryLabel))
-                        .fixedSize()
+                } else if yarnFilter.last {
+                    Button(action: {
+                        showFilterScreen = true
+                    }) {
+                        Image(systemName: "plus.circle")
+                            .font(.title2)
+                    }
+                    .padding(.leading, 5)
                 }
             }
-            
-            Button(action: {
-                showFilterScreen = true
-            }) {
-                Image(systemName: "plus.circle")
-                    .font(.title2)
-            }
+         
         }
         .padding()
     }

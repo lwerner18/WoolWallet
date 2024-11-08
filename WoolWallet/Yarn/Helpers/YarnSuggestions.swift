@@ -92,53 +92,8 @@ struct YarnSuggestionCollapsible : View {
                 ForEach(sorted, id : \.id) { wAndYMatch in
                     let favoriteIndex = getFavoritesIndex(for: wAndYMatch.id!)
                     
-                    let yarn = wAndYMatch.yarn!
-                    
                     InfoCard(backgroundColor: Color.accentColor.opacity(0.1)) {
-                        HStack {
-                            VStack {
-                                ImageCarousel(images: .constant(yarn.uiImages), smallMode: true)
-                                    .xsImageCarousel()
-                                
-                                if yarn.isSockSet {
-                                    Label("Sock Set", systemImage : "shoeprints.fill")
-                                        .infoCapsule(isSmall: true)
-                                    
-                                    ZStack {
-                                        if yarn.isSockSet {
-                                            switch wAndYMatch.order {
-                                            case 0: Text("Main Skein").font(.caption)
-                                            case 1: Text("Mini Skein").font(.caption)
-                                            case 2: Text("Mini #2").font(.caption)
-                                            default: EmptyView()
-                                            }
-                                        }
-                                    }
-                                    .foregroundStyle(Color(UIColor.secondaryLabel))
-                                }
-                            }
-                            
-                            Spacer()
-                            
-                            VStack(alignment: .center) {
-                                Text(yarn.name!)
-                                    .foregroundStyle(Color.primary)
-                                    .bold()
-                                
-                                Text(yarn.dyer!)
-                                    .foregroundStyle(Color(UIColor.secondaryLabel))
-                                    .font(.caption)
-                                    .bold()
-                                
-                                Spacer()
-                                
-                                
-                                ViewLengthAndYardage(weightAndYardage: wAndYMatch)
-                                
-                            }
-                            
-                            Spacer()
-                        }
+                        YarnPreview(yarnWandY : wAndYMatch)
                         .overlay(
                             Button(action: {
                                 if favoriteIndex != nil {
@@ -155,7 +110,7 @@ struct YarnSuggestionCollapsible : View {
                                     .font(.title3)
                                     .foregroundStyle(Color(UIColor.systemPink))
                                     .contentTransition(.symbolEffect(.replace))
-                            },
+                            }.offset(x: 10, y: 0),
                             alignment: .topTrailing
                             
                         )
@@ -174,6 +129,7 @@ struct YarnSuggestionCollapsible : View {
                                     } label: {
                                         Label("", systemImage : "plus.circle").font(.title3)
                                     }
+                                    .offset(x: 10, y: 0)
                                 }
                             },
                             alignment: .bottomTrailing

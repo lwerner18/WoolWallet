@@ -36,7 +36,7 @@ struct FilterCapsule<Content: View> : View {
                 Spacer()
                 
                 if text != nil {
-                    Text(text!).foregroundColor(highlighted ? Color.accentColor : Color(UIColor.secondaryLabel)).fixedSize()
+                    Text(text!).foregroundColor(highlighted ? Color.accentColor : Color(UIColor.secondaryLabel))
                 } else {
                     content()
                 }
@@ -50,7 +50,8 @@ struct FilterCapsule<Content: View> : View {
                 }
        
             }
-            .filterCapsule(
+            .infoCapsule(
+                thickBorder: true,
                 background: highlighted
                 ? Color.accentColor.opacity(0.2)
                 : Color(UIColor.secondarySystemGroupedBackground),
@@ -58,7 +59,6 @@ struct FilterCapsule<Content: View> : View {
                 ? Color.accentColor.opacity(0.2)
                 : Color(UIColor.secondaryLabel)
             )
-            
         }
     }
 }

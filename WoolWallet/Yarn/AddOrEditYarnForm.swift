@@ -23,7 +23,6 @@ struct AddOrEditYarnForm: View {
     var yarns: FetchedResults<Yarn>
     
     // Binding variables
-    @Binding var toast: Toast?
     var yarnToEdit: Yarn?
     var onAdd: ((Yarn) -> Void)? // Closure to return the newly added yarn
     
@@ -49,9 +48,8 @@ struct AddOrEditYarnForm: View {
     @State private var composition       : [CompositionItem] = []
     
     // init function
-    init(toast : Binding<Toast?>, yarnToEdit : Yarn?, onAdd: ((Yarn) -> Void)? = nil) {
+    init(yarnToEdit : Yarn?, onAdd: ((Yarn) -> Void)? = nil) {
         self.yarnToEdit = yarnToEdit
-        self._toast = toast
         self.onAdd = onAdd
         
         // Pre-populate the form if editing an existing Yarn

@@ -32,10 +32,7 @@ struct InfoCard<Header: View, Footer: View, Content: View>: View {
     var body: some View {
         VStack(alignment: .leading) {
             header()
-                .padding(.top, 15) // Add some padding below the header
-                .foregroundStyle(Color(UIColor.secondaryLabel))
-                .font(.caption)
-                .textCase(.uppercase)
+                .infoCardHeader()
             
             // Render the main content
             content()

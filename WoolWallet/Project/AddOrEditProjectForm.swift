@@ -167,45 +167,8 @@ struct AddOrEditProjectForm: View {
                                 }
                             }
                         ) {
-                            if let yarn = yarn {
-                                HStack {
-                                    VStack {
-                                        ImageCarousel(images: .constant(yarn.uiImages), smallMode: true)
-                                            .xsImageCarousel()
-                                        
-                                        if yarn.isSockSet {
-                                            Text("Sock Set")
-                                                .font(.caption)
-                                            
-                                            switch yarnWandY?.order {
-                                            case 0: Text("Main Skein").font(.caption).foregroundStyle(Color(UIColor.secondaryLabel))
-                                            case 1: Text("Mini Skein").font(.caption).foregroundStyle(Color(UIColor.secondaryLabel))
-                                            case 2: Text("Mini #2").font(.caption).foregroundStyle(Color(UIColor.secondaryLabel))
-                                            default: EmptyView()
-                                            }
-                                        }
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    VStack(alignment: .center) {
-                                        Text(yarn.name!)
-                                            .multilineTextAlignment(.center)
-                                            .foregroundStyle(Color.primary)
-                                            .bold()
-                                        
-                                        Text(yarn.dyer!)
-                                            .foregroundStyle(Color(UIColor.secondaryLabel))
-                                            .font(.caption)
-                                            .bold()
-                                        
-                                        Spacer()
-                                        
-                                        ViewLengthAndYardage(weightAndYardage: yarnWandY!)
-                                    }
-                                    
-                                    Spacer()
-                                }
+                            if yarnWandY != nil {
+                                YarnPreview(yarnWandY : yarnWandY!)
                                 .padding(.vertical, 4)
                             } else {
                                 Button {

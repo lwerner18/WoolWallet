@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0409BC3B2CDDE18B00BAC49C /* YarnPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0409BC3A2CDDE18B00BAC49C /* YarnPreview.swift */; };
+		0409BC3D2CDDE63500BAC49C /* CenteredLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0409BC3C2CDDE63500BAC49C /* CenteredLoader.swift */; };
 		0411DCCC2CD2835B00007296 /* DateUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0411DCCB2CD2835B00007296 /* DateUtils.swift */; };
 		0411DCCE2CD28F5200007296 /* NewItemHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0411DCCD2CD28F5200007296 /* NewItemHeader.swift */; };
 		041265072CC2AF7700D497BF /* YarnSuggestions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 041265062CC2AF7700D497BF /* YarnSuggestions.swift */; };
@@ -56,6 +58,8 @@
 		048E0EC52CD1D346009DBA67 /* ProjectInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048E0EC42CD1D346009DBA67 /* ProjectInfo.swift */; };
 		048ED2E72CC7537A00DB790A /* ScrollDots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048ED2E62CC7537A00DB790A /* ScrollDots.swift */; };
 		048ED2EB2CC9522200DB790A /* AddOrEditProjectForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048ED2EA2CC9522200DB790A /* AddOrEditProjectForm.swift */; };
+		04943C4C2CDD8A000022165C /* FlexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04943C4B2CDD8A000022165C /* FlexView.swift */; };
+		04943C4E2CDD93870022165C /* InfoCapsules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04943C4D2CDD93870022165C /* InfoCapsules.swift */; };
 		049FAA4F2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 049FAA4E2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage */; };
 		04A15AA02CD5652B00EA4B1D /* PatternPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A15A9F2CD5652B00EA4B1D /* PatternPreview.swift */; };
 		04A15AA22CD5EE0100EA4B1D /* FancyHorizontalScroll.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A15AA12CD5EE0100EA4B1D /* FancyHorizontalScroll.swift */; };
@@ -116,6 +120,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0409BC3A2CDDE18B00BAC49C /* YarnPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnPreview.swift; sourceTree = "<group>"; };
+		0409BC3C2CDDE63500BAC49C /* CenteredLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CenteredLoader.swift; sourceTree = "<group>"; };
 		0411DCCB2CD2835B00007296 /* DateUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateUtils.swift; sourceTree = "<group>"; };
 		0411DCCD2CD28F5200007296 /* NewItemHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewItemHeader.swift; sourceTree = "<group>"; };
 		041265062CC2AF7700D497BF /* YarnSuggestions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnSuggestions.swift; sourceTree = "<group>"; };
@@ -168,6 +174,8 @@
 		048E0EC42CD1D346009DBA67 /* ProjectInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectInfo.swift; sourceTree = "<group>"; };
 		048ED2E62CC7537A00DB790A /* ScrollDots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollDots.swift; sourceTree = "<group>"; };
 		048ED2EA2CC9522200DB790A /* AddOrEditProjectForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddOrEditProjectForm.swift; sourceTree = "<group>"; };
+		04943C4B2CDD8A000022165C /* FlexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlexView.swift; sourceTree = "<group>"; };
+		04943C4D2CDD93870022165C /* InfoCapsules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoCapsules.swift; sourceTree = "<group>"; };
 		049FAA4E2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = yarn_segmentation_model.mlpackage; sourceTree = "<group>"; };
 		04A15A9F2CD5652B00EA4B1D /* PatternPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternPreview.swift; sourceTree = "<group>"; };
 		04A15AA12CD5EE0100EA4B1D /* FancyHorizontalScroll.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FancyHorizontalScroll.swift; sourceTree = "<group>"; };
@@ -298,11 +306,11 @@
 		047D02B12CC0176F00DDF4F3 /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				0464B61F2CC2F78D00EADD48 /* PossiblePatterns.swift */,
 				04A15A9F2CD5652B00EA4B1D /* PatternPreview.swift */,
 				04CA29202CDC17D30073DB20 /* PatternItemDisplay.swift */,
 				043E16E62CB9A0E1005046B6 /* RecYarnForm.swift */,
 				047D02B22CC0178800DDF4F3 /* RecYarnHeader.swift */,
-				041265062CC2AF7700D497BF /* YarnSuggestions.swift */,
 				0458137A2CD9382700784519 /* FilterPattern.swift */,
 			);
 			path = Helpers;
@@ -465,11 +473,12 @@
 		04A81D002CA47FF600BF66CC /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				041265062CC2AF7700D497BF /* YarnSuggestions.swift */,
 				04B15C612C77BAF100A03751 /* FilterYarn.swift */,
 				048D66042CA0E9890051D7A3 /* EditComposition.swift */,
 				04A5C3E42C4C1DE600CD5870 /* ColorPickerView.swift */,
 				042530BC2CB24DF8008804C7 /* MaterialPicker.swift */,
-				0464B61F2CC2F78D00EADD48 /* PossiblePatterns.swift */,
+				0409BC3A2CDDE18B00BAC49C /* YarnPreview.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -586,6 +595,9 @@
 				0486973A2CD6C2B100C69076 /* ViewLengthAndYardage.swift */,
 				0486973C2CD7418C00C69076 /* SimpleHorizontalScroll.swift */,
 				04F083E72CDB35DD002E40A0 /* FilterCapsule.swift */,
+				04943C4B2CDD8A000022165C /* FlexView.swift */,
+				04943C4D2CDD93870022165C /* InfoCapsules.swift */,
+				0409BC3C2CDDE63500BAC49C /* CenteredLoader.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -875,6 +887,7 @@
 				04B15C5E2C74F6F900A03751 /* StoredColor.swift in Sources */,
 				04D5C44F2C87DFCD00DC9697 /* PatternList.swift in Sources */,
 				04BAC0C32BAE13E400C26CD8 /* YarnUtils.swift in Sources */,
+				04943C4E2CDD93870022165C /* InfoCapsules.swift in Sources */,
 				042B0A712CAF008E003CDCF0 /* PatternInfo.swift in Sources */,
 				048E0EBB2CD17C43009DBA67 /* ProjectPairing.swift in Sources */,
 				04A5C3ED2C4C1E8F00CD5870 /* AnalyzeColorUtils.swift in Sources */,
@@ -888,6 +901,8 @@
 				04A5C3E72C4C1E1600CD5870 /* UIImage.swift in Sources */,
 				049FAA4F2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage in Sources */,
 				046DB2B82CD33D3400BAB71F /* RowCounterForm.swift in Sources */,
+				0409BC3D2CDDE63500BAC49C /* CenteredLoader.swift in Sources */,
+				04943C4C2CDD8A000022165C /* FlexView.swift in Sources */,
 				047DE4D52B9FFB6900F0A2D5 /* YarnList.swift in Sources */,
 				0464B6202CC2F78D00EADD48 /* PossiblePatterns.swift in Sources */,
 				04421B6B2BAF48B30034E16A /* OpenCVWrapper.mm in Sources */,
@@ -898,6 +913,7 @@
 				04A15AA22CD5EE0100EA4B1D /* FancyHorizontalScroll.swift in Sources */,
 				04CA29212CDC17D30073DB20 /* PatternItemDisplay.swift in Sources */,
 				044E55CA2CCFED46004574FD /* FavoritePairing.swift in Sources */,
+				0409BC3B2CDDE18B00BAC49C /* YarnPreview.swift in Sources */,
 				0466F21B2CA919CE0094F3DA /* View.swift in Sources */,
 				048D66052CA0E9890051D7A3 /* EditComposition.swift in Sources */,
 				04A5C3E22C4C1DA600CD5870 /* UIColor.swift in Sources */,

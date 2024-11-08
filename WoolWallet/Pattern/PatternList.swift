@@ -344,55 +344,83 @@ struct PatternList: View {
     }
 }
 
+struct PatternFilter : Hashable {
+    var type : PatternType? = nil
+    var item : Item? = nil
+    var weight : Weight? = nil
+    var last : Bool = false
+}
+
 struct PatternFilterCapsules : View {
     @Binding var showFilterScreen : Bool
     @Binding var selectedItems    : [Item]
     @Binding var selectedTypes    : [PatternType]
     @Binding var selectedWeights  : [Weight]
     
+    var patternFilters: [PatternFilter] {
+        var filterItems : [PatternFilter] = []
+        
+        selectedTypes.forEach { type in
+            filterItems.append(PatternFilter(type : type))
+        }
+        
+        selectedWeights.forEach { weight in
+            filterItems.append(PatternFilter(weight : weight))
+        }
+        
+        selectedItems.forEach { item in
+            filterItems.append(PatternFilter(item : item))
+        }
+        
+        filterItems.append(PatternFilter(last: true))
+        
+        return filterItems
+    }
+    
+    
     var body : some View {
-        LazyVGrid(columns: [.init(.adaptive(minimum:120))], spacing: 10) {
-            ForEach(selectedTypes, id: \.id) { type in
-                FilterCapsule(text : type.rawValue, showX: true, onClick : {
-                    if let index = selectedTypes.firstIndex(where: { $0 == type }) {
-                        selectedTypes.remove(at: index)
-                    }
-                })
-            }
-            
-            ForEach(selectedWeights, id: \.id) { weight in
-                FilterCapsule(
-                    text : weight.rawValue,
-                    showX: true,
-                    onClick : {
-                        if let index = selectedWeights.firstIndex(where: { $0 == weight }) {
-                            selectedWeights.remove(at: index)
+        FlexView(data: patternFilters, spacing: 6) { patternFilter in
+            HStack {
+                if patternFilter.type != nil {
+                    FilterCapsule(text : patternFilter.type!.rawValue, showX: true, onClick : {
+                        if let index = selectedTypes.firstIndex(where: { $0 == patternFilter.type! }) {
+                            selectedTypes.remove(at: index)
                         }
+                    })
+                } else if patternFilter.weight != nil {
+                    FilterCapsule(
+                        text : patternFilter.weight!.rawValue,
+                        showX: true,
+                        onClick : {
+                            if let index = selectedWeights.firstIndex(where: { $0 == patternFilter.weight! }) {
+                                selectedWeights.remove(at: index)
+                            }
+                        }
+                    )
+                } else if patternFilter.item != nil {
+                    FilterCapsule(showX: true, onClick : {
+                        if let index = selectedItems.firstIndex(where: { $0 == patternFilter.item! }) {
+                            selectedItems.remove(at: index)
+                        }
+                    }) {
+                        if patternFilter.item != Item.none {
+                            PatternItemDisplayWithItem(item: patternFilter.item!, size: Size.extraSmall)
+                        }
+                        
+                        Text(patternFilter.item!.rawValue)
+                            .foregroundColor(Color(UIColor.secondaryLabel))
                     }
-                )
-            }
-            
-            ForEach(selectedItems, id: \.id) { item in
-                FilterCapsule(showX: true, onClick : {
-                    if let index = selectedItems.firstIndex(where: { $0 == item }) {
-                        selectedItems.remove(at: index)
+                } else if patternFilter.last {
+                    Button(action: {
+                        showFilterScreen = true
+                    }) {
+                        Image(systemName: "plus.circle")
+                            .font(.title2)
                     }
-                }) {
-                    if item != Item.none {
-                        PatternItemDisplayWithItem(item: item, size: Size.extraSmall)
-                    }
-                    
-                    Text(item.rawValue)
-                        .foregroundColor(Color(UIColor.secondaryLabel))
+                    .padding(.leading, 5)
                 }
             }
-                        
-            Button(action: {
-                showFilterScreen = true
-            }) {
-                Image(systemName: "plus.circle")
-                    .font(.title2)
-            }
+            
         }
         .padding()
     }

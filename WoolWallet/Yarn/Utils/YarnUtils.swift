@@ -124,4 +124,23 @@ class YarnUtils {
             return []
         }
     }
+    
+    func getProjects(for yarn : Yarn, in context: NSManagedObjectContext) -> [Project] {
+        let projectsRequest: NSFetchRequest<Project> = Project.fetchRequest()
+        
+        var predicates: [NSPredicate] = []
+        
+        yarn.weightAndYardageItems.forEach { element in
+            predicates.append(NSPredicate(format: "ANY pairings.yarnWeightAndYardage.id == %@", element.id as any CVarArg))
+        }
+        
+        projectsRequest.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: predicates)
+        
+        do {
+            return try context.fetch(projectsRequest)
+        } catch {
+            print("Failed to fetch projects: \(error)")
+            return []
+        }
+    }
 }

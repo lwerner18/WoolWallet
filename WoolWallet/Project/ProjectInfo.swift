@@ -54,6 +54,24 @@ struct ProjectInfo: View {
         return horizontalSizeClass == .compact && verticalSizeClass == .regular
     }
     
+    var projectProperties: [DetailProp] {
+        var props : [DetailProp] = []
+        
+        if project.complete {
+            props.append(DetailProp(text: "Complete", icon: "checkmark.circle"))
+        }
+        
+        if project.inProgress {
+            props.append(DetailProp(text: "In Progress", icon: "play.circle"))
+        }
+        
+        if !project.complete && !project.inProgress {
+            props.append(DetailProp(text: "Not Started", icon: "pause.circle"))
+        }
+        
+        return props
+    }
+    
     // Internal state trackers
     @State private var showEditProjectForm : Bool = false
     @State private var showRowCounter : Bool = false
@@ -62,6 +80,9 @@ struct ProjectInfo: View {
     @State private var rowCounter : RowCounter? = nil
     @State private var startDateInput : Date = Date()
     @State private var endDateInput : Date = Date()
+    @State private var displayedPattern : Pattern? = nil
+    @State private var displayedYarn : Yarn? = nil
+    
     
     var body: some View {
         VStack {
@@ -95,29 +116,19 @@ struct ProjectInfo: View {
                     }
                     
                     
-                    VStack {
-                        Text(project.pattern?.name! ?? "N/A").bold().font(.largeTitle).foregroundStyle(Color.primary)
-                            .frame(maxWidth: .infinity)
-                    }
-                    
                     HStack {
-                        if project.complete {
-                            Label("Complete", systemImage : "checkmark.circle")
-                                .infoCapsule()
-                        }
+                        Image(systemName: "hammer")
+                            .font(.title3)
                         
-                        if project.inProgress {
-                            Label("In Progress", systemImage : "play.circle")
-                                .infoCapsule()
-                        }
-                        
-                        if !project.complete && !project.inProgress {
-                            Label("Not Started", systemImage : "pause.circle")
-                                .infoCapsule()
-                        }
-                        
-                        Spacer()
+                        Text(project.pattern!.name!)
+                            .font(.largeTitle)
+                            .foregroundStyle(Color.primary)
                     }
+                    .bold()
+                    .frame(maxWidth: .infinity)
+                    .multilineTextAlignment(.center)
+                    
+                    InfoCapsules(detailProps: projectProperties)
                     
                     if project.startDate != nil || project.endDate != nil {
                         InfoCard() {
@@ -197,86 +208,53 @@ struct ProjectInfo: View {
                                 }
                             }
                         }
-                        
-//                        Spacer()
-//                        
-//                        let daysPassed = Calendar.current.dateComponents([.day], from: project.startDate!, to: Date.now).day ?? 0
-//                        
-//                        if daysPassed > 0 {
-//                            HStack {
-//                                Image(systemName : "timer")
-//                                
-//                                Text("\(daysPassed) day\(daysPassed > 1 ? "s" : "")")
-//                            }
-//                            .foregroundStyle(Color(UIColor.secondaryLabel))
-//                            .font(.caption2)
-//                        }
                     }
                     
+                    Text("Pattern")
+                        .infoCardHeader()
+                    
                     InfoCard() {
-                        PatternPreview(pattern: project.pattern!)
+                        if displayedPattern != nil {
+                            CenteredLoader()
+                        } else {
+                            PatternPreview(pattern: project.pattern!)
+                        }
+                    }
+                    .onTapGesture {
+                        if !isPopover {
+                            displayedPattern = project.pattern!
+                        }
+                    }
+                    
+                    if project.projectPairingItems.count == 1 {
+                        Text("Yarn")
+                            .infoCardHeader()
                     }
                     
                     SimpleHorizontalScroll(count: project.projectPairingItems.count) {
                         ForEach(project.projectPairingItems, id : \.id) { projectPairingItem in
-                            
-                            let yarnWAndY = projectPairingItem.yarnWeightAndYardage
                             let patternWAndY = projectPairingItem.patternWeightAndYardage
-                            let yarn = yarnWAndY.yarn!
                             
                             InfoCard(header : {
                                 project.projectPairingItems.count > 1
                                 ? AnyView(Text("COLOR \(PatternUtils.shared.getLetter(for: Int(patternWAndY.order)))"))
                                 : AnyView(EmptyView())
                             }) {
-                                HStack {
-                                    VStack {
-                                        ImageCarousel(images: .constant(yarn.uiImages), smallMode: true)
-                                            .xsImageCarousel()
-                                        
-                                        if yarn.isSockSet {
-                                            Label("Sock Set", systemImage : "shoeprints.fill")
-                                                .infoCapsule(isSmall: true)
-                                            
-                                            if yarn.isSockSet {
-                                                ZStack {
-                                                    switch yarnWAndY.order {
-                                                    case 0: Text("Main Skein").font(.caption)
-                                                    case 1: Text("Mini Skein").font(.caption)
-                                                    case 2: Text("Mini #2").font(.caption)
-                                                    default: EmptyView()
-                                                    }
-                                                }
-                                                .foregroundStyle(Color(UIColor.secondaryLabel))
-                                            }
-                                        }
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    VStack(alignment: .center) {
-                                        Text(yarn.name!)
-                                            .foregroundStyle(Color.primary)
-                                            .bold()
-                                        
-                                        Text(yarn.dyer!)
-                                            .foregroundStyle(Color(UIColor.secondaryLabel))
-                                            .font(.caption)
-                                            .bold()
-                                        
-                                        Spacer()
-                                        
-                                        ViewLengthAndYardage(weightAndYardage: yarnWAndY)
-                                    }
-                                    
-                                    Spacer()
+                                if displayedYarn == projectPairingItem.yarnWeightAndYardage.yarn! {
+                                    CenteredLoader()
+                                } else {
+                                    YarnPreview(yarnWandY : projectPairingItem.yarnWeightAndYardage)
                                 }
                             }
                             .simpleScrollItem(count: project.projectPairingItems.count)
+                            .onTapGesture {
+                                if !isPopover {
+                                    displayedYarn = projectPairingItem.yarnWeightAndYardage.yarn!
+                                }
+                            }
                         }
                     }
                     
-                    // only show when in progress?
                     if !rowCounters.isEmpty {
                         InfoCard(
                             header : {
@@ -339,7 +317,7 @@ struct ProjectInfo: View {
                 .padding()
              
             }
-            .navigationTitle(project.pattern?.name! ?? "N/A")
+            .navigationTitle("\(project.pattern!.name!) (Project)")
             .navigationBarTitleDisplayMode(.inline)
             .scrollBounceBehavior(.basedOnSize)
             .toolbar {
@@ -437,6 +415,12 @@ struct ProjectInfo: View {
                 item: $rowCounter
             ) { counter in
                 RowCounterForm(rowCounter: counter)
+            }
+            .popover(item: $displayedPattern) { pattern in
+                PatternInfo(pattern: pattern, isPopover: true)
+            }
+            .popover(item: $displayedYarn) { yarn in
+                YarnInfo(yarn: yarn, isPopover: true)
             }
             .onChange(of: rowCounter) {
                 PersistenceController.shared.save()

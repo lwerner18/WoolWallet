@@ -8,6 +8,11 @@
 import Foundation
 import SwiftUI
 
+struct ColorFilter : Hashable {
+    var namedColor : NamedColor? = nil
+    var colorType : ColorType? = nil
+}
+
 struct FilterYarn: View {
     // @Environment variables
     @Environment(\.managedObjectContext) var managedObjectContext
@@ -25,6 +30,20 @@ struct FilterYarn: View {
     // Computed property
     private var filtersApplied: Bool {
         !selectedColors.isEmpty || !selectedWeights.isEmpty || sockSet != -1 || colorType != nil
+    }
+    
+    private var colorFilters: [ColorFilter] {
+        var filterItems : [ColorFilter] = []
+        
+        ColorType.allCases.forEach { colorType in
+            filterItems.append(ColorFilter(colorType : colorType))
+        }
+        
+        namedColors.forEach { namedColor in
+            filterItems.append(ColorFilter(namedColor : namedColor))
+        }
+        
+        return filterItems
     }
     
     // init function
@@ -51,75 +70,63 @@ struct FilterYarn: View {
                 ScrollView {
                     VStack(alignment: .leading) {
                         
-                        Text("Weight").bold()
+                        Text("Weight").bold().padding(.bottom, 8)
                         
-                        ScrollView {
-                            LazyVGrid(columns: [.init(.adaptive(minimum:120))], spacing: 10) {
-                                ForEach(Weight.allCases, id: \.id) { weight in
-                                    if weight != Weight.none {
-                                        FilterCapsule(
-                                            text : weight.rawValue,
-                                            highlighted : selectedWeights.contains(weight),
-                                            onClick : { toggleWeightSelection(for: weight)}
-                                        )
-                                    }
+                        FlexView(data: Weight.allCases, spacing: 6) { weight in
+                            HStack {
+                                if weight != Weight.none {
+                                    FilterCapsule(
+                                        text : weight.rawValue,
+                                        highlighted : selectedWeights.contains(weight),
+                                        onClick : { toggleWeightSelection(for: weight)}
+                                    )
                                 }
                             }
-                            .padding(.vertical, 8)
                         }
                         
                         Text("Sock Set").bold().padding(.top, 10)
                         
-                        HStack {
+                        FlexView(data: [0, 1], spacing: 6) { value in
                             FilterCapsule(
-                                text : "Yes",
-                                highlighted : sockSet == 1,
-                                onClick : { sockSet = sockSet == 1 ? -1 : 1 }
-                            )
-                            
-                            FilterCapsule(
-                                text : "No",
-                                highlighted : sockSet == 0,
-                                onClick : { sockSet = sockSet == 0 ? -1 : 0 }
+                                text : value == 0 ? "No" : "Yes",
+                                highlighted : sockSet == value,
+                                onClick : { sockSet = sockSet == value ? -1 : value }
                             )
                         }
                         
                         Text("Color").bold().padding(.top, 10)
                         
-                        ScrollView {
-                            LazyVGrid(columns: [.init(.adaptive(minimum:84))], spacing: 10) {
-                                ForEach(ColorType.allCases, id: \.id) { colorTypeEnum in
+                        FlexView(data: colorFilters, spacing: 6) { colorFilter in
+                            HStack{
+                                if colorFilter.colorType != nil {
                                     FilterCapsule(
-                                        text : colorTypeEnum.rawValue,
-                                        highlighted : colorType == colorTypeEnum,
-                                        onClick : { colorType = colorType == colorTypeEnum ? nil : colorTypeEnum }
+                                        text : colorFilter.colorType!.rawValue,
+                                        highlighted : colorType == colorFilter.colorType!,
+                                        onClick : { colorType = colorType == colorFilter.colorType ? nil : colorFilter.colorType! }
                                     )
-                                }
-                                
-                                ForEach(namedColors) { colorGroup in
+                                } else {
                                     FilterCapsule(
-                                        highlighted : selectedColors.contains(colorGroup),
-                                        onClick : { toggleColorSelection(for: colorGroup) }
+                                        highlighted : selectedColors.contains(colorFilter.namedColor!),
+                                        onClick : { toggleColorSelection(for: colorFilter.namedColor!) }
                                     ) {
                                         // Diamond-shaped color view
                                         Circle()
-                                            .fill(Color(uiColor : colorGroup.colors[0]))
+                                            .fill(Color(uiColor : colorFilter.namedColor!.colors[0]))
                                             .frame(width: 18, height: 18)
                                             .overlay(
                                                 Circle()
                                                     .stroke(Color.black, lineWidth: 0.25) // Black border with width
                                             )
                                         
-                                        Text(colorGroup.name)
+                                        Text(colorFilter.namedColor!.name)
                                             .foregroundColor(
-                                                selectedColors.contains(colorGroup) ?
+                                                selectedColors.contains(colorFilter.namedColor!) ?
                                                 Color.accentColor : Color(UIColor.secondaryLabel)
                                             )
-                                            .fixedSize()
                                     }
                                 }
                             }
-                            .padding(.vertical, 8)
+                         
                         }
                     }
                     .padding()

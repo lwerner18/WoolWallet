@@ -14,6 +14,14 @@ struct PatternSuggestion {
     var suggestedWAndY : [WeightAndYardage] = []
 }
 
+struct DetailProp : Hashable {
+    var id : String { UUID().uuidString }
+    
+    var text : String
+    var icon : String
+    var useImage : Bool = false
+}
+
 struct YarnInfo: View {
     // @Environment variables
     @Environment(\.dismiss) private var dismiss
@@ -23,29 +31,29 @@ struct YarnInfo: View {
 
     
     @ObservedObject var yarn : Yarn
-    @Binding var toast: Toast?
     @Binding var selectedTab: YarnTab
     @Binding var browseMode : Bool
     @Binding var projectPairing : [ProjectPairingItem]
     var patternWAndYBrowsingFor : WeightAndYardage?
-    var isNewYarn : Bool?
+    var isNewYarn : Bool
+    var isPopover : Bool
     
     init(
         yarn: Yarn,
-        toast : Binding<Toast?>,
-        selectedTab : Binding<YarnTab>,
+        selectedTab : Binding<YarnTab> = .constant(YarnTab.active),
         browseMode: Binding<Bool> = .constant(false),
         projectPairing : Binding<[ProjectPairingItem]> = .constant([]),
         patternWAndYBrowsingFor : WeightAndYardage? = nil,
-        isNewYarn : Bool? = false
+        isNewYarn : Bool = false,
+        isPopover : Bool = false
     ) {
         self.yarn = yarn
-        self._toast = toast
         self._selectedTab = selectedTab
         self._browseMode = browseMode
         self._projectPairing = projectPairing
         self.patternWAndYBrowsingFor = patternWAndYBrowsingFor
         self.isNewYarn = isNewYarn
+        self.isPopover = isPopover
     }
     
     // Internal state trackers
@@ -60,6 +68,7 @@ struct YarnInfo: View {
     @State private var favoritedPatterns       : [FavoritePairing] = []
     @State private var patternWAndYForProject  : WeightAndYardage? = nil
     @State private var newProject              : Project? = nil
+    @State private var displayedProject        : Project? = nil
     
     
     // Computed property to calculate if device is most likely in portrait mode
@@ -67,26 +76,48 @@ struct YarnInfo: View {
         return horizontalSizeClass == .compact && verticalSizeClass == .regular
     }
     
-    var projectsNum: Int {
-        var num = 0
+    var projects: [Project] {
+        return YarnUtils.shared.getProjects(for: yarn, in: managedObjectContext)
+    }
+    
+    var yarnProperties: [DetailProp] {
+        var props : [DetailProp] = []
         
-        yarn.weightAndYardageItems.forEach { wAndY in
-            if wAndY.existingItem!.yarnPairing != nil && wAndY.existingItem!.yarnPairing!.count > 0 {
-                num += 1
-            }
+        if yarn.isArchived {
+            props.append(DetailProp(text: "Archived", icon: "tray.and.arrow.down"))
         }
         
-        return num
+        if yarn.isCaked {
+            props.append(DetailProp(text: "Caked", icon: "birthday.cake"))
+        }
+        
+        if yarn.isSockSet {
+            props.append(DetailProp(text: "Sock Set", icon: "shoeprints.fill"))
+        }
+        
+        if yarn.isMini {
+            props.append(DetailProp(text: "Mini", icon: "arrow.down.right.and.arrow.up.left"))
+        }
+        
+        if yarn.colorType == ColorType.variegated.rawValue {
+            props.append(DetailProp(text: "Variegated", icon: "swirl.circle.righthalf.filled"))
+        } else if yarn.colorType == ColorType.tonal.rawValue {
+            props.append(DetailProp(text: "Tonal", icon: "circle.fill"))
+        }
+                         
+        props.append(DetailProp(text: "\(projects.count == 1 ? "1 project" : "\(projects.count) projects")", icon: "hammer"))
+                      
+        return props
     }
     
     var body: some View {
         VStack {
-            if isNewYarn! {
+            if isNewYarn || isPopover {
                 NewItemHeader(onClose: { dismiss() })
             }
             
             ScrollView {
-                if isNewYarn! {
+                if isNewYarn {
                     VStack {
                         Label("", systemImage: "checkmark.circle")
                             .font(.system(size: 60))
@@ -105,6 +136,7 @@ struct YarnInfo: View {
                         animateCheckmark.toggle()
                     }
                 }
+                
                 ConditionalStack(useVerticalLayout: isPortraitMode) {
                     ImageCarousel(images : .constant(yarn.uiImages))
                     
@@ -114,34 +146,7 @@ struct YarnInfo: View {
                         Text(yarn.dyer ?? "N/A").bold().foregroundStyle(Color(UIColor.secondaryLabel))
                     }
                     
-                    HStack {
-                        if yarn.isArchived {
-                            Label("Archived", systemImage : "tray.and.arrow.down").infoCapsule()
-                        }
-                        
-                        if yarn.isCaked {
-                            Label("Caked", systemImage : "birthday.cake").infoCapsule()
-                        }
-                        
-                        if yarn.isSockSet {
-                            Label("Sock Set", systemImage : "shoeprints.fill").infoCapsule()
-                        }
-                        
-                        if yarn.isMini {
-                            Label("Mini", systemImage : "arrow.down.right.and.arrow.up.left").infoCapsule()
-                        }
-                        
-                        if yarn.colorType == ColorType.variegated.rawValue {
-                            Label("Variegated", systemImage : "swirl.circle.righthalf.filled").infoCapsule()
-                        } else if yarn.colorType == ColorType.tonal.rawValue {
-                            Label("Tonal", systemImage : "circle.fill").infoCapsule()
-                        }
-                        
-                        Label("\(projectsNum == 1 ? "1 project" : "\(projectsNum) projects")", systemImage : "hammer")
-                            .infoCapsule()
-                        
-                        Spacer()
-                    }
+                    InfoCapsules(detailProps: yarnProperties)
                     
                     VStack {
                         InfoCard() {
@@ -184,6 +189,18 @@ struct YarnInfo: View {
                             }
                         }
                         
+                        if projects.count > 0 {
+                            Text("Project\(projects.count > 1 ? "s" : "")")
+                                .infoCardHeader()
+                            
+                            SimpleHorizontalScroll(count: projects.count) {
+                                ForEach(projects, id : \.id) { project in
+                                    ProjectPreview(project: project, displayedProject: $displayedProject, forYarn : true, disableOnTap : isPopover)
+                                        .simpleScrollItem(count: projects.count)
+                                }
+                            }
+                        }
+                        
                         InfoCard(noPadding: true) {
                             ForEach(yarn.colorPickerItems, id: \.id) { colorPickerItem in
                                 VStack {
@@ -218,8 +235,6 @@ struct YarnInfo: View {
                                     .frame(maxWidth: .infinity)
                             }
                         }
-                        
-                        
                     }
                     
                 }
@@ -302,15 +317,13 @@ struct YarnInfo: View {
                 Button("Delete", role: .destructive) {
                     YarnUtils.shared.removeYarn(at: yarn, with: managedObjectContext)
                     
-                    toast = Toast(style: .success, message: "Successfully deleted yarn!")
-                    
                     dismiss()
                 }
                 
                 Button("Cancel", role: .cancel) {}
             }
             .fullScreenCover(isPresented: $showEditYarnForm, onDismiss: getSuggestions) {
-                AddOrEditYarnForm(toast : $toast, yarnToEdit : yarn)
+                AddOrEditYarnForm(yarnToEdit : yarn)
             }
             .popover(isPresented: $showAddProjectForm) {
                 let firstFavorite : WeightAndYardage = favoritedPatterns.first.unsafelyUnwrapped.patternWeightAndYardage!
@@ -368,6 +381,9 @@ struct YarnInfo: View {
                 Button("Cancel", role: .cancel) { }
             } message: {
                 Text("This yarn has multiple skeins. Which one would you like to use for the project?")
+            }
+            .popover(item: $displayedProject) { project in
+                ProjectInfo(project: project, isPopover: true)
             }
         }
         .background(Color(UIColor.systemGroupedBackground))

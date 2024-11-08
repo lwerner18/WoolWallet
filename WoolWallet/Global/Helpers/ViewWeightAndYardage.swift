@@ -58,7 +58,9 @@ struct ViewWeightAndYardage: View {
                 }
                 
                 if formattedYardage != "" && weightAndYardage.grams != nil {
-                    Divider()
+                    if isPattern {
+                        Divider()
+                    }
                     
                     HStack {
                         Spacer()
@@ -73,7 +75,10 @@ struct ViewWeightAndYardage: View {
                 }
                 
                 if weightAndYardage.totalGrams != nil {
-                    Divider()
+                    if formattedYardage != "" && weightAndYardage.grams != nil  {
+                        Divider()
+                    }
+                 
                     
                     HStack {
                         Text("Total Grams").foregroundStyle(Color(UIColor.secondaryLabel))
@@ -94,6 +99,12 @@ struct ViewWeightAndYardage: View {
                             .font(.headline).bold().foregroundStyle(Color.primary)
                     }
                     .yarnDataRow()
+                    
+                    if isYarn || (isPattern && weightAndYardage.exactLength == 0) {
+                        Divider()
+                    }
+                    
+                  
                 } else if weightAndYardage.approximateLength != nil && weightAndYardage.approximateLength! > 0 {
                     Divider()
                     
@@ -103,11 +114,13 @@ struct ViewWeightAndYardage: View {
                         Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.approximateLength!)) ?? "1") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())").font(.headline).bold().foregroundStyle(Color.primary)
                     }
                     .yarnDataRow()
+                    
+                    if isYarn || (isPattern && weightAndYardage.exactLength == 0) {
+                        Divider()
+                    }
                 }
                 
                 if isYarn || (isPattern && weightAndYardage.exactLength == 0) {
-                    Divider()
-                    
                     HStack {
                         Text("Skeins").foregroundStyle(Color(UIColor.secondaryLabel))
                         Spacer()

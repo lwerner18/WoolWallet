@@ -23,17 +23,20 @@ struct PatternInfo: View {
     
     @ObservedObject var pattern : Pattern
     var isNewPattern : Bool
+    var isPopover : Bool
     @Binding var browseMode : Bool
     @Binding var browsePattern : Pattern?
     
     init(
         pattern: Pattern,
         isNewPattern : Bool = false,
+        isPopover : Bool = false,
         browseMode: Binding<Bool> = .constant(false),
         browsePattern : Binding<Pattern?> = .constant(nil)
     ) {
         self.pattern = pattern
         self.isNewPattern = isNewPattern
+        self.isPopover = isPopover
         self._browseMode = browseMode
         self._browsePattern = browsePattern
     }
@@ -53,9 +56,25 @@ struct PatternInfo: View {
         return horizontalSizeClass == .compact && verticalSizeClass == .regular
     }
     
+    var patternProperties: [DetailProp] {
+        var props : [DetailProp] = []
+        
+        props.append(DetailProp(text: pattern.type!, icon: pattern.type == PatternType.knit.rawValue ? "knit" : "crochet2", useImage: true))
+        
+        if pattern.oneSize == 1 {
+            props.append(DetailProp(text: "One Size", icon: "hand.point.up"))
+        }
+        
+        let projectsNum = pattern.projects?.count ?? 0
+        
+        props.append(DetailProp(text: "\(projectsNum == 1 ? "1 project" : "\(projectsNum) projects")", icon: "hammer"))
+        
+        return props
+    }
+    
     var body: some View {
         VStack {
-            if isNewPattern {
+            if isNewPattern || isPopover {
                 NewItemHeader(onClose: { dismiss() })
             }
             
@@ -86,33 +105,13 @@ struct PatternInfo: View {
                     VStack {
                         Text(pattern.name ?? "N/A").font(.largeTitle).foregroundStyle(Color.primary)
                             .frame(maxWidth: .infinity)
+                            .multilineTextAlignment(.center)
                         
                         Text(pattern.designer ?? "N/A").foregroundStyle(Color(UIColor.secondaryLabel))
                     }
                     .bold()
                     
-                    HStack {
-                        HStack {
-                            Image(pattern.type == PatternType.knit.rawValue ? "knit" : "crochet2")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 15, height: 15)
-                            Text(pattern.type!)
-                        }
-                        .infoCapsule()
-                        
-                        if pattern.oneSize == 1 {
-                            Label("One Size", systemImage : "hand.point.up")
-                                .infoCapsule()
-                        }
-                        
-                        let projectsNum = pattern.projects?.count ?? 0
-                        
-                        Label("\(projectsNum == 1 ? "1 project" : "\(projectsNum) projects")", systemImage : "hammer")
-                            .infoCapsule()
-                        
-                        Spacer()
-                    }
+                    InfoCapsules(detailProps: patternProperties)
                     
                     VStack {
                         if !pattern.patternItems.isEmpty && pattern.patternItems.first!.item != Item.none {
@@ -128,15 +127,12 @@ struct PatternInfo: View {
                         }
                         
                         if pattern.hasProjects {
-                            Text("Projects")
-                                .padding(.top, 15) // Add some padding below the header
-                                .foregroundStyle(Color(UIColor.secondaryLabel))
-                                .font(.footnote)
-                                .textCase(.uppercase)
+                            Text("Project\(pattern.projectsArray.count > 1 ? "s" : "")")
+                                .infoCardHeader()
                             
                             SimpleHorizontalScroll(count: pattern.projectsArray.count) {
                                 ForEach(pattern.projectsArray, id : \.id) { project in
-                                    ProjectPreview(project: project, displayedProject: $displayedProject)
+                                    ProjectPreview(project: project, displayedProject: $displayedProject, disableOnTap : isPopover)
                                         .simpleScrollItem(count: pattern.projectsArray.count)
                                 }
                             }

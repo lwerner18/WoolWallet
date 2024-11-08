@@ -146,6 +146,7 @@ struct ProjectList: View {
                                         Text(project.pattern!.name ?? "No Name")
                                             .foregroundStyle(Color.primary)
                                             .bold()
+                                            .multilineTextAlignment(.center)
                                         
                                         Spacer()
                                         
@@ -175,6 +176,24 @@ struct ProjectList: View {
                                     }
                                 }
                             }
+                            .overlay(
+                                !project.inProgress && !project.complete
+                                ? AnyView(
+                                    HStack {
+                                        Image("butterball") // Replace with your image's name
+                                            .resizable() // If you want to adjust the size
+                                            .scaledToFit() // Adjust the image's aspect ratio
+                                            .frame(width: 50, height: 40) // Set desired frame size
+                                            .shadow(radius: 2)
+                                        
+                                        Text("What are you waiting for?")
+                                            .font(.caption2)
+                                    }
+                                    .offset(x: 20, y: 3)
+                                )
+                                : AnyView(EmptyView()),
+                                alignment: .bottom
+                            )
                         }
                     }
                     .listStyle(.plain)

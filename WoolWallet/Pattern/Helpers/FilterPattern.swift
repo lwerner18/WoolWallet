@@ -46,58 +46,47 @@ struct FilterPattern: View {
                         
                         Text("Type").bold()
                         
-                        ScrollView {
-                            LazyVGrid(columns: [.init(.adaptive(minimum:120))], spacing: 10) {
-                                ForEach(PatternType.allCases, id: \.id) { type in
-                                    FilterCapsule(
-                                        text : type.rawValue,
-                                        highlighted : selectedTypes.contains(type),
-                                        onClick : { toggleTypeSelection(for: type)}
-                                    )
-                                }
-                            }
-                            .padding(.vertical, 8)
+                        FlexView(data: PatternType.allCases, spacing: 6) { type in
+                            FilterCapsule(
+                                text : type.rawValue,
+                                highlighted : selectedTypes.contains(type),
+                                onClick : { toggleTypeSelection(for: type)}
+                            )
                         }
                         
                         Text("Weight").bold().padding(.top, 10)
                         
-                        ScrollView {
-                            LazyVGrid(columns: [.init(.adaptive(minimum:120))], spacing: 10) {
-                                ForEach(Weight.allCases, id: \.id) { weight in
-                                    if weight != Weight.none {
-                                        FilterCapsule(
-                                            text : weight.rawValue,
-                                            highlighted : selectedWeights.contains(weight),
-                                            onClick : { toggleWeightSelection(for: weight)}
-                                        )
-                                    }
+                        FlexView(data: Weight.allCases, spacing: 6) { weight in
+                            HStack {
+                                if weight != Weight.none {
+                                    FilterCapsule(
+                                        text : weight.rawValue,
+                                        highlighted : selectedWeights.contains(weight),
+                                        onClick : { toggleWeightSelection(for: weight)}
+                                    )
                                 }
                             }
-                            .padding(.vertical, 8)
                         }
                         
                         Text("Item").bold().padding(.top, 10)
                         
-                        ScrollView {
-                            LazyVGrid(columns: [.init(.adaptive(minimum:175))], spacing: 10) {
-                                ForEach(Item.allCases, id: \.id) { item in
-                                    if item != Item.none {
-                                        FilterCapsule(highlighted : selectedItems.contains(item), onClick : {  toggleItemSelection(for: item)}) {
-                                            if item != Item.none {
-                                                PatternItemDisplayWithItem(item: item, size: Size.extraSmall)
-                                            }
-                                            
-                                            Text(item.rawValue)
-                                                .foregroundColor(
-                                                    selectedItems.contains(item)
-                                                    ? Color.accentColor
-                                                    : Color(UIColor.secondaryLabel)
-                                                )
+                        FlexView(data: Item.allCases, spacing: 6) { item in
+                            HStack {
+                                if item != Item.none {
+                                    FilterCapsule(highlighted : selectedItems.contains(item), onClick : {  toggleItemSelection(for: item)}) {
+                                        if item != Item.none {
+                                            PatternItemDisplayWithItem(item: item, size: Size.extraSmall)
                                         }
+                                        
+                                        Text(item.rawValue)
+                                            .foregroundColor(
+                                                selectedItems.contains(item)
+                                                ? Color.accentColor
+                                                : Color(UIColor.secondaryLabel)
+                                            )
                                     }
                                 }
                             }
-                            .padding(.vertical, 8)
                         }
                     }
                     .padding()

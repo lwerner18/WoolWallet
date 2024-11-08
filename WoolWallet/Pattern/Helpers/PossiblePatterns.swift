@@ -15,6 +15,7 @@ struct PossiblePatterns: View {
     
     var patternSuggestion : PatternSuggestion
     @Binding var favoritedPatterns : [FavoritePairing]
+ 
     
     init(
         patternSuggestion : PatternSuggestion,
@@ -114,8 +115,7 @@ struct PossiblePatterns: View {
                                         .font(.title3)
                                         .foregroundStyle(Color(UIColor.systemPink))
                                         .contentTransition(.symbolEffect(.replace))
-                                }
-                                    .padding(.leading, 10),
+                                }.offset(x: 10, y: 0),
                                 alignment: .topTrailing
                                 
                             )
