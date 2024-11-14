@@ -136,7 +136,6 @@ struct YarnSuggestionCollapsible : View {
                             
                         )
                     }
-                    .simpleScrollItem(count: matchingWeightAndYardage.count)
                     .padding(.top, forProject ? 5 : 0)
                 }
                

@@ -18,10 +18,9 @@ struct PatternInfo: View {
     // @Environment variables
     @Environment(\.dismiss) private var dismiss
     @Environment(\.managedObjectContext) var managedObjectContext
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
-    @Environment(\.verticalSizeClass) var verticalSizeClass
     
     @ObservedObject var pattern : Pattern
+    @Binding var selectedTab: PatternTab
     var isNewPattern : Bool
     var isPopover : Bool
     @Binding var browseMode : Bool
@@ -29,12 +28,14 @@ struct PatternInfo: View {
     
     init(
         pattern: Pattern,
+        selectedTab : Binding<PatternTab> = .constant(PatternTab.all),
         isNewPattern : Bool = false,
         isPopover : Bool = false,
         browseMode: Binding<Bool> = .constant(false),
         browsePattern : Binding<Pattern?> = .constant(nil)
     ) {
         self.pattern = pattern
+        self._selectedTab = selectedTab
         self.isNewPattern = isNewPattern
         self.isPopover = isPopover
         self._browseMode = browseMode
@@ -49,12 +50,6 @@ struct PatternInfo: View {
     @State private var yarnSuggestions : [YarnSuggestion] = []
     @State private var newProject             : Project? = nil
     @State private var displayedProject       : Project? = nil
-    
-    
-    // Computed property to calculate if device is most likely in portrait mode
-    var isPortraitMode: Bool {
-        return horizontalSizeClass == .compact && verticalSizeClass == .regular
-    }
     
     var patternProperties: [DetailProp] {
         var props : [DetailProp] = []
@@ -99,7 +94,7 @@ struct PatternInfo: View {
                     }
                 }
                 
-                ConditionalStack(useVerticalLayout: isPortraitMode) {
+                LazyVStack {
                     PatternItemDisplay(pattern: pattern, size: Size.large)
                     
                     VStack {
@@ -133,7 +128,6 @@ struct PatternInfo: View {
                             SimpleHorizontalScroll(count: pattern.projectsArray.count) {
                                 ForEach(pattern.projectsArray, id : \.id) { project in
                                     ProjectPreview(project: project, displayedProject: $displayedProject, disableOnTap : isPopover)
-                                        .simpleScrollItem(count: pattern.projectsArray.count)
                                 }
                             }
                         }
@@ -150,9 +144,8 @@ struct PatternInfo: View {
                                         showArrows : true
                                     ) {
                                         ViewWeightAndYardage(
-                                            weightAndYardage: item,
+                                            weightAndYardage: item.existingItem!,
                                             isSockSet: false,
-                                            order: index,
                                             totalCount: pattern.weightAndYardageItems.count,
                                             hideName : true
                                         )
@@ -168,9 +161,8 @@ struct PatternInfo: View {
                                 let item : WeightAndYardageData = pattern.weightAndYardageItems[index]
                                 
                                 ViewWeightAndYardage(
-                                    weightAndYardage: item,
+                                    weightAndYardage: item.existingItem!,
                                     isSockSet: false,
-                                    order: index,
                                     totalCount: pattern.weightAndYardageItems.count
                                 )
                                 
@@ -191,31 +183,115 @@ struct PatternInfo: View {
                         }
                         
                         if pattern.type != PatternType.knit.rawValue && pattern.crochetHooks.first?.hook != CrochetHookSize.none {
-                            InfoCard() {
-                                HStack {
-                                    Text("Hook\(pattern.crochetHooks.count > 1 ? "s" : "")").foregroundStyle(Color(UIColor.secondaryLabel))
-                                    Spacer()
-                                    VStack {
-                                        ForEach(pattern.crochetHooks, id : \.id) { hook in
-                                            Text(hook.hook.rawValue).font(.headline).bold().foregroundStyle(Color.primary)
-                                        }
+                            InfoCard(
+                                header : {
+                                    if pattern.crochetHooks.count > 1 {
+                                        Text("Hooks")
                                     }
-                                    
                                 }
+                            ) {
+                                if pattern.crochetHooks.count == 1 {
+                                    HStack {
+                                        Text("Hook").foregroundStyle(Color(UIColor.secondaryLabel))
+                                        Spacer()
+                                        Text(pattern.crochetHooks.first!.hook.rawValue).font(.headline).bold().foregroundStyle(Color.primary)
+                                    }
+                                } else {
+                                    HStack{
+                                        Spacer()
+                                        
+                                        Text(
+                                            "\(pattern.crochetHooks.map{$0.hook.rawValue}.joined(separator: ", "))"
+                                        ).font(.headline).bold().foregroundStyle(Color.primary).yarnDataRow()
+                                        
+                                        Spacer()
+                                    }
+                                }
+                               
                             }
                         }
                         
                         if pattern.type == PatternType.knit.rawValue && pattern.knittingNeedles.first?.needle != KnitNeedleSize.none {
-                            InfoCard() {
-                                HStack {
-                                    Text("Hook\(pattern.knittingNeedles.count > 1 ? "s" : "")").foregroundStyle(Color(UIColor.secondaryLabel))
-                                    Spacer()
-                                    VStack {
-                                        ForEach(pattern.knittingNeedles, id : \.id) { needle in
-                                            Text(needle.needle.rawValue).font(.headline).bold().foregroundStyle(Color.primary)
-                                        }
+                            InfoCard(
+                                header : {
+                                    if pattern.knittingNeedles.count > 1 {
+                                        Text("Needles")
                                     }
-                                    
+                                }
+                            ) {
+                                if pattern.knittingNeedles.count == 1 {
+                                    HStack {
+                                        Text("Needle").foregroundStyle(Color(UIColor.secondaryLabel))
+                                        Spacer()
+                                        Text(pattern.knittingNeedles.first!.needle.rawValue).font(.headline).bold().foregroundStyle(Color.primary)
+                                    }
+                                } else {
+                                    HStack{
+                                        
+                                        Spacer()
+                                        
+                                        Text(
+                                            "\(pattern.knittingNeedles.map{$0.needle.rawValue}.joined(separator: ", "))"
+                                        ).font(.headline).bold().foregroundStyle(Color.primary).yarnDataRow()
+                                        
+                                        Spacer()
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if pattern.techniqueItems.first?.technique != PatternTechnique.none {
+                            InfoCard(
+                                header : {
+                                    if pattern.techniqueItems.count > 1 {
+                                        Text("Techniques")
+                                    }
+                                }
+                            ) {
+                                if pattern.techniqueItems.count == 1 {
+                                    HStack {
+                                        Text("Technique").foregroundStyle(Color(UIColor.secondaryLabel))
+                                        Spacer()
+                                        Text(pattern.techniqueItems.first!.technique.rawValue).font(.headline).bold().foregroundStyle(Color.primary)
+                                    }
+                                } else {
+                                    HStack{
+                                        Spacer()
+                                        
+                                        Text(
+                                            "\(pattern.techniqueItems.map{$0.technique == PatternTechnique.other ? $0.description : $0.technique.rawValue}.joined(separator: ", "))"
+                                        ).multilineTextAlignment(.center).font(.headline).bold().foregroundStyle(Color.primary).yarnDataRow()
+                                        
+                                        Spacer()
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if pattern.notionItems.first?.notion != PatternNotion.none {
+                            InfoCard(
+                                header : {
+                                    if pattern.notionItems.count > 1 {
+                                        Text("Notions")
+                                    }
+                                }
+                            ) {
+                                if pattern.notionItems.count == 1 {
+                                    HStack {
+                                        Text("Notion").foregroundStyle(Color(UIColor.secondaryLabel))
+                                        Spacer()
+                                        Text(pattern.notionItems.first!.notion.rawValue).font(.headline).bold().foregroundStyle(Color.primary)
+                                    }
+                                } else {
+                                    HStack{
+                                        Spacer()
+                                        
+                                        Text(
+                                            "\(pattern.notionItems.map{$0.notion == PatternNotion.other ? $0.description : $0.notion.rawValue}.joined(separator: ", "))"
+                                        ).multilineTextAlignment(.center).font(.headline).bold().foregroundStyle(Color.primary).yarnDataRow()
+                                        
+                                        Spacer()
+                                    }
                                 }
                             }
                         }
@@ -281,6 +357,8 @@ struct PatternInfo: View {
                 Button("Delete", role: .destructive) {
                     PatternUtils.shared.removePattern(at: pattern, with: managedObjectContext)
                     
+                    selectedTab = PatternTab.all
+                    
                     dismiss()
                 }
                 
@@ -289,17 +367,41 @@ struct PatternInfo: View {
             .fullScreenCover(isPresented: $showEditPatternForm, onDismiss : getSuggestions) {
                 AddOrEditPatternForm(patternToEdit: pattern)
             }
-            .popover(isPresented: $showAddProjectForm) {
-                AddOrEditProjectForm(projectToEdit: nil, preSelectedPattern: pattern, yarnSuggestions: yarnSuggestions) { addedProject in
+            .sheet(isPresented: $showAddProjectForm) {
+                AddOrEditProjectForm(
+                    projectToEdit: nil,
+                    preSelectedPattern: pattern,
+                    preSelectedPairings :    pattern.weightAndYardageItems.filter { patternWandY in
+                        let suggestions = yarnSuggestions.filter {$0.patternWAndY.id == patternWandY.id}.first?.suggestedWAndY
+                        
+                        if suggestions != nil && !suggestions!.isEmpty {
+                            let favedSuggestions = suggestions!.filter {$0.yarnFavorites != nil && $0.yarnFavorites!.count == 1}
+                            
+                            return favedSuggestions.count == 1
+                        }
+                        
+                        return false
+                    }.map { patternWandY in
+                        let suggestions = yarnSuggestions.filter {$0.patternWAndY.id == patternWandY.id}.first?.suggestedWAndY
+                        
+                        return ProjectPairingItem(
+                            patternWeightAndYardage: patternWandY.existingItem!,
+                            yarnWeightAndYardage: suggestions!.first!
+                        )
+                    },
+                    yarnSuggestions: yarnSuggestions
+                ) { addedProject in
+                    
+                    selectedTab = PatternTab.used
                     // Capture the newly added project
                     newProject = addedProject
                     showAddProjectForm = false
                 }
             }
-            .popover(item: $newProject) { project in
+            .sheet(item: $newProject) { project in
                 ProjectInfo(project: project, isNewProject : true, isPopover : true)
             }
-            .popover(item: $displayedProject) { project in
+            .sheet(item: $displayedProject) { project in
                 ProjectInfo(project: project, isPopover: true)
             }
             

@@ -11,8 +11,32 @@ import SwiftUI
 struct ProjectPreview:  View {
     @ObservedObject var project : Project
     @Binding var displayedProject : Project?
-    var forYarn : Bool = false
+    var yarnId : UUID? = nil
     var disableOnTap : Bool = false
+    
+    var usedYarnWAndY : [ProjectPairingItem] {
+        if yarnId == nil {
+            return []
+        }
+        
+        return project.projectPairingItems.filter { element in
+            return element.yarnWeightAndYardage.yarn?.id == yarnId!
+        }
+    }
+    
+    var lengthUsed : Double? {
+        if yarnId == nil {
+            return nil
+        }
+        
+        var sum = 0.0
+        
+        usedYarnWAndY.forEach { pairing in
+            sum += pairing.lengthUsed ?? 0
+        }
+      
+        return sum
+    }
     
     var body: some View {
         InfoCard(backgroundColor: Color.accentColor.opacity(0.2)) {
@@ -20,56 +44,65 @@ struct ProjectPreview:  View {
                 CenteredLoader()
             } else {
                 HStack {
-                    if project.uiImages.isEmpty {
-                        PatternItemDisplay(pattern: project.pattern!, size: Size.medium)
-                    } else {
-                        ImageCarousel(images: .constant(project.uiImages), smallMode: true)
-                            .xsImageCarousel()
-                    }
-                    
-                    Spacer()
-                    
-                    VStack {
-                        if forYarn {
-                            Text(project.pattern!.name!)
-                                .multilineTextAlignment(.center)
-                                .font(.title3)
-                                .bold()
-                            
-                            Text(
-                                PatternUtils.shared.joinedItems(patternItems: project.pattern!.patternItems)
-                            )
-                            .foregroundStyle(Color(UIColor.secondaryLabel))
-                            
-                            Spacer()
-                        }
-                        
-                        if project.complete {
-                            Label("Complete", systemImage : "checkmark.circle")
-                        }
-                        
-                        if project.inProgress {
-                            Label("In Progress", systemImage : "play.circle")
-                        }
-                        
-                        if !project.complete && !project.inProgress {
-                            Label("Not Started", systemImage : "pause.circle")
-                            Spacer()
-                            Text("What are you waiting for?")
-                                .font(.caption2)
+                    if let pattern = project.pattern {
+                        if project.uiImages.isEmpty {
+                            PatternItemDisplay(pattern: pattern, size: Size.medium)
+                        } else {
+                            ImageCarousel(images: .constant(project.uiImages), size: Size.extraSmall)
                         }
                         
                         Spacer()
                         
-                        ProjectDateDisplay(project: project)
-                    }
-                    .foregroundStyle(Color.primary)
-                    .font(.footnote)
-                    
-                    Spacer()
-                    
-                    VStack {
-                        Text("")
+                        VStack {
+                            if yarnId != nil {
+                                Text(pattern.name!)
+                                    .multilineTextAlignment(.center)
+                                    .font(.title3)
+                                    .bold()
+                                
+                                Text(
+                                    PatternUtils.shared.joinedItems(patternItems: pattern.patternItems)
+                                )
+                                .foregroundStyle(Color(UIColor.secondaryLabel))
+                                
+                                Spacer()
+                            }
+                            
+                            if project.complete {
+                                Label("Complete", systemImage : "checkmark.circle")
+                            }
+                            
+                            if project.inProgress {
+                                Label("In Progress", systemImage : "play.circle")
+                            }
+                            
+                            if !project.complete && !project.inProgress {
+                                Label("Not Started", systemImage : "pause.circle")
+                                Spacer()
+                                Text("What are you waiting for?")
+                                    .font(.caption2)
+                            }
+                            
+                            if yarnId != nil && lengthUsed != nil && project.complete {
+                                Spacer()
+                                
+                                let unit : String = usedYarnWAndY.first?.yarnWeightAndYardage.unitOfMeasure ?? ""
+                                
+                                Text("Used \(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: lengthUsed!)) ?? "1") \(unit)")
+                                    .font(.title3)
+                                    .foregroundStyle(Color.primary)
+                            }
+                            
+                            Spacer()
+                            
+                            ProjectDateDisplay(project: project)
+                            
+                            
+                        }
+                        .foregroundStyle(Color.primary)
+                        .font(.footnote)
+                        
+                        Spacer()
                     }
                 }
             }

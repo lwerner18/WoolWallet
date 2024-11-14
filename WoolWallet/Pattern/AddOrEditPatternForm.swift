@@ -28,6 +28,20 @@ struct Needle: Identifiable, Equatable, Hashable {
     var existingItem : KnittingNeedle? = nil
 }
 
+struct NotionItem: Identifiable, Equatable, Hashable {
+    var id : UUID = UUID()
+    var notion: PatternNotion
+    var description : String = ""
+    var existingItem : Notion? = nil
+}
+
+struct TechniqueItem: Identifiable, Equatable, Hashable {
+    var id : UUID = UUID()
+    var technique: PatternTechnique
+    var description : String = ""
+    var existingItem : Technique? = nil
+}
+
 struct AddOrEditPatternForm: View {
     // @Environment variables
     @Environment(\.managedObjectContext) var managedObjectContext
@@ -55,6 +69,8 @@ struct AddOrEditPatternForm: View {
     @State private var recWeightAndYardages : [WeightAndYardageData] = [WeightAndYardageData(parent: WeightAndYardageParent.pattern)]
     @State private var notes                : String = ""
     @State private var images               : [ImageData] = []
+    @State private var notions              : [NotionItem] = [NotionItem(notion: PatternNotion.none)]
+    @State private var techniques           : [TechniqueItem] = [TechniqueItem(technique: PatternTechnique.none)]
     
     init(patternToEdit : Pattern?, onAdd: ((Pattern) -> Void)? = nil) {
         self.patternToEdit = patternToEdit
@@ -73,6 +89,8 @@ struct AddOrEditPatternForm: View {
             _knittingNeedleSizes  = State(initialValue : patternToEdit.knittingNeedles)
             _recWeightAndYardages = State(initialValue : patternToEdit.weightAndYardageItems)
             _images               = State(initialValue : patternToEdit.uiImages)
+            _notions              = State(initialValue : patternToEdit.notionItems)
+            _techniques           = State(initialValue : patternToEdit.techniqueItems)
         }
     }
     
@@ -99,6 +117,9 @@ struct AddOrEditPatternForm: View {
                         }
                     }
                     .pickerStyle(SegmentedPickerStyle())
+                    .onChange(of: patternType) {
+                        techniques = [TechniqueItem(technique: PatternTechnique.none)]
+                    }
                     
                     TextField("Name", text: $name).disableAutocorrection(true)
                     
@@ -256,9 +277,73 @@ struct AddOrEditPatternForm: View {
                     }
                 }
                 
-                // techniques (depends on knit or crochet
+                Section(
+                    header: Text("Techniques"),
+                    footer:
+                        HStack {
+                            Spacer()
+                            
+                            Button {
+                                addTechnique()
+                            } label : {
+                                Text("Need another technique?")
+                            }
+                        }
+                ) {
+                    List {
+                        ForEach($techniques.indices, id: \.self) { index in
+                            Picker("Technique \(techniques.count > 1 ? "\(index + 1)" : "")", selection: $techniques[index].technique) {
+                                let list = patternType == PatternType.crochet
+                                    ? PatternUtils.shared.crochetTechniques()
+                                    : patternType == PatternType.knit
+                                        ? PatternUtils.shared.knitTechniques()
+                                        : PatternUtils.shared.tunisianTechniques()
+                                
+                                ForEach(list, id: \.id) { technique in
+                                    Text(technique.rawValue).tag(technique)
+                                }
+                            }
+                            .pickerStyle(.navigationLink)
+                            .deleteDisabled(techniques.count < 2)
+                            
+                            if techniques[index].technique == PatternTechnique.other {
+                                TextField("Description", text: $techniques[index].description).disableAutocorrection(true)
+                            }
+                        }
+                        .onDelete(perform: deleteTechnique)
+                    }
+                }
                 
-                // notions
+                Section(
+                    header: Text("Notions"),
+                    footer:
+                        HStack {
+                            Spacer()
+                            
+                            Button {
+                                addNotion()
+                            } label : {
+                                Text("Need another notion?")
+                            }
+                        }
+                ) {
+                    List {
+                        ForEach($notions.indices, id: \.self) { index in
+                            Picker("Notion \(notions.count > 1 ? "\(index + 1)" : "")", selection: $notions[index].notion) {
+                                ForEach(PatternNotion.allCases, id: \.id) { notion in
+                                    Text(notion.rawValue).tag(notion)
+                                }
+                            }
+                            .pickerStyle(.navigationLink)
+                            .deleteDisabled(notions.count < 2)
+                            
+                            if notions[index].notion == PatternNotion.other {
+                                TextField("Description", text: $notions[index].description).disableAutocorrection(true)
+                            }
+                        }
+                        .onDelete(perform: deleteNotion)
+                    }
+                }
                 
                 Section(header: Text("Images")) {
                     ImageCarousel(images : $images, editMode: true, editExistingImages : patternToEdit != nil)
@@ -338,7 +423,7 @@ struct AddOrEditPatternForm: View {
                 if !recWeightAndYardages.contains(where: {element in element.id == item.id}) {
                     let existingItem = item.existingItem!
                     
-                    existingItem.patternPairing?.forEach { managedObjectContext.delete($0 as! NSManagedObject) }
+                    existingItem.patternPairings?.forEach { managedObjectContext.delete($0 as! NSManagedObject) }
                     
                     managedObjectContext.delete(existingItem)
                 }
@@ -362,6 +447,18 @@ struct AddOrEditPatternForm: View {
                 }
             }
             
+            patternToEdit?.notionItems.forEach { item in
+                if !notions.contains(where: {element in element.id == item.id}) {
+                    managedObjectContext.delete(item.existingItem!)
+                }
+            }
+            
+            patternToEdit?.techniqueItems.forEach { item in
+                if !techniques.contains(where: {element in element.id == item.id}) {
+                    managedObjectContext.delete(item.existingItem!)
+                }
+            }
+            
             if imagesChanged {
                 patternToEdit?.uiImages.forEach { item in
                     if !images.contains(where: {element in element.id == item.id}) {
@@ -373,7 +470,9 @@ struct AddOrEditPatternForm: View {
         
         // weightAndYardages
         let weightAndYardageArray: [WeightAndYardage] = recWeightAndYardages.enumerated().map { (index, element) in
-            let wAndY = WeightAndYardage.from(data: element, order: index, context: managedObjectContext)
+            var data = element
+            
+            let wAndY = WeightAndYardage.from(data: data, order: index, context: managedObjectContext)
             
             wAndY.patternFavorites?.forEach {
                 let item = $0 as! FavoritePairing
@@ -409,6 +508,20 @@ struct AddOrEditPatternForm: View {
         
         pattern.needles = NSSet(array: knittingNeedles)
         
+        // notions
+        let notionItems: [Notion] = notions.enumerated().map { (index, element) in
+            return Notion.from(notionItem: element, order: index, context: managedObjectContext)
+        }
+        
+        pattern.notions = NSSet(array: notionItems)
+        
+        // techniques
+        let techniqueItems: [Technique] = techniques.enumerated().map { (index, element) in
+            return Technique.from(techniqueItem: element, order: index, context: managedObjectContext)
+        }
+        
+        pattern.techniques = NSSet(array: techniqueItems)
+        
         if imagesChanged {
             // images
             let storedImages: [StoredImage] = images.enumerated().map { (index, element) in
@@ -435,6 +548,14 @@ struct AddOrEditPatternForm: View {
         items.append(PatternItemField(item: Item.none))
     }
     
+    private func addNotion() {
+        notions.append(NotionItem(notion: PatternNotion.none))
+    }
+    
+    private func addTechnique() {
+        techniques.append(TechniqueItem(technique: PatternTechnique.none))
+    }
+    
     func deleteNeedle(at offsets: IndexSet) {
         knittingNeedleSizes.remove(atOffsets: offsets)
     }
@@ -445,5 +566,13 @@ struct AddOrEditPatternForm: View {
     
     func deleteItem(at offsets: IndexSet) {
         items.remove(atOffsets: offsets)
+    }
+    
+    func deleteNotion(at offsets: IndexSet) {
+        notions.remove(atOffsets: offsets)
+    }
+    
+    func deleteTechnique(at offsets: IndexSet) {
+        techniques.remove(atOffsets: offsets)
     }
 }

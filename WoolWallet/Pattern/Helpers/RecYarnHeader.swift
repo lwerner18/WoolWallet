@@ -19,15 +19,10 @@ struct RecYarnHeader: View {
                 .bold()
                 .foregroundStyle(Color.primary)
             
-            if weightAndYardage.exactLength != nil {
+            if weightAndYardage.length != nil && weightAndYardage.length! > 0 {
                 Spacer()
                 
-                Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.exactLength!)) ?? "1") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
-                    .foregroundStyle(Color(UIColor.secondaryLabel))
-            } else if weightAndYardage.approximateLength != nil {
-                Spacer()
-                
-                Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.approximateLength!)) ?? "1") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
+                Text("\(weightAndYardage.hasExactLength == 1 ? "" : "~")\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.length!)) ?? "1") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
                     .foregroundStyle(Color(UIColor.secondaryLabel))
             }
         }

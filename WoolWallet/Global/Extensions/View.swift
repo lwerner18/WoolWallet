@@ -22,8 +22,31 @@ extension View {
         self.frame(width: 100, height: 125)
     }
     
-    func simpleScrollItem(count : Int) -> some View {
-        self.frame(width: UIScreen.main.bounds.width * (count > 1 ? 0.85 : 0.92))
+    /// Applies the given transform if the given condition evaluates to `true`.
+    /// - Parameters:
+    ///   - condition: The condition to evaluate.
+    ///   - transform: The transform to apply to the source `View`.
+    /// - Returns: Either the original `View` or the modified `View` if the condition is `true`.
+    @ViewBuilder func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
+        if condition {
+            transform(self)
+        } else {
+            self
+        }
+    }
+    
+    func simpleScrollItem(
+        count : Int,
+        halfWidthInLandscape : Bool,
+        isLandscape : Bool = true
+    ) -> some View {
+        self.frame(
+            width: UIScreen.main.bounds.width * (
+                count > 1
+                ? (isLandscape && halfWidthInLandscape ? 0.36 : 0.85)
+                : (isLandscape && halfWidthInLandscape ? 0.42 : 0.92)
+            )
+        )
     }
     
     func infoCardHeader() -> some View {

@@ -10,24 +10,21 @@ import SwiftUI
 
 struct FancyHorizontalScroll<Content: View>: View {
     let count: Int
-    let smallMode : Bool
+    var size : Size
     let hasBottomPadding : Bool
-    let trailing : Bool
     let content: () -> Content // Closure for the content view
     
     @State private var scrollOffset = CGPoint.zero
     
     init(
         count : Int,
-        smallMode : Bool = true,
+        size : Size = Size.medium,
         hasBottomPadding : Bool = true,
-        trailing : Bool = true,
         @ViewBuilder content: @escaping () -> Content
     ) {
         self.count = count
-        self.smallMode = smallMode
+        self.size = size
         self.hasBottomPadding = hasBottomPadding
-        self.trailing = trailing
         self.content = content
     }
     
@@ -54,12 +51,12 @@ struct FancyHorizontalScroll<Content: View>: View {
                 ScrollDots(
                     scrollOffset: scrollOffset,
                     numberOfDots: count,
-                    smallMode: smallMode,
+                    size: size,
                     hasBottomPadding: hasBottomPadding
                 )
             )
             : AnyView(EmptyView()),
-            alignment: trailing ? .bottomTrailing : .bottom
+            alignment: .bottom
         )
         .scrollTargetBehavior(.paging)
         .scrollIndicators(.hidden)

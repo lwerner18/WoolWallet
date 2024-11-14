@@ -10,23 +10,35 @@ import SwiftUI
 
 struct SimpleHorizontalScroll<Content: View>: View {
     let count: Int
-    let paging : Bool
+    let halfWidthInLandscape : Bool
     let content: () -> Content // Closure for the content view
     
     init(
         count : Int,
-        paging : Bool = false,
+        halfWidthInLandscape : Bool = false,
         @ViewBuilder content: @escaping () -> Content
     ) {
         self.count = count
-        self.paging = paging
+        self.halfWidthInLandscape = halfWidthInLandscape
         self.content = content
     }
+    
+//    var isPortraitMode: Bool {
+//        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+//            return windowScene.interfaceOrientation.isPortrait
+//        }
+//        return false
+//    }
     
     var body: some View {
         ScrollView(.horizontal) {
             HStack {
                 content()
+                    .simpleScrollItem(
+                        count: count,
+                        halfWidthInLandscape : halfWidthInLandscape,
+                        isLandscape: !GlobalSettings.shared.isPortraitMode
+                    )
             }
         }
         .scrollIndicators(.hidden)

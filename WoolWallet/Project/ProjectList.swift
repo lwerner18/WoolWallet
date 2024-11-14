@@ -21,8 +21,7 @@ struct ProjectList: View {
     @State private var selectedTab            : ProjectTab = ProjectTab.inProgress
     
     @FetchRequest(
-        entity: Project.entity(),
-        sortDescriptors: [] // Optional: Sort by name
+        fetchRequest: Project.fetchPartialRequest()
     ) private var allProjects: FetchedResults<Project>
     
     private var filteredFetchRequest = FetchRequest<Project>(
@@ -88,46 +87,116 @@ struct ProjectList: View {
                             // Reserve space matching the scroll view's frame
                             Spacer().containerRelativeFrame([.horizontal, .vertical])
                             
-                            VStack {
-                                Image("moSit") // Replace with your image's name
-                                    .resizable() // If you want to adjust the size
-                                    .scaledToFit() // Adjust the image's aspect ratio
-                                    .frame(width: 300, height: 225) // Set desired frame size
-                                
-                                Text("Quit sitting around!")
-                                    .font(.title)
-                                    .bold()
-                                    .multilineTextAlignment(.center)
-                                
+                            if selectedTab == ProjectTab.completed {
                                 VStack {
-                                    Text("No projects were found.")
+                                    Image("judgementalMo") // Replace with your image's name
+                                        .resizable() // If you want to adjust the size
+                                        .scaledToFit() // Adjust the image's aspect ratio
+                                        .frame(width: 300, height: 225) // Set desired frame size
                                     
-                                    HStack(spacing: 0) {
-                                        Text("Either ")
+                                    Text("You've completed nothing.")
+                                        .font(.title)
+                                        .bold()
+                                        .multilineTextAlignment(.center)
+                                    
+                                    VStack {
+                                        Text("No projects were found.")
                                         
-                                        Button(action: {
-                                            showAddProjectForm = true
-                                        }) {
-                                            Text("start one")
-                                                .foregroundColor(.blue) // Customize the color to look like a link
+                                        HStack(spacing: 0) {
+                                            Text("Either ")
+                                            
+                                            Button(action: {
+                                                showAddProjectForm = true
+                                            }) {
+                                                Text("start one")
+                                                    .foregroundColor(.blue) // Customize the color to look like a link
+                                            }
+                                            .buttonStyle(PlainButtonStyle()) // Remove default button styling
+                                            .padding(0)
+                                            
+                                            Text(" or modify your search.")
+                                                .font(.body)
                                         }
-                                        .buttonStyle(PlainButtonStyle()) // Remove default button styling
-                                        .padding(0)
-                                        
-                                        Text(" or modify your search.")
-                                            .font(.body)
                                     }
+                                    .padding(.top, 5)
                                 }
-                                .padding(.top, 5)
+                                .padding()
+                            } else if selectedTab == ProjectTab.notStarted {
+                                VStack {
+                                    Image("happyMo") // Replace with your image's name
+                                        .resizable() // If you want to adjust the size
+                                        .scaledToFit() // Adjust the image's aspect ratio
+                                        .frame(width: 300, height: 225) // Set desired frame size
+                                    
+                                    Text("Looks like you're busy!")
+                                        .font(.title)
+                                        .bold()
+                                        .multilineTextAlignment(.center)
+                                    
+                                    VStack {
+                                        Text("No projects were found.")
+                                        
+                                        HStack(spacing: 0) {
+                                            Text("Either ")
+                                            
+                                            Button(action: {
+                                                showAddProjectForm = true
+                                            }) {
+                                                Text("start one")
+                                                    .foregroundColor(.blue) // Customize the color to look like a link
+                                            }
+                                            .buttonStyle(PlainButtonStyle()) // Remove default button styling
+                                            .padding(0)
+                                            
+                                            Text(" or modify your search.")
+                                                .font(.body)
+                                        }
+                                    }
+                                    .padding(.top, 5)
+                                }
+                                .padding()
+                            } else {
+                                VStack {
+                                    Image("moSit") // Replace with your image's name
+                                        .resizable() // If you want to adjust the size
+                                        .scaledToFit() // Adjust the image's aspect ratio
+                                        .frame(width: 300, height: 225) // Set desired frame size
+                                    
+                                    Text("Quit sitting around!")
+                                        .font(.title)
+                                        .bold()
+                                        .multilineTextAlignment(.center)
+                                    
+                                    VStack {
+                                        Text("No projects were found.")
+                                        
+                                        HStack(spacing: 0) {
+                                            Text("Either ")
+                                            
+                                            Button(action: {
+                                                showAddProjectForm = true
+                                            }) {
+                                                Text("start one")
+                                                    .foregroundColor(.blue) // Customize the color to look like a link
+                                            }
+                                            .buttonStyle(PlainButtonStyle()) // Remove default button styling
+                                            .padding(0)
+                                            
+                                            Text(" or modify your search.")
+                                                .font(.body)
+                                        }
+                                    }
+                                    .padding(.top, 5)
+                                }
+                                .padding()
                             }
-                            .padding()
                         }
                     }
                 } else {
                     List {
                         ForEach(filteredProjects, id : \.id) { project in
                             NavigationLink(
-                                destination: ProjectInfo(project: project)
+                                destination: ProjectInfo(project: project, selectedTab : $selectedTab)
                             ) {
                                 HStack {
                                     
@@ -136,8 +205,7 @@ struct ProjectList: View {
                                     if project.uiImages.isEmpty {
                                         PatternItemDisplay(pattern: project.pattern!, size: Size.medium)
                                     } else {
-                                        ImageCarousel(images: .constant(project.uiImages), smallMode: true)
-                                            .xsImageCarousel()
+                                        ImageCarousel(images: .constant(project.uiImages), size: Size.extraSmall)
                                     }
                                     
                                     Spacer()
@@ -228,7 +296,7 @@ struct ProjectList: View {
                     showAddProjectForm = false
                 }
             }
-            .popover(item: $newProject) { project in
+            .sheet(item: $newProject) { project in
                 ProjectInfo(project: project, isNewProject : true, isPopover : true)
             }
             .fullScreenCover(item: $projectToEdit, onDismiss: { projectToEdit = nil}) { project in

@@ -26,8 +26,6 @@ struct YarnInfo: View {
     // @Environment variables
     @Environment(\.dismiss) private var dismiss
     @Environment(\.managedObjectContext) var managedObjectContext
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
-    @Environment(\.verticalSizeClass) var verticalSizeClass
 
     
     @ObservedObject var yarn : Yarn
@@ -69,12 +67,6 @@ struct YarnInfo: View {
     @State private var patternWAndYForProject  : WeightAndYardage? = nil
     @State private var newProject              : Project? = nil
     @State private var displayedProject        : Project? = nil
-    
-    
-    // Computed property to calculate if device is most likely in portrait mode
-    var isPortraitMode: Bool {
-        return horizontalSizeClass == .compact && verticalSizeClass == .regular
-    }
     
     var projects: [Project] {
         return YarnUtils.shared.getProjects(for: yarn, in: managedObjectContext)
@@ -137,102 +129,150 @@ struct YarnInfo: View {
                     }
                 }
                 
-                ConditionalStack(useVerticalLayout: isPortraitMode) {
+                ConditionalStack() {
                     ImageCarousel(images : .constant(yarn.uiImages))
                     
-                    VStack {
-                        Text(yarn.name ?? "N/A").bold().font(.largeTitle).foregroundStyle(Color.primary).multilineTextAlignment(.center)
-                        
-                        Text(yarn.dyer ?? "N/A").bold().foregroundStyle(Color(UIColor.secondaryLabel))
-                    }
-                    
-                    InfoCapsules(detailProps: yarnProperties)
-                    
-                    VStack {
-                        InfoCard() {
-                            HStack {
-                                Text("Weight").foregroundStyle(Color(UIColor.secondaryLabel))
-                                Spacer()
-                                Text(yarn.weightAndYardageItems.first?.weight.rawValue ?? "N/A")
-                                    .font(.headline).bold().foregroundStyle(Color.primary)
-                            }
+                    LazyVStack {
+                        VStack {
+                            Text(yarn.name ?? "N/A").bold().font(.largeTitle).foregroundStyle(Color.primary).multilineTextAlignment(.center)
+                            
+                            Text(yarn.dyer ?? "N/A").bold().foregroundStyle(Color(UIColor.secondaryLabel))
                         }
                         
-                        if !yarn.compositionItems.isEmpty {
+                        InfoCapsules(detailProps: yarnProperties)
+                        
+                        VStack {
                             InfoCard() {
-                                VStack {
-                                    HStack {
-                                        Text("Composition").font(.title3).bold().foregroundStyle(Color.primary)
-                                        Spacer()
+                                HStack {
+                                    Text("Weight").foregroundStyle(Color(UIColor.secondaryLabel))
+                                    Spacer()
+                                    Text(yarn.weightAndYardageItems.first?.weight.rawValue ?? "N/A")
+                                        .font(.headline).bold().foregroundStyle(Color.primary)
+                                }
+                            }
+                            
+                        
+                            
+//                            ForEach(yarn.weightAndYardage1.indices, id: \.self) { index in
+//                                
+//                                ViewWeightAndYardage(
+//                                    weightAndYardage: yarn.weightAndYardage1[index],
+//                                    isSockSet: yarn.isSockSet,
+//                                    totalCount: yarn.weightAndYardage1.count
+//                                )
+//                                
+//                                if let suggestion : PatternSuggestion = patternSuggestions.first(where: {$0.yarnWAndY.id == yarn.weightAndYardage1[index].id}) {
+//                                    PossiblePatterns(
+//                                        patternSuggestion : suggestion,
+//                                        favoritedPatterns : $favoritedPatterns
+//                                    )
+//                                }
+//                            }
+                            
+                            ForEach(yarn.weightAndYardage1, id: \.id) { wAndY in
+                                if wAndY.originalLength != wAndY.currentLength {
+                                    InfoCard() {
+                                        VStack {
+                                            HStack {
+                                                Text("Original Length").foregroundStyle(Color(UIColor.secondaryLabel))
+                                                Spacer()
+                                                Text("\(wAndY.isExact ? "" : "~")\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: wAndY.originalLength)) ?? "1") \(wAndY.unitOfMeasure!.lowercased())")
+                                                    .font(.headline).bold().foregroundStyle(Color.primary)
+                                            }
+                                            .yarnDataRow()
+                                            
+                                            Divider()
+                                            
+                                            HStack {
+                                                Text("Original Skeins").foregroundStyle(Color(UIColor.secondaryLabel))
+                                                Spacer()
+                                                Text(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: wAndY.originalSkeins)) ?? "0")
+                                                    .font(.headline).bold().foregroundStyle(Color.primary)
+                                            }
+                                            .yarnDataRow()
+                                        }
+                                        
                                     }
-                                    CompositionChart(composition: yarn.compositionItems, smallMode: true)
-                                    CompositionText(composition: yarn.compositionItems).font(.title3)
                                 }
-                            }
-                        }
-                        
-                        ForEach(yarn.weightAndYardageItems.indices, id: \.self) { index in
-                            let item : WeightAndYardageData = yarn.weightAndYardageItems[index]
-                            
-                            ViewWeightAndYardage(
-                                weightAndYardage: item,
-                                isSockSet: yarn.isSockSet,
-                                order: index,
-                                totalCount: yarn.weightAndYardageItems.count
-                            )
-                            
-                            if let suggestion : PatternSuggestion = patternSuggestions.first(where: {$0.yarnWAndY.id == item.id}) {
-                                PossiblePatterns(
-                                    patternSuggestion : suggestion,
-                                    favoritedPatterns : $favoritedPatterns
-                                )
-                            }
-                        }
-                        
-                        if projects.count > 0 {
-                            Text("Project\(projects.count > 1 ? "s" : "")")
-                                .infoCardHeader()
-                            
-                            SimpleHorizontalScroll(count: projects.count) {
-                                ForEach(projects, id : \.id) { project in
-                                    ProjectPreview(project: project, displayedProject: $displayedProject, forYarn : true, disableOnTap : isPopover)
-                                        .simpleScrollItem(count: projects.count)
-                                }
-                            }
-                        }
-                        
-                        InfoCard(noPadding: true) {
-                            ForEach(yarn.colorPickerItems, id: \.id) { colorPickerItem in
-                                VStack {
-                                    colorPickerItem.color
-                                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                                        .frame(height: 35)
-                                        .clipShape(
-                                            .rect(
-                                                topLeadingRadius: 10,
-                                                bottomLeadingRadius: 0,
-                                                bottomTrailingRadius: 0,
-                                                topTrailingRadius: 10
-                                            )
-                                        )
                                     
-                                    HStack {
-                                        Text("Color").foregroundStyle(Color(UIColor.secondaryLabel))
-                                        Spacer()
-                                        Text(colorPickerItem.name).font(.headline).bold().foregroundStyle(Color.primary)
-                                    }
-                                    .padding(.horizontal, 15)
-                                    .padding(.top, 8)
-                                    .padding(.bottom, 15)
+                                ViewWeightAndYardage(
+                                    weightAndYardage: wAndY,
+                                    isSockSet: yarn.isSockSet,
+                                    totalCount: yarn.weightAndYardage1.count
+                                )
+                                
+                                if let suggestion : PatternSuggestion = patternSuggestions.first(where: {$0.yarnWAndY.id == wAndY.id}) {
+                                    PossiblePatterns(
+                                        patternSuggestion : suggestion,
+                                        favoritedPatterns : $favoritedPatterns
+                                    )
                                 }
                             }
-                        }
-                        
-                        if yarn.notes != "" {
-                            InfoCard() {
-                                Text(yarn.notes!)
-                                    .foregroundStyle(Color.primary)
-                                    .frame(maxWidth: .infinity)
+                            
+                            if !yarn.compositionItems.isEmpty {
+                                InfoCard() {
+                                    VStack {
+                                        HStack {
+                                            Text("Composition").font(.title3).bold().foregroundStyle(Color.primary)
+                                            Spacer()
+                                        }
+                                        CompositionChart(composition: yarn.compositionItems, smallMode: true)
+                                        CompositionText(composition: yarn.compositionItems).font(.title3)
+                                    }
+                                }
+                            }
+                            
+                            if projects.count > 0 {
+                                Text("Project\(projects.count > 1 ? "s" : "")")
+                                    .infoCardHeader()
+                                
+                                SimpleHorizontalScroll(count: projects.count, halfWidthInLandscape : true) {
+                                    ForEach(projects, id : \.id) { project in
+                                        ProjectPreview(
+                                            project: project,
+                                            displayedProject: $displayedProject,
+                                            yarnId : yarn.id,
+                                            disableOnTap : isPopover
+                                        )
+                                    }
+                                }
+                            }
+                            
+                            InfoCard(noPadding: true) {
+                                ForEach(yarn.colorPickerItems, id: \.id) { colorPickerItem in
+                                    VStack {
+                                        colorPickerItem.color
+                                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                                            .frame(height: 35)
+                                            .clipShape(
+                                                .rect(
+                                                    topLeadingRadius: 10,
+                                                    bottomLeadingRadius: 0,
+                                                    bottomTrailingRadius: 0,
+                                                    topTrailingRadius: 10
+                                                )
+                                            )
+                                        
+                                        let colorName = colorPickerItem.description != "" ? colorPickerItem.description : colorPickerItem.name
+                                        
+                                        HStack {
+                                            Text("Color").foregroundStyle(Color(UIColor.secondaryLabel))
+                                            Spacer()
+                                            Text(colorName).font(.headline).bold().foregroundStyle(Color.primary)
+                                        }
+                                        .padding(.horizontal, 15)
+                                        .padding(.top, 8)
+                                        .padding(.bottom, 15)
+                                    }
+                                }
+                            }
+                            
+                            if yarn.notes != "" {
+                                InfoCard() {
+                                    Text(yarn.notes!)
+                                        .foregroundStyle(Color.primary)
+                                        .frame(maxWidth: .infinity)
+                                }
                             }
                         }
                     }
@@ -325,7 +365,7 @@ struct YarnInfo: View {
             .fullScreenCover(isPresented: $showEditYarnForm, onDismiss: getSuggestions) {
                 AddOrEditYarnForm(yarnToEdit : yarn)
             }
-            .popover(isPresented: $showAddProjectForm) {
+            .sheet(isPresented: $showAddProjectForm) {
                 let firstFavorite : WeightAndYardage = favoritedPatterns.first.unsafelyUnwrapped.patternWeightAndYardage!
                 let patternWandY : WeightAndYardage = patternWAndYForProject == nil ? firstFavorite : patternWAndYForProject!
                 
@@ -343,7 +383,7 @@ struct YarnInfo: View {
                     showAddProjectForm = false
                 }
             }
-            .popover(item: $newProject) { project in
+            .sheet(item: $newProject) { project in
                 ProjectInfo(project: project, isNewProject : true, isPopover: true)
             }
             .confirmationDialog("", isPresented: $showChoosePatternDialog) {
@@ -382,7 +422,7 @@ struct YarnInfo: View {
             } message: {
                 Text("This yarn has multiple skeins. Which one would you like to use for the project?")
             }
-            .popover(item: $displayedProject) { project in
+            .sheet(item: $displayedProject) { project in
                 ProjectInfo(project: project, isPopover: true)
             }
         }

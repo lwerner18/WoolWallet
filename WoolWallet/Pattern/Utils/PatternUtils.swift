@@ -113,14 +113,6 @@ class PatternUtils {
     func getMatchingYarns(for weightAndYardage: WeightAndYardageData, in context: NSManagedObjectContext) -> [WeightAndYardage] {
         let fetchRequest: NSFetchRequest<WeightAndYardage> = WeightAndYardage.fetchRequest()
         
-        var length = 0.0
-        
-        if weightAndYardage.exactLength != nil && weightAndYardage.exactLength! > 0 {
-            length = weightAndYardage.exactLength!
-        } else if weightAndYardage.approximateLength != nil && weightAndYardage.approximateLength! > 0 {
-            length = weightAndYardage.approximateLength!
-        }
-        
         let allowedDeviation = 0.15
         var ratio = 0.0
         
@@ -128,8 +120,10 @@ class PatternUtils {
             ratio = weightAndYardage.yardage! / Double(weightAndYardage.grams!)
         }
         
+        let currentLength = weightAndYardage.existingItem?.currentLength
+        
         // return empty list when length or ratio is 0
-        if length == 0 || ratio == 0{
+        if currentLength == nil || currentLength == 0 || ratio == 0 {
             return []
         }
         
@@ -142,10 +136,7 @@ class PatternUtils {
         predicates.append(NSPredicate(format: "weight == %@", weightAndYardage.weight.rawValue))
         
         // length filter
-        predicates.append(NSCompoundPredicate(orPredicateWithSubpredicates: [
-            NSPredicate(format: "exactLength > 0 AND exactLength >= %@", NSNumber(value: length)),
-            NSPredicate(format: "approxLength > 0 AND approxLength >= %@", NSNumber(value: length))
-        ]))
+        predicates.append(NSPredicate(format: "currentLength > 0 AND currentLength >= %@", NSNumber(value: currentLength!)))
         
         // ratio filter
         predicates.append(
@@ -170,5 +161,82 @@ class PatternUtils {
             print("Failed to fetch matching yarns: \(error)")
             return []
         }
+    }
+    
+    func crochetTechniques() -> [PatternTechnique] {
+        return [
+            PatternTechnique.none,
+            PatternTechnique.slipKnot,
+            PatternTechnique.chainStitch,
+            PatternTechnique.singleCrochet,
+            PatternTechnique.halfDoubleCrochet,
+            PatternTechnique.doubleCrochet,
+            PatternTechnique.tripleCrochet,
+            PatternTechnique.slipStitch,
+            PatternTechnique.shellStitch,
+            PatternTechnique.vStitch,
+            PatternTechnique.grannySquare,
+            PatternTechnique.bobbleStitch,
+            PatternTechnique.clusterStitch,
+            PatternTechnique.crossStitch,
+            PatternTechnique.frontPostStitch,
+            PatternTechnique.backPostStitch,
+            PatternTechnique.colorChanges,
+            PatternTechnique.joinAsYouGo,
+            PatternTechnique.foundationRowTechniques,
+            PatternTechnique.surfaceCrochet,
+            PatternTechnique.overlayCrochet,
+            PatternTechnique.other
+        ]
+    }
+    
+    func knitTechniques() -> [PatternTechnique] {
+        return [
+            PatternTechnique.none,
+            PatternTechnique.castingOn,
+            PatternTechnique.bindingOff,
+            PatternTechnique.knitStitch,
+            PatternTechnique.purlStitch,
+            PatternTechnique.garterStitch,
+            PatternTechnique.stockinetteStitch,
+            PatternTechnique.ribbing,
+            PatternTechnique.cableKnitting,
+            PatternTechnique.laceKnitting,
+            PatternTechnique.colorwork,
+            PatternTechnique.shortRows,
+            PatternTechnique.mosaicKnitting,
+            PatternTechnique.twistedStitches,
+            PatternTechnique.kitchenerStitch,
+            PatternTechnique.doubleKnitting,
+            PatternTechnique.entrelac,
+            PatternTechnique.feltedKnitting,
+            PatternTechnique.threeNeedleBindOff,
+            PatternTechnique.seaming,
+            PatternTechnique.blocking,
+            PatternTechnique.beading,
+            PatternTechnique.iCord,
+            PatternTechnique.other
+        ]
+    }
+    
+    func tunisianTechniques() -> [PatternTechnique] {
+        return [
+            PatternTechnique.none,
+            PatternTechnique.tunisianSimpleStitch,
+            PatternTechnique.tunisianKnitStitch,
+            PatternTechnique.tunisianPurlStitch,
+            PatternTechnique.tunisianFullStitch,
+            PatternTechnique.tunisianReverseStitch,
+            PatternTechnique.tunisianLaceStitch,
+            PatternTechnique.tunisianShellStitch,
+            PatternTechnique.tunisianHoneycombStitch,
+            PatternTechnique.tunisianSimpleStitchWithIncreasesAndDecreases,
+            PatternTechnique.tunisianColorwork,
+            PatternTechnique.tunisianRibbing,
+            PatternTechnique.tunisianDoubleCrochet,
+            PatternTechnique.tunisianEntrelac,
+            PatternTechnique.tunisianChevronStitch,
+            PatternTechnique.other
+        ]
     }
 }

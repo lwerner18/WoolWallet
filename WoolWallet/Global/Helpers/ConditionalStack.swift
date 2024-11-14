@@ -9,17 +9,22 @@ import Foundation
 import SwiftUI
 
 struct ConditionalStack<Content: View>: View {
-    let useVerticalLayout: Bool
     let content: Content
     
-    init(useVerticalLayout: Bool, @ViewBuilder content: () -> Content) {
-        self.useVerticalLayout = useVerticalLayout
+    init(@ViewBuilder content: () -> Content) {
         self.content = content()
     }
     
+//    var isPortraitMode: Bool {
+//        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+//            return windowScene.interfaceOrientation.isPortrait
+//        }
+//        return false
+//    }
+    
     var body: some View {
         Group {
-            if useVerticalLayout {
+            if GlobalSettings.shared.isPortraitMode {
                 VStack { content }
             } else {
                 HStack { content }

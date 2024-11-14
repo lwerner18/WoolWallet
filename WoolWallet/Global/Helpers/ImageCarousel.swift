@@ -18,13 +18,14 @@ struct ImageData: Equatable {
 struct ImageCarousel: View {
     @Binding var images: [ImageData]
     var editMode: Bool = false
-    var smallMode : Bool = false
+    var size : Size = Size.medium
     var editExistingImages : Bool? = false
 
     @State private var showPhotoPicker : Bool = false
     @State private var selectedImages = [PhotosPickerItem]()
     @State private var showCamera : Bool = false
     @State private var capturedImage : UIImage?
+    
     
     var body: some View {
         VStack {
@@ -51,7 +52,7 @@ struct ImageCarousel: View {
                 
             } else {
                 VStack {
-                    FancyHorizontalScroll(count: images.count, smallMode: smallMode, trailing: false) {
+                    FancyHorizontalScroll(count: images.count, size: size) {
                         ForEach(0..<images.count, id: \.self){ imageIndex in
                             Image(uiImage: images[imageIndex].image)
                                 .resizable()
@@ -114,6 +115,26 @@ struct ImageCarousel: View {
                     }
                 }
             }
+        }
+        .onChange(of: capturedImage) {
+            if editMode && capturedImage != nil {
+                Task {
+                    if !editExistingImages! {
+                        images.removeAll()
+                    }
+                    
+                    images.append(ImageData(image: capturedImage!))
+                }
+            }
+        }
+        .if(size == Size.extraSmall && UIDevice.current.userInterfaceIdiom == .pad) { view in
+            view.frame(width: 200)
+        }
+        .if(size == Size.extraSmall && UIDevice.current.userInterfaceIdiom != .pad) { view in
+            view.frame(width: 100)
+        }
+        .if(size == Size.small && UIDevice.current.userInterfaceIdiom == .pad) { view in
+            view.frame(width: 300)
         }
     }
 }

@@ -18,15 +18,6 @@ struct NamedColor : Identifiable, Hashable {
 
 let namedColors = [
     NamedColor(
-        name: "Red",
-        colors: [
-            UIColor(hue: 0/360, saturation: 0.688, brightness: 0.649, alpha: 1.0),
-            UIColor(hue: 0/360, saturation: 0.706, brightness: 0.816, alpha: 1.0)
-
-
-        ]
-    ),
-    NamedColor(
         name: "Maroon",
         colors: [
             UIColor(hue: 0/360, saturation: 0.750, brightness: 0.216, alpha: 1.0),
@@ -36,6 +27,28 @@ let namedColors = [
             UIColor(hue: 0/360, saturation: 0.485, brightness: 0.667, alpha: 1.0),
             UIColor(hue: 0/360, saturation: 0.750, brightness: 0.314, alpha: 1.0),
             UIColor(hue: 0/360, saturation: 0.707, brightness: 0.471, alpha: 1.0)
+        ]
+    ),
+    NamedColor(
+        name: "Red",
+        colors: [
+            UIColor(hue: 0/360, saturation: 0.688, brightness: 0.649, alpha: 1.0),
+            UIColor(hue: 0/360, saturation: 0.706, brightness: 0.816, alpha: 1.0)
+        ]
+    ),
+    NamedColor(
+        name: "Pink",
+        colors: [
+            UIColor(hue: 300/360, saturation: 0.734, brightness: 0.925, alpha: 1.0),
+            UIColor(hue: 300/360, saturation: 0.651, brightness: 0.964, alpha: 1.0),
+            UIColor(hue: 300/360, saturation: 0.607, brightness: 0.973, alpha: 1.0),
+            UIColor(hue: 300/360, saturation: 0.533, brightness: 0.980, alpha: 1.0),
+            UIColor(hue: 0/360, saturation: 0.687, brightness: 0.831, alpha: 1.0),
+            UIColor(hue: 0/360, saturation: 0.562, brightness: 0.878, alpha: 1.0),
+            UIColor(hue: 0/360, saturation: 0.537, brightness: 0.914, alpha: 1.0),
+            UIColor(hue: 0/360, saturation: 0.553, brightness: 0.949, alpha: 1.0),
+            UIColor(hue: 0/360, saturation: 0.417, brightness: 0.961, alpha: 1.0)
+            
         ]
     ),
     NamedColor(
@@ -56,6 +69,14 @@ let namedColors = [
             UIColor(hue: 30/360, saturation: 0.577, brightness: 0.973, alpha: 1.0),
             UIColor(hue: 30/360, saturation: 0.469, brightness: 0.973, alpha: 1.0),
             UIColor(hue: 60/360, saturation: 0.862, brightness: 0.996, alpha: 1.0)
+        ]
+    ),
+    NamedColor(
+        name: "Cream",
+        colors: [
+            UIColor(hue: 45/360, saturation: 0.15, brightness: 1.0, alpha: 1.0),
+            UIColor(hue: 50/360, saturation: 0.2, brightness: 0.95, alpha: 1.0),
+            UIColor(hue: 42/360, saturation: 0.1, brightness: 0.98, alpha: 1.0)
         ]
     ),
     NamedColor(
@@ -165,21 +186,6 @@ let namedColors = [
         ]
     ),
     NamedColor(
-        name: "Pink",
-        colors: [
-            UIColor(hue: 300/360, saturation: 0.734, brightness: 0.925, alpha: 1.0),
-            UIColor(hue: 300/360, saturation: 0.651, brightness: 0.964, alpha: 1.0),
-            UIColor(hue: 300/360, saturation: 0.607, brightness: 0.973, alpha: 1.0),
-            UIColor(hue: 300/360, saturation: 0.533, brightness: 0.980, alpha: 1.0),
-            UIColor(hue: 0/360, saturation: 0.687, brightness: 0.831, alpha: 1.0),
-            UIColor(hue: 0/360, saturation: 0.562, brightness: 0.878, alpha: 1.0),
-            UIColor(hue: 0/360, saturation: 0.537, brightness: 0.914, alpha: 1.0),
-            UIColor(hue: 0/360, saturation: 0.553, brightness: 0.949, alpha: 1.0),
-            UIColor(hue: 0/360, saturation: 0.417, brightness: 0.961, alpha: 1.0)
-
-        ]
-    ),
-    NamedColor(
         name: "Brown",
         colors: [
             UIColor(hue: 0/360, saturation: 0.750, brightness: 0.188, alpha: 1.0),
@@ -209,6 +215,10 @@ let namedColors = [
             UIColor(hue: 0, saturation: 0, brightness: 0.5, alpha: 1.0),
             UIColor(hue: 0, saturation: 0, brightness: 0.25, alpha: 1.0)
         ]
+    ),
+    NamedColor(
+        name: "Other",
+        colors: []
     )
 ]
 
@@ -242,6 +252,7 @@ struct ColorPickerItem: Identifiable, Equatable {
     var id           : UUID = UUID()
     var color        : Color
     var name         : String
+    var description  : String = ""
     var existingItem : StoredColor? = nil
 }
 
@@ -292,10 +303,32 @@ struct ColorPickerView: View {
             if colorPickerItem.name != "" {
                 Picker("Color", selection: $colorPickerItem.name) {
                     ForEach(namedColors, id: \.name) { color in
-                        Text(color.name).tag(color.name)
+                        HStack {
+                            if !color.colors.isEmpty && colorPickerItem.name != color.name {
+                                // Diamond-shaped color view
+                                Circle()
+                                    .fill(Color(uiColor : color.colors[0]))
+                                    .frame(width: 18, height: 18)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.black, lineWidth: 0.25) // Black border with width
+                                    )
+                            }
+                            
+                            Text(color.name)
+                        }
+                        .tag(color.name)
+                        
                     }
                 }
                 .pickerStyle(.navigationLink)
+                .onChange(of : colorPickerItem.name) {
+                    colorPickerItem.description = ""
+                }
+            }
+            
+            if colorPickerItem.name == "Other" {
+                TextField("Description", text: $colorPickerItem.description)
             }
         }
     }

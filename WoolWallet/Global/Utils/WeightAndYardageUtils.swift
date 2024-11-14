@@ -18,10 +18,7 @@ class WeightAndYardageUtils {
             return true
         }
         
-        let length1 = faveWandY.exactLength > 0 ? faveWandY.exactLength : faveWandY.approxLength
-        let length2 = wAndY.exactLength > 0 ? wAndY.exactLength : wAndY.approxLength
-        
-        if length2 > length1 {
+        if faveWandY.currentLength > wAndY.currentLength {
             return true
         }
         

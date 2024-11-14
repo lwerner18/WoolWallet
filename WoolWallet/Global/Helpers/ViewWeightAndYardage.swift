@@ -12,28 +12,35 @@ struct ViewWeightAndYardage: View {
     // @Environment variables
     @Environment(\.managedObjectContext) var managedObjectContext
     
-    var weightAndYardage : WeightAndYardageData
+    @ObservedObject var weightAndYardage : WeightAndYardage
     var isSockSet : Bool = false
-    var order : Int = 0
     var totalCount : Int
     var hideName : Bool = false
     var showSuggestions : Bool = true
     
     // Computed property to format length to two decimal places if number is a fraction
     var formattedYardage: String {
-        if weightAndYardage.yardage != nil {
-            return GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.yardage!)) ?? ""
+        if weightAndYardage.yardage != 0 {
+            return GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.yardage)) ?? ""
         }
         
         return ""
     }
     
     var isYarn : Bool {
-        return weightAndYardage.parent == WeightAndYardageParent.yarn
+        return weightAndYardage.parent == WeightAndYardageParent.yarn.rawValue
     }
     
     var isPattern : Bool {
-        return weightAndYardage.parent == WeightAndYardageParent.pattern
+        return weightAndYardage.parent == WeightAndYardageParent.pattern.rawValue
+    }
+    
+    var showAvailableLength : Bool {
+        return weightAndYardage.yarnPairingItems.contains(where: {element in element.project!.inProgress})
+    }
+    
+    var usedLength : Double {
+        return weightAndYardage.currentLength - weightAndYardage.availableLength
     }
     
     var body: some View {
@@ -46,18 +53,30 @@ struct ViewWeightAndYardage: View {
             }
         }
         
-        InfoCard() {
+        InfoCard(
+            footer : {
+                showAvailableLength && usedLength > 0 ?
+                AnyView(HStack {
+                    Label("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: usedLength)) ?? "0") \(weightAndYardage.unitOfMeasure!.lowercased()) of this yarn is currently being used in projects ", systemImage : "info.circle")
+                        .font(.caption2)
+                        .foregroundStyle(Color(UIColor.secondaryLabel))
+                    
+                    Spacer()
+                })
+                : AnyView(EmptyView())
+            }
+        ) {
             VStack {
                 if isPattern {
                     HStack {
                         Text("Weight").foregroundStyle(Color(UIColor.secondaryLabel))
                         Spacer()
-                        Text("\(weightAndYardage.weight.rawValue)").font(.headline).bold().foregroundStyle(Color.primary)
+                        Text(weightAndYardage.weight ?? "").font(.headline).bold().foregroundStyle(Color.primary)
                     }
                     .yarnDataRow()
                 }
                 
-                if formattedYardage != "" && weightAndYardage.grams != nil {
+                if formattedYardage != "" && weightAndYardage.grams > 0 {
                     if isPattern {
                         Divider()
                     }
@@ -65,7 +84,7 @@ struct ViewWeightAndYardage: View {
                     HStack {
                         Spacer()
                         
-                        Text("\(formattedYardage) \(weightAndYardage.unitOfMeasure.rawValue.lowercased()) / \(weightAndYardage.grams!) grams")
+                        Text("\(formattedYardage) \(weightAndYardage.unitOfMeasure!.lowercased()) / \(weightAndYardage.grams) grams")
                             .font(.headline).bold().foregroundStyle(Color.primary)
                         
                         Spacer()
@@ -74,57 +93,52 @@ struct ViewWeightAndYardage: View {
                     .yarnDataRow()
                 }
                 
-                if weightAndYardage.totalGrams != nil {
-                    if formattedYardage != "" && weightAndYardage.grams != nil  {
+                if weightAndYardage.totalGrams > 0 {
+                    if formattedYardage != "" && weightAndYardage.grams > 0  {
                         Divider()
                     }
-                 
                     
                     HStack {
                         Text("Total Grams").foregroundStyle(Color(UIColor.secondaryLabel))
                         Spacer()
-                        Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.totalGrams!)) ?? "1")")
+                        Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.totalGrams)) ?? "1")")
                             .font(.headline).bold().foregroundStyle(Color.primary)
                     }
                     .yarnDataRow()
                 }
                 
-                if weightAndYardage.exactLength != nil && weightAndYardage.exactLength! > 0 {
+                if weightAndYardage.unitOfMeasure != nil {
                     Divider()
                     
                     HStack {
-                        Text("Length\(isPattern ? " Needed" : "")").foregroundStyle(Color(UIColor.secondaryLabel))
+                        Text("\(weightAndYardage.isExact ? "" : "Estimated ")Length\(isPattern ? " Needed" : "")").foregroundStyle(Color(UIColor.secondaryLabel))
                         Spacer()
-                        Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.exactLength!)) ?? "1") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
+                        Text("\(weightAndYardage.isExact ? "" : "~")\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.currentLength)) ?? "1") \(weightAndYardage.unitOfMeasure!.lowercased())")
                             .font(.headline).bold().foregroundStyle(Color.primary)
                     }
                     .yarnDataRow()
-                    
-                    if isYarn || (isPattern && weightAndYardage.exactLength == 0) {
-                        Divider()
-                    }
-                    
-                  
-                } else if weightAndYardage.approximateLength != nil && weightAndYardage.approximateLength! > 0 {
+                }
+                
+                
+                if showAvailableLength {
                     Divider()
                     
                     HStack {
-                        Text(isPattern ? "Estimated Length Needed" : "Length Estimate").foregroundStyle(Color(UIColor.secondaryLabel))
+                        Text("Available Length").foregroundStyle(Color(UIColor.secondaryLabel))
                         Spacer()
-                        Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.approximateLength!)) ?? "1") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())").font(.headline).bold().foregroundStyle(Color.primary)
+                        Text("\(weightAndYardage.isExact ? "" : "~")\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.availableLength)) ?? "1") \(weightAndYardage.unitOfMeasure!.lowercased())")
+                            .font(.headline).bold().foregroundStyle(Color.primary)
                     }
                     .yarnDataRow()
-                    
-                    if isYarn || (isPattern && weightAndYardage.exactLength == 0) {
-                        Divider()
-                    }
                 }
                 
-                if isYarn || (isPattern && weightAndYardage.exactLength == 0) {
+                if isYarn || (isPattern && weightAndYardage.currentLength == 0) {
+                    Divider()
+                    
                     HStack {
                         Text("Skeins").foregroundStyle(Color(UIColor.secondaryLabel))
                         Spacer()
-                        Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.skeins)) ?? "1")")
+                        Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.currentSkeins)) ?? "1")")
                             .font(.headline).bold().foregroundStyle(Color.primary)
                     }
                     .yarnDataRow()
@@ -141,6 +155,10 @@ struct ViewWeightAndYardage: View {
                     }
                     .yarnDataRow()
                 }
+                
+                if isYarn {
+                    
+                }
             }
         }
     }
@@ -148,7 +166,7 @@ struct ViewWeightAndYardage: View {
     private func getName() -> String {
         if isYarn {
             if isSockSet {
-                switch order {
+                switch weightAndYardage.order {
                 case 0: return "Main Skein"
                 case 1: return totalCount > 2 ? "Mini #1" : "Mini"
                 case 2: return "Mini #2"
@@ -156,7 +174,7 @@ struct ViewWeightAndYardage: View {
                 }
             }
         } else if totalCount > 1 {
-            return "Color \(PatternUtils.shared.getLetter(for: order))"
+            return "Color \(PatternUtils.shared.getLetter(for: Int(weightAndYardage.order)))"
         }
         
         return ""

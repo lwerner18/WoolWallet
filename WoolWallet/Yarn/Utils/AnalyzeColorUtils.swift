@@ -10,6 +10,10 @@ import CoreML
 import Vision
 import SwiftUI
 
+enum AnalyzeColorError: Error {
+    case unknownError
+}
+
 class AnalyzeColorUtils {
     static let shared = AnalyzeColorUtils()
     
@@ -179,7 +183,7 @@ class AnalyzeColorUtils {
         return rotatedImage
     }
     
-    func yarnColors(from colorImage: UIImage, with maskImage: UIImage) -> [Color] {
+    func yarnColors(from colorImage: UIImage, with maskImage: UIImage) throws -> [Color] {
         guard let colorCGImage = colorImage.cgImage,
               let maskCGImage = maskImage.cgImage,
               let colorDataProvider = colorCGImage.dataProvider,
@@ -190,8 +194,10 @@ class AnalyzeColorUtils {
         let colorBitmapData = colorDataProvider.data
         let maskBitmapData = maskDataProvider.data
         
-        let colorPtr = CFDataGetBytePtr(colorBitmapData)
-        let maskPtr = CFDataGetBytePtr(maskBitmapData)
+        guard let colorPtr = CFDataGetBytePtr(colorBitmapData),
+              let maskPtr = CFDataGetBytePtr(maskBitmapData) else {
+            throw NSError(domain: "Pointer to bitmap data is nil.", code: 1, userInfo: nil)
+        }
         
         let width = colorCGImage.width
         let height = colorCGImage.height
@@ -199,9 +205,11 @@ class AnalyzeColorUtils {
         let maskBytesPerRow = maskCGImage.bytesPerRow
         let bytesPerPixel = 4
         
+        let maskDataLength = CFDataGetLength(maskBitmapData)
+        let colorDataLength = CFDataGetLength(colorBitmapData)
+        
         var colorSet = Set<Color>()
         var distinctColors = Set<Color>()
-        
         
         let centerX = width / 2
         let centerY = height / 2
@@ -223,13 +231,22 @@ class AnalyzeColorUtils {
                 if x >= 0 && x < width && y >= 0 && y < height {
                     let colorPixelOffset = y * colorBytesPerRow + x * bytesPerPixel
                     let maskPixelOffset = y * maskBytesPerRow + x * bytesPerPixel
-                    let maskValue = maskPtr![maskPixelOffset]
+                    
+                    guard maskPixelOffset >= 0 && maskPixelOffset < maskDataLength else {
+                        continue // Skip if mask offset is out of bounds
+                    }
+                    
+                    guard colorPixelOffset >= 0 && colorPixelOffset < colorDataLength else {
+                        continue // Skip if color offset is out of bounds
+                    }
+                    
+                    let maskValue = maskPtr[maskPixelOffset]
                     
                     if maskValue == 255 {  // Only process if mask pixel is white
-                        let r = CGFloat(colorPtr![colorPixelOffset]) / 255.0
-                        let g = CGFloat(colorPtr![colorPixelOffset + 1]) / 255.0
-                        let b = CGFloat(colorPtr![colorPixelOffset + 2]) / 255.0
-                        let a = CGFloat(colorPtr![colorPixelOffset + 3]) / 255.0
+                        let r = CGFloat(colorPtr[colorPixelOffset]) / 255.0
+                        let g = CGFloat(colorPtr[colorPixelOffset + 1]) / 255.0
+                        let b = CGFloat(colorPtr[colorPixelOffset + 2]) / 255.0
+                        let a = CGFloat(colorPtr[colorPixelOffset + 3]) / 255.0
                         
                         if a > 0 {
                             rTotal += r
@@ -271,6 +288,100 @@ class AnalyzeColorUtils {
         
         return Array(distinctColors)
     }
+
+    
+//    func yarnColors(from colorImage: UIImage, with maskImage: UIImage) throws -> [Color] {
+//        guard let colorCGImage = colorImage.cgImage,
+//              let maskCGImage = maskImage.cgImage,
+//              let colorDataProvider = colorCGImage.dataProvider,
+//              let maskDataProvider = maskCGImage.dataProvider else {
+//            return []
+//        }
+//        
+//        let colorBitmapData = colorDataProvider.data
+//        let maskBitmapData = maskDataProvider.data
+//        
+//        let colorPtr = CFDataGetBytePtr(colorBitmapData)
+//        let maskPtr = CFDataGetBytePtr(maskBitmapData)
+//        
+//        let width = colorCGImage.width
+//        let height = colorCGImage.height
+//        let colorBytesPerRow = colorCGImage.bytesPerRow
+//        let maskBytesPerRow = maskCGImage.bytesPerRow
+//        let bytesPerPixel = 4
+//        
+//        var colorSet = Set<Color>()
+//        var distinctColors = Set<Color>()
+//        
+//        
+//        let centerX = width / 2
+//        let centerY = height / 2
+//        let maxRadius = max(width, height) / 2
+//        let pixelGroupSize = 80
+//        
+//        for radius in stride(from: 0, to: maxRadius, by: pixelGroupSize) {
+//            var rTotal: CGFloat = 0
+//            var gTotal: CGFloat = 0
+//            var bTotal: CGFloat = 0
+//            var aTotal: CGFloat = 0
+//            var validPixelCount: CGFloat = 0
+//            
+//            for angle in stride(from: 0.0, to: 360.0, by: 1.0) {
+//                let radian = angle * .pi / 180.0
+//                let x = centerX + Int(Double(radius) * cos(radian))
+//                let y = centerY + Int(Double(radius) * sin(radian))
+//                
+//                if x >= 0 && x < width && y >= 0 && y < height {
+//                    let colorPixelOffset = y * colorBytesPerRow + x * bytesPerPixel
+//                    let maskPixelOffset = y * maskBytesPerRow + x * bytesPerPixel
+//                    let maskValue = maskPtr![maskPixelOffset]
+//                    
+//                    if maskValue == 255 {  // Only process if mask pixel is white
+//                        let r = CGFloat(colorPtr![colorPixelOffset]) / 255.0
+//                        let g = CGFloat(colorPtr![colorPixelOffset + 1]) / 255.0
+//                        let b = CGFloat(colorPtr![colorPixelOffset + 2]) / 255.0
+//                        let a = CGFloat(colorPtr![colorPixelOffset + 3]) / 255.0
+//                        
+//                        if a > 0 {
+//                            rTotal += r
+//                            gTotal += g
+//                            bTotal += b
+//                            aTotal += a
+//                            validPixelCount += 1
+//                        }
+//                    }
+//                }
+//            }
+//            
+//            if validPixelCount > 0 {
+//                let rAvg = rTotal / validPixelCount
+//                let gAvg = gTotal / validPixelCount
+//                let bAvg = bTotal / validPixelCount
+//                let aAvg = aTotal / validPixelCount
+//                
+//                let averageColor = Color(uiColor: UIColor(red: rAvg, green: gAvg, blue: bAvg, alpha: aAvg).brightened(by: 0.3).saturated(by: 0.3))
+//                
+//                colorSet.insert(averageColor)
+//            }
+//        }
+//        print("Number of colors", colorSet.count)
+//        
+//        for color in colorSet {
+//            var isSimilar = false
+//            for existingColor in distinctColors {
+//                if color.isSimilar(to: existingColor, threshold: 0.05) {
+//                    isSimilar = true
+//                    break
+//                }
+//            }
+//            
+//            if !isSimilar {
+//                distinctColors.insert(color)
+//            }
+//        }
+//        
+//        return Array(distinctColors)
+//    }
     
   
 

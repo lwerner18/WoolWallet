@@ -12,6 +12,7 @@ struct ProjectPairingItem : Identifiable, Equatable, Hashable {
     var id : UUID = UUID()
     var patternWeightAndYardage : WeightAndYardage
     var yarnWeightAndYardage : WeightAndYardage
+    var lengthUsed : Double? = nil
     var existingItem : ProjectPairing?
 }
 
@@ -28,7 +29,7 @@ struct AddOrEditProjectForm: View {
     
     // Form fields
     @State private var notes                   : String = ""
-    @State private var inProgress              : Bool = false
+    @State private var inProgress              : Bool = true
     @State private var projectPairing          : [ProjectPairingItem] = []
     @State private var pattern                 : Pattern? = nil
     @State private var browsingPattern         : Bool = false
@@ -147,12 +148,11 @@ struct AddOrEditProjectForm: View {
                                 if wAndY.hasBeenEdited() {
                                     let unit = wAndY.unitOfMeasure.rawValue.lowercased()
                                     
-                                    let length = wAndY.exactLength != nil && wAndY.exactLength! > 0
-                                    ? "\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: wAndY.exactLength!)) ?? "1") \(unit)"
-                                    : (wAndY.approximateLength != nil && wAndY.approximateLength! > 0
-                                       ?"~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: wAndY.approximateLength!)) ?? "1") \(unit)"
-                                       : ""
-                                    )
+                                    let currentLength = wAndY.existingItem!.currentLength
+                                    
+                                    let length = currentLength > 0
+                                    ? "\(wAndY.existingItem!.isExact ? "" : "~")\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: currentLength)) ?? "1") \(unit)"
+                                        : ""
                                     
                                     let yardage = wAndY.yardage != nil && wAndY.grams != nil
                                     ? "\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: wAndY.yardage!)) ?? "") \(unit) / \(wAndY.grams!) grams"

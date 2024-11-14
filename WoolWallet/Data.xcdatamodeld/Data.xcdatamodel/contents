@@ -21,9 +21,23 @@
     </entity>
     <entity name="KnittingNeedle" representedClassName="KnittingNeedle" syncable="YES" codeGenerationType="class">
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="order" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="order" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="size" optional="YES" attributeType="String"/>
         <relationship name="pattern" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Pattern" inverseName="needles" inverseEntity="Pattern"/>
+    </entity>
+    <entity name="LengthHistory" representedClassName="LengthHistory" syncable="YES" codeGenerationType="class">
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isCurrent" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isExact" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="length" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="skeins" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+    </entity>
+    <entity name="Notion" representedClassName="Notion" syncable="YES" codeGenerationType="class">
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="notion" optional="YES" attributeType="String"/>
+        <attribute name="notionDescription" optional="YES" attributeType="String"/>
+        <attribute name="order" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="pattern" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Pattern" inverseName="notions" inverseEntity="Pattern"/>
     </entity>
     <entity name="Pattern" representedClassName="Pattern" syncable="YES" codeGenerationType="class">
         <attribute name="designer" optional="YES" attributeType="String"/>
@@ -37,9 +51,11 @@
         <relationship name="images" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="StoredImage" inverseName="pattern" inverseEntity="StoredImage"/>
         <relationship name="items" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="PatternItem" inverseName="pattern" inverseEntity="PatternItem"/>
         <relationship name="needles" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="KnittingNeedle" inverseName="pattern" inverseEntity="KnittingNeedle"/>
+        <relationship name="notions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Notion" inverseName="pattern" inverseEntity="Notion"/>
         <relationship name="projects" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Project" inverseName="pattern" inverseEntity="Project"/>
         <relationship name="recCompositions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Composition" inverseName="pattern" inverseEntity="Composition"/>
         <relationship name="recWeightAndYardages" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="WeightAndYardage" inverseName="pattern" inverseEntity="WeightAndYardage"/>
+        <relationship name="techniques" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Technique" inverseName="pattern" inverseEntity="Technique"/>
     </entity>
     <entity name="PatternItem" representedClassName="PatternItem" syncable="YES" codeGenerationType="class">
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
@@ -62,9 +78,10 @@
     </entity>
     <entity name="ProjectPairing" representedClassName="ProjectPairing" syncable="YES" codeGenerationType="class">
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
-        <relationship name="patternWeightAndYardage" maxCount="1" deletionRule="Nullify" destinationEntity="WeightAndYardage" inverseName="patternPairing" inverseEntity="WeightAndYardage"/>
+        <attribute name="lengthUsed" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <relationship name="patternWeightAndYardage" maxCount="1" deletionRule="Nullify" destinationEntity="WeightAndYardage" inverseName="patternPairings" inverseEntity="WeightAndYardage"/>
         <relationship name="project" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="pairings" inverseEntity="Project"/>
-        <relationship name="yarnWeightAndYardage" maxCount="1" deletionRule="Nullify" destinationEntity="WeightAndYardage" inverseName="yarnPairing" inverseEntity="WeightAndYardage"/>
+        <relationship name="yarnWeightAndYardage" maxCount="1" deletionRule="Nullify" destinationEntity="WeightAndYardage" inverseName="yarnPairings" inverseEntity="WeightAndYardage"/>
     </entity>
     <entity name="RowCounter" representedClassName="RowCounter" syncable="YES" codeGenerationType="class">
         <attribute name="count" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
@@ -76,6 +93,7 @@
     <entity name="StoredColor" representedClassName="StoredColor" syncable="YES" codeGenerationType="class">
         <attribute name="alpha" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="blue" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="colorDescription" optional="YES" attributeType="String"/>
         <attribute name="green" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="name" optional="YES" attributeType="String"/>
@@ -90,15 +108,24 @@
         <relationship name="project" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="images" inverseEntity="Project"/>
         <relationship name="yarn" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Yarn" inverseName="images" inverseEntity="Yarn"/>
     </entity>
+    <entity name="Technique" representedClassName="Technique" syncable="YES" codeGenerationType="class">
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="order" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="technique" optional="YES" attributeType="String"/>
+        <attribute name="techniqueDescription" optional="YES" attributeType="String"/>
+        <relationship name="pattern" maxCount="1" deletionRule="Nullify" destinationEntity="Pattern" inverseName="techniques" inverseEntity="Pattern"/>
+    </entity>
     <entity name="WeightAndYardage" representedClassName="WeightAndYardage" syncable="YES" codeGenerationType="class">
-        <attribute name="approxLength" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="exactLength" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="currentLength" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="currentSkeins" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="grams" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="hasBeenWeighed" optional="YES" attributeType="Integer 16" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="hasExactLength" optional="YES" attributeType="Integer 16" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="hasPartialSkein" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="order" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="originalLength" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="originalSkeins" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="parent" optional="YES" attributeType="String"/>
         <attribute name="skeins" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="totalGrams" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
@@ -107,10 +134,10 @@
         <attribute name="yardage" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <relationship name="pattern" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Pattern" inverseName="recWeightAndYardages" inverseEntity="Pattern"/>
         <relationship name="patternFavorites" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FavoritePairing" inverseName="patternWeightAndYardage" inverseEntity="FavoritePairing"/>
-        <relationship name="patternPairing" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ProjectPairing" inverseName="patternWeightAndYardage" inverseEntity="ProjectPairing"/>
+        <relationship name="patternPairings" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ProjectPairing" inverseName="patternWeightAndYardage" inverseEntity="ProjectPairing"/>
         <relationship name="yarn" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Yarn" inverseName="weightAndYardages" inverseEntity="Yarn"/>
         <relationship name="yarnFavorites" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FavoritePairing" inverseName="yarnWeightAndYardage" inverseEntity="FavoritePairing"/>
-        <relationship name="yarnPairing" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ProjectPairing" inverseName="yarnWeightAndYardage" inverseEntity="ProjectPairing"/>
+        <relationship name="yarnPairings" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ProjectPairing" inverseName="yarnWeightAndYardage" inverseEntity="ProjectPairing"/>
     </entity>
     <entity name="Yarn" representedClassName="Yarn" syncable="YES" codeGenerationType="class">
         <attribute name="colorType" optional="YES" attributeType="String"/>

@@ -35,7 +35,7 @@ class YarnUtils {
             let item = $0 as! WeightAndYardage
             
             item.yarnFavorites?.forEach{context.delete($0 as! NSManagedObject) }
-            item.yarnPairing?.forEach{context.delete($0 as! NSManagedObject) }
+            item.yarnPairings?.forEach{context.delete($0 as! NSManagedObject) }
             
             context.delete(item)
         }
@@ -53,15 +53,8 @@ class YarnUtils {
     func getMatchingPatterns(for weightAndYardage: WeightAndYardageData, in context: NSManagedObjectContext) -> [WeightAndYardage] {
         let fetchRequest: NSFetchRequest<WeightAndYardage> = WeightAndYardage.fetchRequest()
         
-        var length = 0.0
-        
-        if weightAndYardage.exactLength != nil && weightAndYardage.exactLength! > 0 {
-            length = weightAndYardage.exactLength!
-        } else if weightAndYardage.approximateLength != nil && weightAndYardage.approximateLength! > 0 {
-            length = weightAndYardage.approximateLength!
-        }
-        
         let allowedDeviation = 0.15
+        let availableLength = weightAndYardage.existingItem!.availableLength
         var ratio = 0.0
         
         if weightAndYardage.yardage != nil && weightAndYardage.grams != nil {
@@ -69,7 +62,7 @@ class YarnUtils {
         }
         
         // return empty list when length or ratio is 0
-        if length == 0 || ratio == 0 {
+        if availableLength == 0 || ratio == 0 {
             return []
         }
         
@@ -81,11 +74,7 @@ class YarnUtils {
         // weight filter
         predicates.append(NSPredicate(format: "weight == %@", weightAndYardage.weight.rawValue))
         
-        // length filter
-        predicates.append(NSCompoundPredicate(orPredicateWithSubpredicates: [
-            NSPredicate(format: "exactLength > 0 AND exactLength <= %@", NSNumber(value: length)),
-            NSPredicate(format: "approxLength > 0 AND approxLength <= %@", NSNumber(value: length))
-        ]))
+        predicates.append(NSPredicate(format: "currentLength > 0 AND currentLength <= %@", NSNumber(value: availableLength)))
         
         // ratio filter
         predicates.append(

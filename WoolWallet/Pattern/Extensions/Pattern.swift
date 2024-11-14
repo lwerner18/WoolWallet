@@ -53,6 +53,36 @@ extension Pattern {
         }
     }
     
+    var notionItems: [NotionItem] {
+        let notionItems = notions?.allObjects as? [Notion] ?? []
+        
+        let sortedNotions = notionItems.sorted { $0.order < $1.order}
+        
+        return sortedNotions.map { notion in
+            return NotionItem(
+                id: notion.id!,
+                notion: PatternNotion(rawValue: notion.notion!)!,
+                description: notion.notionDescription ?? "",
+                existingItem: notion
+            )
+        }
+    }
+    
+    var techniqueItems: [TechniqueItem] {
+        let techniqueItems = techniques?.allObjects as? [Technique] ?? []
+        
+        let sortedTechniques = techniqueItems.sorted { $0.order < $1.order}
+        
+        return sortedTechniques.map { technique in
+            return TechniqueItem(
+                id: technique.id!,
+                technique: PatternTechnique(rawValue: technique.technique!)!,
+                description: technique.techniqueDescription ?? "",
+                existingItem: technique
+            )
+        }
+    }
+    
     var weightAndYardageItems: [WeightAndYardageData] {
         let weightsAndYardages = recWeightAndYardages?.allObjects as? [WeightAndYardage] ?? []
         
@@ -69,8 +99,7 @@ extension Pattern {
                 totalGrams        : item.totalGrams != 0 ? item.totalGrams : nil,
                 skeins            : item.skeins,
                 hasPartialSkein   : item.hasPartialSkein,
-                exactLength       : item.exactLength != 0 ? item.exactLength : nil,
-                approximateLength : item.approxLength != 0 ? item.approxLength : nil,
+                length            : item.currentLength ?? 0,
                 parent            : WeightAndYardageParent(rawValue: item.parent!)!,
                 hasExactLength    : Int(item.hasExactLength),
                 existingItem      : item
@@ -98,5 +127,18 @@ extension Pattern {
     
     var hasProjects: Bool {
         return !projectsArray.isEmpty
+    }
+    
+    // Static function to create the fetch request with propertiesToFetch
+    static func fetchPartialRequest() -> NSFetchRequest<Pattern> {
+        let request = NSFetchRequest<Pattern>(entityName: "Pattern")
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \Pattern.designer, ascending: true)]
+        
+        // Specify the properties you want to fetch
+        request.propertiesToFetch = ["designer"] // List properties to fetch
+        request.relationshipKeyPathsForPrefetching = ["projects"]
+        request.resultType = .managedObjectResultType
+        
+        return request
     }
 }

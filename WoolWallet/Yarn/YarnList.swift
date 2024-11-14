@@ -54,8 +54,7 @@ struct YarnList: View {
     @State private var yarnToDelete           : Yarn? = nil
     
     @FetchRequest(
-        entity: Yarn.entity(),
-        sortDescriptors: [NSSortDescriptor(keyPath: \Yarn.name, ascending: true)] // Optional: Sort by name
+        fetchRequest: Yarn.fetchPartialRequest()
     ) private var allYarns: FetchedResults<Yarn>
     
     
@@ -180,45 +179,83 @@ struct YarnList: View {
                         // Reserve space matching the scroll view's frame
                         Spacer().containerRelativeFrame([.horizontal, .vertical])
                         
-                        VStack {
-                            Image("momo") // Replace with your image's name
-                                .resizable() // If you want to adjust the size
-                                .scaledToFit() // Adjust the image's aspect ratio
-                                .frame(width: 300, height: 125) // Set desired frame size
-                            
-                            Text("Looking for yarn is tough work! Time for a nap.")
-                                .font(.title)
-                                .bold()
-                                .multilineTextAlignment(.center)
-                            
+                        if selectedTab == YarnTab.active {
                             VStack {
-                                Text("We couldn't find anything.")
-                                    .font(.body)
+                                Image("angelEyes") // Replace with your image's name
+                                    .resizable() // If you want to adjust the size
+                                    .scaledToFit() // Adjust the image's aspect ratio
+                                    .frame(width: 300, height: 175) // Set desired frame size
                                 
-                                HStack(spacing: 0) {
-                                    Text("Please")
-                                    
-                                    Button(action: {
-                                        showAddYarnForm = true
-                                    }) {
-                                        Text(" add some yarn ")
-                                            .foregroundColor(.blue) // Customize the color to look like a link
-                                    }
-                                    .buttonStyle(PlainButtonStyle()) // Remove default button styling
-                                    .padding(0)
-                                    
-                                    Text("or modify your search.")
+                                Text("No yarn?")
+                                    .font(.title)
+                                    .bold()
+                                    .multilineTextAlignment(.center)
+                                
+                                VStack {
+                                    Text("We couldn't find anything.")
                                         .font(.body)
+                                    
+                                    HStack(spacing: 0) {
+                                        Text("Please")
+                                        
+                                        Button(action: {
+                                            showAddYarnForm = true
+                                        }) {
+                                            Text(" add some yarn ")
+                                                .foregroundColor(.blue) // Customize the color to look like a link
+                                        }
+                                        .buttonStyle(PlainButtonStyle()) // Remove default button styling
+                                        .padding(0)
+                                        
+                                        Text("or modify your search.")
+                                            .font(.body)
+                                    }
+                                    
                                 }
-                                
+                                .padding(.top, 5)
                             }
-                            .padding(.top, 5)
+                            .padding()
+                        } else {
+                            VStack {
+                                Image("momo") // Replace with your image's name
+                                    .resizable() // If you want to adjust the size
+                                    .scaledToFit() // Adjust the image's aspect ratio
+                                    .frame(width: 300, height: 125) // Set desired frame size
+                                
+                                Text("Looking for yarn is tough work! Time for a nap.")
+                                    .font(.title)
+                                    .bold()
+                                    .multilineTextAlignment(.center)
+                                
+                                VStack {
+                                    Text("We couldn't find anything.")
+                                        .font(.body)
+                                    
+                                    HStack(spacing: 0) {
+                                        Text("Please")
+                                        
+                                        Button(action: {
+                                            showAddYarnForm = true
+                                        }) {
+                                            Text(" add some yarn ")
+                                                .foregroundColor(.blue) // Customize the color to look like a link
+                                        }
+                                        .buttonStyle(PlainButtonStyle()) // Remove default button styling
+                                        .padding(0)
+                                        
+                                        Text("or modify your search.")
+                                            .font(.body)
+                                    }
+                                    
+                                }
+                                .padding(.top, 5)
+                            }
+                            .padding()
                         }
-                        .padding()
                     }
                 } else {
                     ScrollView {
-                        LazyVGrid(columns: [.init(.adaptive(minimum:150))], spacing: 5) {
+                        LazyVGrid(columns: [.init(.adaptive(minimum: UIDevice.current.userInterfaceIdiom == .pad ? 300 : 150))], spacing: 5) {
                             ForEach(filteredYarn, id: \.id) { yarn in
                                 NavigationLink(
                                     destination: YarnInfo(
@@ -230,7 +267,7 @@ struct YarnList: View {
                                     )
                                 ) {
                                     VStack {
-                                        ImageCarousel(images: .constant(yarn.uiImages), smallMode: true)
+                                        ImageCarousel(images: .constant(yarn.uiImages), size : Size.small)
                                             .contextMenu {
                                                 if !browseMode {
                                                     Button {
@@ -314,7 +351,7 @@ struct YarnList: View {
                 }
             }
         }
-        .popover(isPresented: $showFilterScreen) {
+        .sheet(isPresented: $showFilterScreen) {
             FilterYarn(
                 selectedColors: $selectedColors,
                 selectedWeights: $selectedWeights,
@@ -343,7 +380,7 @@ struct YarnList: View {
         .fullScreenCover(item: $yarnToEdit, onDismiss: { yarnToEdit = nil}) { yarn in
             AddOrEditYarnForm(yarnToEdit : yarn)
         }
-        .popover(item: $newYarn) { yarn in
+        .sheet(item: $newYarn) { yarn in
             YarnInfo(yarn: yarn, selectedTab : $selectedTab, isNewYarn : true)
         }
         .alert("Are you sure you want to delete this yarn?", isPresented: $showConfirmationDialog) {

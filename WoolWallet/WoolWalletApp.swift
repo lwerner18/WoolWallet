@@ -8,6 +8,7 @@
 import SwiftUI
 
 enum MainTab {
+    case dashboard
     case stash
     case patterns
     case projects
@@ -17,11 +18,17 @@ enum MainTab {
 struct WoolWalletApp: App {
     let persistenceController = PersistenceController.shared
     
-    @State private var selectedTab = MainTab.stash
+    @State private var selectedTab = MainTab.dashboard
     
     var body: some Scene {
         WindowGroup {
             TabView(selection: $selectedTab) {
+                Dashboard()
+                    .tabItem {
+                        Label("Dashboard", systemImage: "house")
+                    }
+                    .tag(MainTab.dashboard)
+                
                 YarnList()
                     .tabItem {
                         Label("My Stash", systemImage: "volleyball")

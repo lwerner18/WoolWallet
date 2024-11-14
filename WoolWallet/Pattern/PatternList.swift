@@ -87,8 +87,7 @@ struct PatternList: View {
     }
     
     @FetchRequest(
-        entity: Pattern.entity(),
-        sortDescriptors: [NSSortDescriptor(keyPath: \Pattern.name, ascending: true)] // Optional: Sort by name
+        fetchRequest: Pattern.fetchPartialRequest()
     ) private var allPatterns: FetchedResults<Pattern>
     
     private var uniqueDesigners: [String] {
@@ -148,49 +147,125 @@ struct PatternList: View {
                             // Reserve space matching the scroll view's frame
                             Spacer().containerRelativeFrame([.horizontal, .vertical])
                             
-                            VStack {
-                                Image("moSearch") // Replace with your image's name
-                                    .resizable() // If you want to adjust the size
-                                    .scaledToFit() // Adjust the image's aspect ratio
-                                    .frame(width: 300, height: 225) // Set desired frame size
-                                
-                                Text("There doesn't seem to be anything here.")
-                                    .font(.title)
-                                    .bold()
-                                    .multilineTextAlignment(.center)
-                                
+                            if selectedTab == PatternTab.all {
                                 VStack {
-                                    HStack(spacing: 0) {
-                                        Text("Please")
-                                        
-                                        if !browseMode {
-                                            Button(action: {
-                                                showAddPatternForm = true
-                                            }) {
-                                                Text(" add a pattern ")
-                                                    .foregroundColor(.blue) // Customize the color to look like a link
-                                            }
-                                            .buttonStyle(PlainButtonStyle()) // Remove default button styling
-                                            .padding(0)
+                                    Image("moPissed") // Replace with your image's name
+                                        .resizable() // If you want to adjust the size
+                                        .scaledToFit() // Adjust the image's aspect ratio
+                                        .frame(width: 300, height: 225) // Set desired frame size
+                                    
+                                    Text("You don't have a single pattern.")
+                                        .font(.title)
+                                        .bold()
+                                        .multilineTextAlignment(.center)
+                                    
+                                    VStack {
+                                        HStack(spacing: 0) {
+                                            Text("Please")
                                             
-                                            Text("or")
+                                            if !browseMode {
+                                                Button(action: {
+                                                    showAddPatternForm = true
+                                                }) {
+                                                    Text(" add a pattern ")
+                                                        .foregroundColor(.blue) // Customize the color to look like a link
+                                                }
+                                                .buttonStyle(PlainButtonStyle()) // Remove default button styling
+                                                .padding(0)
+                                                
+                                                Text("or")
+                                            }
+                                            
+                                            Text(" modify your search.")
+                                                .font(.body)
                                         }
                                         
-                                        Text(" modify your search.")
-                                            .font(.body)
                                     }
-                                    
+                                    .padding(.top, 5)
                                 }
-                                .padding(.top, 5)
+                                .padding()
+                            } else if selectedTab == PatternTab.notUsed {
+                                VStack {
+                                    Image("babyMo") // Replace with your image's name
+                                        .resizable() // If you want to adjust the size
+                                        .scaledToFit() // Adjust the image's aspect ratio
+                                        .frame(width: 300, height: 225) // Set desired frame size
+                                    
+                                    Text("You must be exhausted. There are no unused patterns.")
+                                        .font(.title)
+                                        .bold()
+                                        .multilineTextAlignment(.center)
+                                    
+                                    VStack {
+                                        HStack(spacing: 0) {
+                                            Text("Please")
+                                            
+                                            if !browseMode {
+                                                Button(action: {
+                                                    showAddPatternForm = true
+                                                }) {
+                                                    Text(" add a pattern ")
+                                                        .foregroundColor(.blue) // Customize the color to look like a link
+                                                }
+                                                .buttonStyle(PlainButtonStyle()) // Remove default button styling
+                                                .padding(0)
+                                                
+                                                Text("or")
+                                            }
+                                            
+                                            Text(" modify your search.")
+                                                .font(.body)
+                                        }
+                                        
+                                    }
+                                    .padding(.top, 5)
+                                }
+                                .padding()
+                            } else {
+                                VStack {
+                                    Image("moSearch") // Replace with your image's name
+                                        .resizable() // If you want to adjust the size
+                                        .scaledToFit() // Adjust the image's aspect ratio
+                                        .frame(width: 300, height: 225) // Set desired frame size
+                                    
+                                    Text("There doesn't seem to be anything here.")
+                                        .font(.title)
+                                        .bold()
+                                        .multilineTextAlignment(.center)
+                                    
+                                    VStack {
+                                        HStack(spacing: 0) {
+                                            Text("Please")
+                                            
+                                            if !browseMode {
+                                                Button(action: {
+                                                    showAddPatternForm = true
+                                                }) {
+                                                    Text(" add a pattern ")
+                                                        .foregroundColor(.blue) // Customize the color to look like a link
+                                                }
+                                                .buttonStyle(PlainButtonStyle()) // Remove default button styling
+                                                .padding(0)
+                                                
+                                                Text("or")
+                                            }
+                                            
+                                            Text(" modify your search.")
+                                                .font(.body)
+                                        }
+                                        
+                                    }
+                                    .padding(.top, 5)
+                                }
+                                .padding()
                             }
-                            .padding()
                         }
                     }
                 } else {
                     List {
                         ForEach(filteredPatterns, id: \.id) { pattern in
                             NavigationLink(
-                                destination: PatternInfo(pattern: pattern, browseMode: $browseMode, browsePattern : $browsePattern)
+                                destination: PatternInfo(pattern: pattern, selectedTab: $selectedTab, browseMode: $browseMode, browsePattern : $browsePattern)
                             ) {
                                 
                                 HStack {
@@ -316,7 +391,7 @@ struct PatternList: View {
             .fullScreenCover(item: $patternToEdit, onDismiss: { patternToEdit = nil}) { pattern in
                 AddOrEditPatternForm(patternToEdit : pattern)
             }
-            .popover(item: $newPattern) { pattern in
+            .sheet(item: $newPattern) { pattern in
                 PatternInfo(pattern: pattern, isNewPattern : true)
             }
             .alert("Are you sure you want to delete this pattern?", isPresented: $showConfirmationDialog) {
@@ -328,7 +403,7 @@ struct PatternList: View {
                 
                 Button("Cancel", role: .cancel) {}
             }
-            .popover(isPresented: $showFilterScreen) {
+            .sheet(isPresented: $showFilterScreen) {
                 FilterPattern(
                     selectedItems: $selectedItems,
                     selectedTypes: $selectedTypes,

@@ -46,7 +46,7 @@ struct ProjectDateDisplay : View {
                 
                 if daysPassed > 0 {
                     HStack {
-                        Image(systemName : "timer")
+                        Image(systemName : "calendar")
                         
                         Text("Took \(daysPassed) day\(daysPassed > 1 ? "s" : "")")
                     }

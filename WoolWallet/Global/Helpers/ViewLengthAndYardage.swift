@@ -9,18 +9,18 @@ import Foundation
 import SwiftUI
 
 struct ViewLengthAndYardage:  View {
-    var weightAndYardage: WeightAndYardage
+    @ObservedObject var weightAndYardage: WeightAndYardage
+    
+    var isExact : Bool {
+        return weightAndYardage.hasBeenWeighed == 1 || weightAndYardage.hasExactLength == 1
+    }
     
     var body: some View {
         let unit = weightAndYardage.unitOfMeasure!.lowercased()
         
         
-        if weightAndYardage.exactLength > 0 {
-            Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.exactLength)) ?? "1") \(unit)")
-                .font(.title3)
-                .foregroundStyle(Color.primary)
-        } else {
-            Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.approxLength)) ?? "1") \(unit)")
+        if weightAndYardage.currentLength > 0 {
+            Text("\(weightAndYardage.isExact ? "" : "~")\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.currentLength)) ?? "1") \(unit)")
                 .font(.title3)
                 .foregroundStyle(Color.primary)
         }

@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import CoreData
 
 extension Yarn {
     var colorPickerItems: [ColorPickerItem] {
@@ -24,6 +25,7 @@ extension Yarn {
                 id: item.id!,
                 color: color,
                 name: item.name!,
+                description : item.colorDescription ?? "",
                 existingItem: item
             )
         }
@@ -71,14 +73,31 @@ extension Yarn {
                 grams             : item.grams != 0 ? Int(item.grams) : nil,
                 hasBeenWeighed    : Int(item.hasBeenWeighed),
                 totalGrams        : item.totalGrams != 0 ? item.totalGrams : nil,
-                skeins            : item.skeins,
+                skeins            : item.currentSkeins,
                 hasPartialSkein   : item.hasPartialSkein,
-                exactLength       : item.exactLength,
-                approximateLength : item.approxLength,
+                length            : item.currentLength,
                 parent            : WeightAndYardageParent(rawValue: item.parent!)!,
                 hasExactLength    : Int(item.hasExactLength),
                 existingItem      : item
             )
         }
+    }
+    
+    var weightAndYardage1 : [WeightAndYardage] {
+        let weightsAndYardages = weightAndYardages?.allObjects as? [WeightAndYardage] ?? []
+        
+        return weightsAndYardages.sorted { $0.order < $1.order}
+    }
+    
+    // Static function to create the fetch request with propertiesToFetch
+    static func fetchPartialRequest() -> NSFetchRequest<Yarn> {
+        let request = NSFetchRequest<Yarn>(entityName: "Yarn")
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \Yarn.dyer, ascending: true)]
+        
+        // Specify the properties you want to fetch
+        request.propertiesToFetch = ["dyer", "isArchived"] // List properties to fetch
+        request.resultType = .managedObjectResultType
+        
+        return request
     }
 }

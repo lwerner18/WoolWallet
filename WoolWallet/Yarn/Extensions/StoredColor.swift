@@ -31,6 +31,7 @@ extension StoredColor {
         storedColor.blue = Double(components[2])
         storedColor.alpha = Double(components[3])
         storedColor.name = data.name
+        storedColor.colorDescription = data.description
         
         return storedColor
     }

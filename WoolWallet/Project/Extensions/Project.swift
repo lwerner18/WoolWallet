@@ -25,13 +25,16 @@ extension Project {
     }
     
     var projectPairingItems: [ProjectPairingItem] {
-        let pairings = pairings?.allObjects as? [ProjectPairing] ?? []
+        let pairingItems = pairings?.allObjects as? [ProjectPairing] ?? []
         
-        return pairings.map { pairing in
+        let sortedPairings = pairingItems.sorted { $0.patternWeightAndYardage!.order < $1.patternWeightAndYardage!.order}
+        
+        return sortedPairings.map { pairing in
             return ProjectPairingItem(
                 id : pairing.id!,
                 patternWeightAndYardage : pairing.patternWeightAndYardage!,
                 yarnWeightAndYardage : pairing.yarnWeightAndYardage!,
+                lengthUsed: pairing.lengthUsed,
                 existingItem: pairing
             )
         }
@@ -39,5 +42,17 @@ extension Project {
     
     var rowCounterItems: [RowCounter] {
         return rowCounters?.allObjects as? [RowCounter] ?? []
+    }
+    
+    // Static function to create the fetch request with propertiesToFetch
+    static func fetchPartialRequest() -> NSFetchRequest<Project> {
+        let request = NSFetchRequest<Project>(entityName: "Project")
+        request.sortDescriptors = []
+        
+        // Specify the properties you want to fetch
+        request.propertiesToFetch = ["inProgress", "complete"] // List properties to fetch
+        request.resultType = .managedObjectResultType
+        
+        return request
     }
 }

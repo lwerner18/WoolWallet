@@ -26,8 +26,7 @@ struct WeightAndYardageData {
     var totalGrams        : Double? = nil
     var skeins            : Double = 1
     var hasPartialSkein   : Bool = false
-    var exactLength       : Double? = nil
-    var approximateLength : Double? = nil
+    var length            : Double? = nil
     var parent            : WeightAndYardageParent = WeightAndYardageParent.yarn
     var hasExactLength    : Int = -1
     var existingItem      : WeightAndYardage? = nil
@@ -41,8 +40,7 @@ struct WeightAndYardageData {
         || totalGrams != nil
         || skeins != 1
         || hasPartialSkein != false
-        || exactLength != nil
-        || approximateLength != nil
+        || length != nil
         || hasExactLength != -1
     }
 }
@@ -141,16 +139,16 @@ struct WeightAndYardageForm: View {
                         weightAndYardage.yardage = Double(String(format : "%.2f", yardsToMeters * weightAndYardage.yardage!))!
                     }
                     
-                    if weightAndYardage.hasExactLength == 1 && weightAndYardage.exactLength != nil {
-                        weightAndYardage.exactLength = Double(String(format : "%.2f", yardsToMeters * weightAndYardage.exactLength!))!
+                    if weightAndYardage.hasExactLength == 1 && weightAndYardage.length != nil {
+                        weightAndYardage.length = Double(String(format : "%.2f", yardsToMeters * weightAndYardage.length!))!
                     }
                 } else {
                     if weightAndYardage.yardage != nil {
                         weightAndYardage.yardage = Double(String(format : "%.2f", weightAndYardage.yardage! / yardsToMeters))!
                     }
                     
-                    if weightAndYardage.hasExactLength == 1 && weightAndYardage.exactLength != nil {
-                        weightAndYardage.exactLength = Double(String(format : "%.2f", weightAndYardage.exactLength! / yardsToMeters))!
+                    if weightAndYardage.hasExactLength == 1 && weightAndYardage.length != nil {
+                        weightAndYardage.length = Double(String(format : "%.2f", weightAndYardage.length! / yardsToMeters))!
                     }
                 }
             }
@@ -164,7 +162,7 @@ struct WeightAndYardageForm: View {
             .keyboardType(.decimalPad)
             .onChange(of: weightAndYardage.yardage) {
                 if weightAndYardage.yardage != nil {
-                    weightAndYardage.approximateLength = weightAndYardage.yardage! * weightAndYardage.skeins
+                    weightAndYardage.length = weightAndYardage.yardage! * weightAndYardage.skeins
                 }
             }
             
@@ -182,8 +180,8 @@ struct WeightAndYardageForm: View {
                 header: Text("Do you know how many \(weightAndYardage.unitOfMeasure.rawValue.lowercased()) you need?"),
                 footer : order == totalCount - 1
                 ? AnyView(HStack {
-                    if weightAndYardage.exactLength != nil {
-                        Text("\(String(format: "%g", weightAndYardage.exactLength!)) \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
+                    if weightAndYardage.length != nil {
+                        Text("\(String(format: "%g", weightAndYardage.length!)) \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
                     }
                     
                     Spacer()
@@ -205,14 +203,13 @@ struct WeightAndYardageForm: View {
                 .pickerStyle(SegmentedPickerStyle())
                 .onChange(of: weightAndYardage.hasExactLength) {
                     weightAndYardage.skeins = 1
-                    weightAndYardage.exactLength = nil
-                    weightAndYardage.approximateLength = nil
+                    weightAndYardage.length = nil
                 }
                 
                 if weightAndYardage.hasExactLength == 1 {
                     TextField(
                         "Length Needed (in \(weightAndYardage.unitOfMeasure.rawValue.lowercased()))",
-                        value: $weightAndYardage.exactLength,
+                        value: $weightAndYardage.length,
                         format: .number
                     )
                     .keyboardType(.decimalPad)
@@ -221,15 +218,15 @@ struct WeightAndYardageForm: View {
                     Stepper("Skeins: \(String(format: "%g", weightAndYardage.skeins))", value: $weightAndYardage.skeins, in: 1...50)
                         .onChange(of: weightAndYardage.skeins) {
                             if weightAndYardage.yardage != nil {
-                                weightAndYardage.approximateLength = weightAndYardage.yardage! * weightAndYardage.skeins
+                                weightAndYardage.length = weightAndYardage.yardage! * weightAndYardage.skeins
                             }
                         }
                     
-                    if weightAndYardage.approximateLength != nil {
+                    if weightAndYardage.length != nil {
                         HStack {
                             Text("Estimated Length Needed")
                             Spacer()
-                            Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.approximateLength!)) ?? "0") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
+                            Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.length!)) ?? "0") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
                         }
                     }
                 }
@@ -263,12 +260,11 @@ struct WeightAndYardageForm: View {
                     weightAndYardage.skeins = 1
                     weightAndYardage.hasPartialSkein = false
                     weightAndYardage.totalGrams = nil
-                    weightAndYardage.exactLength = nil
                     
                     if weightAndYardage.yardage != nil {
-                        weightAndYardage.approximateLength = weightAndYardage.yardage! * weightAndYardage.skeins
+                        weightAndYardage.length = weightAndYardage.yardage! * weightAndYardage.skeins
                     } else {
-                        weightAndYardage.approximateLength = nil
+                        weightAndYardage.length = nil
                     }
                 }
                 
@@ -283,20 +279,20 @@ struct WeightAndYardageForm: View {
                                 
                                 if weightAndYardage.yardage != nil {
                                     withAnimation {
-                                        weightAndYardage.exactLength = (weightAndYardage.yardage! * Double(weightAndYardage.totalGrams!)) / Double(weightAndYardage.grams!)
+                                        weightAndYardage.length = (weightAndYardage.yardage! * Double(weightAndYardage.totalGrams!)) / Double(weightAndYardage.grams!)
                                     }
                                 }
                             }
                         }
                         .transition(.slide)
                     
-                    if weightAndYardage.exactLength != nil && weightAndYardage.totalGrams != nil {
+                    if weightAndYardage.length != nil && weightAndYardage.totalGrams != nil {
                         HStack {
                             Text("Length")
                             
                             Spacer()
                             
-                            Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.exactLength!)) ?? "0") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
+                            Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.length!)) ?? "0") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
                         }
                         .transition(.slide)
                     }
@@ -313,17 +309,22 @@ struct WeightAndYardageForm: View {
                     Stepper("Skeins: \(String(format: "%g", weightAndYardage.skeins))", value: $weightAndYardage.skeins, in: 1...50)
                         .onChange(of: weightAndYardage.skeins) {
                             if weightAndYardage.yardage != nil {
-                                weightAndYardage.approximateLength = weightAndYardage.yardage! * weightAndYardage.skeins
+                                weightAndYardage.length = weightAndYardage.yardage! * weightAndYardage.skeins
+                            }
+                        }
+                        .onAppear {
+                            if weightAndYardage.yardage != nil {
+                                weightAndYardage.length = weightAndYardage.yardage! * weightAndYardage.skeins
                             }
                         }
                     
                     Toggle("Partial Skein", isOn: $weightAndYardage.hasPartialSkein)
                     
-                    if weightAndYardage.approximateLength != nil {
+                    if weightAndYardage.length != nil {
                         HStack {
                             Text("Length Estimate")
                             Spacer()
-                            Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.approximateLength!)) ?? "0") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
+                            Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.length!)) ?? "0") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
                         }
                     }
                 }

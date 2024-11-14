@@ -33,6 +33,7 @@ struct AddOrEditYarnForm: View {
     @State private var processingColor       : Bool = false
     @State private var maskImage             : UIImage? // This will hold the segmentation mask image
     @State private var imagesChanged         : Bool = false
+    @State private var errorParsingColor     : Bool = false
     
     // Form fields
     @State private var name              : String = ""
@@ -193,7 +194,14 @@ struct AddOrEditYarnForm: View {
                 if maskImage != nil {
                     DispatchQueue.global(qos: .background).async {
                         print("Starting to parse color in background")
-                        let distinctColors = AnalyzeColorUtils.shared.yarnColors(from: images.first!.image, with: maskImage!)
+                        
+                        var distinctColors : [Color] = []
+                        do {
+                            try distinctColors = AnalyzeColorUtils.shared.yarnColors(from: images.first!.image, with: maskImage!)
+                        } catch {
+                            print("Failed to fetch parse color: \(error)")
+                            distinctColors = [Color.white]
+                        }
                         
                         DispatchQueue.main.async { // Ensure UI updates are performed on the main thread
                             print("Done parsing color")
@@ -316,7 +324,7 @@ struct AddOrEditYarnForm: View {
                 if !weightAndYardages.contains(where: {element in element.id == item.id}) {
                     let existingItem = item.existingItem!
                     
-                    existingItem.yarnPairing?.forEach { managedObjectContext.delete($0 as! NSManagedObject) }
+                    existingItem.yarnPairings?.forEach { managedObjectContext.delete($0 as! NSManagedObject) }
                     
                     managedObjectContext.delete(existingItem)
                 }
