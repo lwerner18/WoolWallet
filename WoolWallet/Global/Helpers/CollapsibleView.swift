@@ -18,12 +18,26 @@ struct CollapsibleView<Label, Content>: View where Label: View, Content: View {
     @ViewBuilder let content: () -> Content
     
     var body: some View {
+//        DisclosureGroup(isExpanded: $isSecondaryViewVisible) {
+//            content()
+//        } label : {
+//            if useInfoCard {
+//                InfoCard(backgroundColor: Color.accentColor.opacity(0.1)) {
+//                    CollapsibleViewHeader(label: label, isSecondaryViewVisible: isSecondaryViewVisible, showArrows: showArrows)
+//                }
+//            } else {
+//                CollapsibleViewHeader(label: label, isSecondaryViewVisible: isSecondaryViewVisible, showArrows: showArrows)
+//            }
+//        }
+//        .onAppear {
+//            if openByDefault {
+//                isSecondaryViewVisible = true
+//            }
+//        }
+        
         Group {
             Button {
-                withAnimation {
-                    isSecondaryViewVisible.toggle()
-                }
-                
+                isSecondaryViewVisible.toggle()
             } label: {
                 if useInfoCard {
                     InfoCard(backgroundColor: Color.accentColor.opacity(0.1)) {
@@ -37,9 +51,7 @@ struct CollapsibleView<Label, Content>: View where Label: View, Content: View {
             if isSecondaryViewVisible {
                 content()
                     .onTapGesture {
-                        withAnimation {
-                            isSecondaryViewVisible.toggle()
-                        }
+                        isSecondaryViewVisible.toggle()
                     }
             }
         }

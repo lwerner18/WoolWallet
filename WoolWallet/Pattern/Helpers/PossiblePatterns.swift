@@ -87,6 +87,7 @@ struct PossiblePatterns: View {
                                             Text(
                                                 PatternUtils.shared.joinedItems(patternItems: pattern.patternItems)
                                             )
+                                            .multilineTextAlignment(.center)
                                             .foregroundStyle(Color(UIColor.secondaryLabel))
                                             
                                             Spacer()

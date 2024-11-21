@@ -68,7 +68,7 @@ struct PostCompleteForm: View {
                 Section(
                     header : Text(project.projectPairingItems.count > 1 ? text : "Yarn"),
                     footer : provideWeight && remainingWeights[index] != nil
-                    ? AnyView(Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: remainingWeights[index]!)) ?? "0") grams"))
+                    ? AnyView(Text("\(remainingWeights[index]!.formatted) grams"))
                     : AnyView(EmptyView())
                 ) {
                     Toggle("Provide Remaining Weight", isOn: $provideRemainingWeight[index])
@@ -103,6 +103,8 @@ struct PostCompleteForm: View {
                                 }
                             }
                             
+                            yarnWAndY.totalGrams = remainingWeight
+                            
                             pairing.lengthUsed = previousLength - yarnWAndY.currentLength
                         } else {
                             pairing.lengthUsed = pairing.patternWeightAndYardage!.currentLength
@@ -113,6 +115,11 @@ struct PostCompleteForm: View {
                                 if yarnWAndY.currentSkeins > 0 && yarnWAndY.yardage > 0 {
                                     yarnWAndY.currentSkeins = yarnWAndY.currentLength / yarnWAndY.yardage
                                 }
+                                
+                                
+                                if yarnWAndY.totalGrams > 0 && yarnWAndY.yardage > 0 && yarnWAndY.grams > 0 {
+                                    yarnWAndY.totalGrams = (yarnWAndY.currentLength * Double(yarnWAndY.grams)) / yarnWAndY.yardage
+                                }
                             }
                         }
                         
@@ -120,7 +127,7 @@ struct PostCompleteForm: View {
                             yarnWAndY.currentSkeins = 0
                         }
                         
-                        if yarnWAndY.currentLength < 0 {
+                        if yarnWAndY.currentLength <= 0 {
                             yarnWAndY.currentLength = 0
                             yarnWAndY.yarn?.isArchived = true
                         }

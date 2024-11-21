@@ -25,13 +25,6 @@
         <attribute name="size" optional="YES" attributeType="String"/>
         <relationship name="pattern" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Pattern" inverseName="needles" inverseEntity="Pattern"/>
     </entity>
-    <entity name="LengthHistory" representedClassName="LengthHistory" syncable="YES" codeGenerationType="class">
-        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="isCurrent" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="isExact" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="length" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="skeins" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-    </entity>
     <entity name="Notion" representedClassName="Notion" syncable="YES" codeGenerationType="class">
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="notion" optional="YES" attributeType="String"/>
@@ -45,7 +38,8 @@
         <attribute name="intendedSize" optional="YES" attributeType="String"/>
         <attribute name="name" attributeType="String"/>
         <attribute name="notes" optional="YES" attributeType="String"/>
-        <attribute name="oneSize" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="oneSize" attributeType="Boolean" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="owned" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
         <attribute name="type" attributeType="String"/>
         <relationship name="hooks" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CrochetHook" inverseName="pattern" inverseEntity="CrochetHook"/>
         <relationship name="images" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="StoredImage" inverseName="pattern" inverseEntity="StoredImage"/>
@@ -114,6 +108,11 @@
         <attribute name="technique" optional="YES" attributeType="String"/>
         <attribute name="techniqueDescription" optional="YES" attributeType="String"/>
         <relationship name="pattern" maxCount="1" deletionRule="Nullify" destinationEntity="Pattern" inverseName="techniques" inverseEntity="Pattern"/>
+    </entity>
+    <entity name="UnusedSkeinsHistory" representedClassName="UnusedSkeinsHistory" syncable="YES" codeGenerationType="class">
+        <attribute name="date" attributeType="Date" defaultDateTimeInterval="753598980" usesScalarValueType="NO"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="skeins" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
     </entity>
     <entity name="WeightAndYardage" representedClassName="WeightAndYardage" syncable="YES" codeGenerationType="class">
         <attribute name="currentLength" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>

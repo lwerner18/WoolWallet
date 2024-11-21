@@ -22,7 +22,7 @@ struct RecYarnHeader: View {
             if weightAndYardage.length != nil && weightAndYardage.length! > 0 {
                 Spacer()
                 
-                Text("\(weightAndYardage.hasExactLength == 1 ? "" : "~")\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.length!)) ?? "1") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
+                Text("\(weightAndYardage.hasExactLength == 1 ? "" : "~")\(weightAndYardage.length!.formatted) \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
                     .foregroundStyle(Color(UIColor.secondaryLabel))
             }
         }

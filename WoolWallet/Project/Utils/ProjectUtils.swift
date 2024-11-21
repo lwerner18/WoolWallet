@@ -20,6 +20,11 @@ class ProjectUtils {
         
         context.delete(project)
         
-        PersistenceController.shared.save()
+        do {
+            try PersistenceController.shared.save()
+        } catch {
+            // Handle the error appropriately.
+            print("Failed to save context: \(error.localizedDescription)")
+        }
     }
 }

@@ -19,13 +19,12 @@ struct ImageCarousel: View {
     @Binding var images: [ImageData]
     var editMode: Bool = false
     var size : Size = Size.medium
-    var editExistingImages : Bool? = false
+    var editExistingImages : Bool = false
 
     @State private var showPhotoPicker : Bool = false
     @State private var selectedImages = [PhotosPickerItem]()
     @State private var showCamera : Bool = false
-    @State private var capturedImage : UIImage?
-    
+    @State private var capturedImage : UIImage? = nil
     
     var body: some View {
         VStack {
@@ -60,6 +59,12 @@ struct ImageCarousel: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 20.0))
                                 .tag(imageIndex)
                                 .containerRelativeFrame(.horizontal)
+//                                .scaleEffect(2)
+//                                .onTapGesture(count: 2) { location in
+//                                    withAnimation {
+//                                        scale = scale == 1 ? 2 : 1
+//                                    }
+//                                }
                                 .overlay(
                                     editMode
                                     ? AnyView(Button(action: {
@@ -101,7 +106,7 @@ struct ImageCarousel: View {
         .onChange(of: selectedImages) {
             if editMode {
                 Task {
-                    if !editExistingImages! {
+                    if !editExistingImages {
                         images.removeAll()
                     }
                     
@@ -119,7 +124,7 @@ struct ImageCarousel: View {
         .onChange(of: capturedImage) {
             if editMode && capturedImage != nil {
                 Task {
-                    if !editExistingImages! {
+                    if !editExistingImages {
                         images.removeAll()
                     }
                     

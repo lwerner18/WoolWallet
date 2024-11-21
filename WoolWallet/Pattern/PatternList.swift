@@ -72,6 +72,15 @@ struct PatternList: View {
             predicates.append(compoundPredicate)
         }
         
+        if owned != nil {
+            // sock sets only
+            if owned! {
+                predicates.append(NSPredicate(format: "owned = %@", true as NSNumber))
+            } else {
+                predicates.append(NSPredicate(format: "owned = %@", NSNumber(value: false)))
+            }
+        }
+        
         switch(selectedTab) {
         case .notUsed:
             predicates.append(NSPredicate(format: "projects.@count == 0"))
@@ -110,7 +119,7 @@ struct PatternList: View {
     }
     
     var showFilterCapsules : Bool {
-        return !selectedItems.isEmpty || !selectedTypes.isEmpty || !selectedWeights.isEmpty
+        return !selectedItems.isEmpty || !selectedTypes.isEmpty || !selectedWeights.isEmpty || owned != nil
     }
     
     @State private var showConfirmationDialog : Bool = false
@@ -123,6 +132,7 @@ struct PatternList: View {
     @State private var selectedItems          : [Item] = []
     @State private var selectedTypes          : [PatternType] = []
     @State private var selectedWeights        : [Weight] = []
+    @State private var owned                  : Bool? = nil
     @State private var selectedTab            : PatternTab = PatternTab.all
     @State private var isRefreshing           : Bool = false
                      
@@ -136,7 +146,8 @@ struct PatternList: View {
                     showFilterScreen: $showFilterScreen,
                     selectedItems: $selectedItems,
                     selectedTypes : $selectedTypes,
-                    selectedWeights : $selectedWeights
+                    selectedWeights : $selectedWeights,
+                    owned : $owned
                 )
             }
             
@@ -312,6 +323,7 @@ struct PatternList: View {
                                             Text(
                                                 PatternUtils.shared.joinedItems(patternItems: pattern.patternItems)
                                             )
+                                            .multilineTextAlignment(.center)
                                             .foregroundStyle(Color(UIColor.secondaryLabel))
                                             .font(.caption2)
                                         }
@@ -408,6 +420,7 @@ struct PatternList: View {
                     selectedItems: $selectedItems,
                     selectedTypes: $selectedTypes,
                     selectedWeights: $selectedWeights,
+                    owned : $owned,
                     filteredPatternCount: filteredPatterns.count
                 )
             }
@@ -423,6 +436,7 @@ struct PatternFilter : Hashable {
     var type : PatternType? = nil
     var item : Item? = nil
     var weight : Weight? = nil
+    var owned : Bool? = nil
     var last : Bool = false
 }
 
@@ -431,6 +445,7 @@ struct PatternFilterCapsules : View {
     @Binding var selectedItems    : [Item]
     @Binding var selectedTypes    : [PatternType]
     @Binding var selectedWeights  : [Weight]
+    @Binding var owned            : Bool?
     
     var patternFilters: [PatternFilter] {
         var filterItems : [PatternFilter] = []
@@ -445,6 +460,10 @@ struct PatternFilterCapsules : View {
         
         selectedItems.forEach { item in
             filterItems.append(PatternFilter(item : item))
+        }
+        
+        if owned != nil {
+            filterItems.append(PatternFilter(owned : owned))
         }
         
         filterItems.append(PatternFilter(last: true))
@@ -485,6 +504,12 @@ struct PatternFilterCapsules : View {
                         Text(patternFilter.item!.rawValue)
                             .foregroundColor(Color(UIColor.secondaryLabel))
                     }
+                } else if patternFilter.owned != nil {
+                    FilterCapsule(
+                        text : patternFilter.owned! ? "Owned" : "Not Owned",
+                        showX: true,
+                        onClick : { owned = nil }
+                    )
                 } else if patternFilter.last {
                     Button(action: {
                         showFilterScreen = true

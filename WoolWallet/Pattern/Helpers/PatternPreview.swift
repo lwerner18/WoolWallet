@@ -46,15 +46,16 @@ struct PatternPreview: View {
                 Text(
                     PatternUtils.shared.joinedItems(patternItems: pattern.patternItems)
                 )
+                .multilineTextAlignment(.center)
                 .foregroundStyle(Color(UIColor.secondaryLabel))
                 
                 Spacer()
                 
-                if pattern.oneSize != 0 {
+                if pattern.oneSize {
                     Text("One Size")
                         .foregroundStyle(Color(UIColor.secondaryLabel))
                         .font(.caption)
-                } else if pattern.intendedSize != nil {
+                } else if pattern.intendedSize != nil && pattern.intendedSize != "" {
                     Text("Intended size: \(pattern.intendedSize!)")
                         .foregroundStyle(Color(UIColor.secondaryLabel))
                         .font(.caption)

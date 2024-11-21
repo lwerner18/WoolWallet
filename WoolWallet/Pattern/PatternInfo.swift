@@ -56,8 +56,14 @@ struct PatternInfo: View {
         
         props.append(DetailProp(text: pattern.type!, icon: pattern.type == PatternType.knit.rawValue ? "knit" : "crochet2", useImage: true))
         
-        if pattern.oneSize == 1 {
+        if pattern.oneSize {
             props.append(DetailProp(text: "One Size", icon: "hand.point.up"))
+        }
+        
+        if pattern.owned {
+            props.append(DetailProp(text: "Owned", icon: "tag"))
+        } else {
+            props.append(DetailProp(text: "Not Owned", icon: "tag.slash"))
         }
         
         let projectsNum = pattern.projects?.count ?? 0
@@ -114,6 +120,7 @@ struct PatternInfo: View {
                                 Text(
                                     PatternUtils.shared.joinedItems(patternItems: pattern.patternItems)
                                 )
+                                .multilineTextAlignment(.center)
                                 .font(.headline)
                                 .bold()
                                 .foregroundStyle(Color.primary)
@@ -132,21 +139,21 @@ struct PatternInfo: View {
                             }
                         }
                         
-                        if pattern.weightAndYardageItems.count > 3 {
+                        if pattern.weightAndYardageArray.count > 3 {
                             ForEach(pattern.weightAndYardageItems.indices, id: \.self) { index in
                                 let item : WeightAndYardageData = pattern.weightAndYardageItems[index]
                                 
                                 InfoCard() {
                                     CollapsibleView(
                                         label : {
-                                            RecYarnHeader(count: pattern.weightAndYardageItems.count, index: index, weightAndYardage: item)
+                                            RecYarnHeader(count: pattern.weightAndYardageArray.count, index: index, weightAndYardage: item)
                                         },
                                         showArrows : true
                                     ) {
                                         ViewWeightAndYardage(
                                             weightAndYardage: item.existingItem!,
                                             isSockSet: false,
-                                            totalCount: pattern.weightAndYardageItems.count,
+                                            totalCount: pattern.weightAndYardageArray.count,
                                             hideName : true
                                         )
                                     }
@@ -157,13 +164,13 @@ struct PatternInfo: View {
                                 }
                             }
                         } else {
-                            ForEach(pattern.weightAndYardageItems.indices, id: \.self) { index in
-                                let item : WeightAndYardageData = pattern.weightAndYardageItems[index]
+                            ForEach(pattern.weightAndYardageArray.indices, id: \.self) { index in
+                                let item : WeightAndYardage = pattern.weightAndYardageArray[index]
                                 
                                 ViewWeightAndYardage(
-                                    weightAndYardage: item.existingItem!,
+                                    weightAndYardage: item,
                                     isSockSet: false,
-                                    totalCount: pattern.weightAndYardageItems.count
+                                    totalCount: pattern.weightAndYardageArray.count
                                 )
                                 
                                 if let suggestion : YarnSuggestion = yarnSuggestions.first(where: {$0.patternWAndY.id == item.id}) {

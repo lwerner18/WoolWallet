@@ -86,14 +86,14 @@ struct YarnPreviewForProject: View {
                 let length = project.complete ? projectPairing.lengthUsed : projectPairing.patternWeightAndYardage?.currentLength ?? 0
                 let verb = project.inProgress ? "Using" : project.complete ? "Used" : "Requires"
                 
-                Text("\(verb) \(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: length)) ?? "1") \(unit)")
+                Text("\(verb) \(length.formatted) \(unit)")
                     .font(.title3)
                     .foregroundStyle(Color.primary)
                 
                 Spacer()
                 
                 if yarnWandY.yardage > 0 && yarnWandY.grams > 0 {
-                    Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: yarnWandY.yardage)) ?? "") \(unit) / \(yarnWandY.grams) grams")
+                    Text("\(yarnWandY.yardage.formatted) \(unit) / \(yarnWandY.grams) grams")
                         .font(.caption)
                         .foregroundStyle(Color(UIColor.secondaryLabel))
                 }

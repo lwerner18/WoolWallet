@@ -88,7 +88,6 @@ struct YarnList: View {
     
     // Computed property to get all the yarn with an optional searchText
     private var filteredYarn: FetchedResults<Yarn> {
-        
         // Apply sorting
         filteredFetchRequest.wrappedValue.nsSortDescriptors = [NSSortDescriptor(keyPath: \Yarn.name, ascending: true)]
         
@@ -366,7 +365,7 @@ struct YarnList: View {
                     projectPairing.append(
                         ProjectPairingItem(
                             patternWeightAndYardage: patternWAndYBrowsingFor!,
-                            yarnWeightAndYardage: addedYarn.weightAndYardageItems.first!.existingItem!
+                            yarnWeightAndYardage: addedYarn.weightAndYardageArray.first!
                         )
                     )
                     browseMode = false
@@ -473,14 +472,16 @@ struct YarnFilterCapsules : View {
                             }
                         }
                     ) {
-                        // Diamond-shaped color view
-                        Circle()
-                            .fill(Color(uiColor : yarnFilter.color!.colors[0]))
-                            .frame(width: 13, height: 13)
-                            .overlay(
-                                Circle()
-                                    .stroke(Color.black, lineWidth: 0.5) // Black border with width
-                            )
+                        if yarnFilter.color!.name != "Other" {
+                            // Diamond-shaped color view
+                            Circle()
+                                .fill(Color(uiColor : yarnFilter.color!.colors[0]))
+                                .frame(width: 13, height: 13)
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.black, lineWidth: 0.5) // Black border with width
+                                )
+                        }
     
                         Text(yarnFilter.color!.name)
                             .foregroundColor(Color(UIColor.secondaryLabel))

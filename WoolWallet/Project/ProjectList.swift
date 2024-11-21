@@ -11,6 +11,7 @@ import SwiftUI
 struct ProjectList: View {
     // @Environment variables
     @Environment(\.managedObjectContext) var managedObjectContext
+    @Environment(\.projectToShowAutomatically) var projectToShowAutomatically : Binding<Project?>
     
     @State private var showAddProjectForm     : Bool = false
     @State private var newProject             : Project? = nil
@@ -197,6 +198,16 @@ struct ProjectList: View {
                         ForEach(filteredProjects, id : \.id) { project in
                             NavigationLink(
                                 destination: ProjectInfo(project: project, selectedTab : $selectedTab)
+//                                isActive :  Binding(
+//                                    get: { projectToShowAutomatically.wrappedValue == project },
+//                                    set: { isActive in
+//                                        if isActive {
+//                                            projectToShowAutomatically.wrappedValue = project
+//                                        } else if projectToShowAutomatically.wrappedValue == project {
+//                                            projectToShowAutomatically.wrappedValue = nil
+//                                        }
+//                                    }
+//                                )
                             ) {
                                 HStack {
                                     

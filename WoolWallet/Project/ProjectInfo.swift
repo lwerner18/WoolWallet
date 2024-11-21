@@ -330,11 +330,33 @@ struct ProjectInfo: View {
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Menu {
-                            Button {
-                                showEditProjectForm = true
-                            } label : {
-                                Label("Edit", systemImage : "pencil")
+                            
+                            ControlGroup {
+                                Button {
+                                    showEditProjectForm = true
+                                } label : {
+                                    Label("Edit", systemImage : "pencil")
+                                }
+                                
+                                Button {
+                                    let newRowCounter = RowCounter(context: managedObjectContext)
+                                    newRowCounter.name = "Row Counter \(project.rowCounterItems.count)"
+                                    newRowCounter.project = project
+                                    
+                                    PersistenceController.shared.save()
+                                    
+                                    rowCounter = newRowCounter
+                                } label : {
+                                    Label("Add Row Counter", systemImage : "number")
+                                }
+                                
+                                Button(role: .destructive) {
+                                    showConfirmationDialog = true
+                                } label: {
+                                    Label("Delete", systemImage : "trash")
+                                }
                             }
+                          
                             
                             if project.inProgress {
                                 Button {
@@ -393,23 +415,7 @@ struct ProjectInfo: View {
                                 }
                             }
                             
-                            Button {
-                                let newRowCounter = RowCounter(context: managedObjectContext)
-                                newRowCounter.name = "Row Counter \(project.rowCounterItems.count)"
-                                newRowCounter.project = project
-                                
-                                PersistenceController.shared.save()
-                                
-                                rowCounter = newRowCounter
-                            } label : {
-                                Label("Add Row Counter", systemImage : "number")
-                            }
-                            
-                            Button(role: .destructive) {
-                                showConfirmationDialog = true
-                            } label: {
-                                Label("Delete", systemImage : "trash")
-                            }
+                          
                             
                         } label: {
                             Label("more", systemImage : "ellipsis")

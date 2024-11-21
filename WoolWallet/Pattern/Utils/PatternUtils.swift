@@ -31,6 +31,8 @@ class PatternUtils {
         pattern.needles?.forEach              { context.delete($0 as! NSManagedObject) }
         pattern.projects?.forEach             { context.delete($0 as! NSManagedObject) }
         pattern.recCompositions?.forEach      { context.delete($0 as! NSManagedObject) }
+        pattern.techniques?.forEach           { context.delete($0 as! NSManagedObject) }
+        pattern.notions?.forEach              { context.delete($0 as! NSManagedObject) }
         
         pattern.recWeightAndYardages?.forEach {
             let item = $0 as! WeightAndYardage
@@ -42,7 +44,12 @@ class PatternUtils {
         
         context.delete(pattern)
         
-        PersistenceController.shared.save()
+        do {
+            try PersistenceController.shared.save()
+        } catch {
+            // Handle the error appropriately.
+            print("Failed to save context: \(error.localizedDescription)")
+        }
     }
     
     func getItemDisplay(for item: Item?) -> ItemDisplay {
@@ -54,6 +61,7 @@ class PatternUtils {
         switch item {
         case .shirt     : return ItemDisplay(color: Color(hex : "#FFB3BA"), icon: "tshirt")
         case .sweater   : return ItemDisplay(color: Color(hex : "#FFA500"), custom: true, icon: "sweater")
+        case .shawl     : return ItemDisplay(color: Color(hex : "#A9C78A"), custom: true, icon: "shawl")
         case .beanie    : return ItemDisplay(color: Color(hex : "#A6B65C"), custom: true, icon: "beanie")
         case .socks     : return ItemDisplay(color: Color(hex : "#C76A4D"), custom: true, icon: "sock")
         case .blanket   : return ItemDisplay(color: Color(hex : "#FFD2A6"), custom: true, icon: "blanket")
@@ -62,6 +70,7 @@ class PatternUtils {
         case .cardigan  : return ItemDisplay(color: Color(hex : "#B68BCE"), custom: true, icon: "cardigan")
         case .bag       : return ItemDisplay(color: Color(hex : "#76B2B8"), icon: "handbag")
         case .tankTop   : return ItemDisplay(color: Color(hex : "#B0E0E6"), custom: true, icon: "tanktop")
+        case .vest      : return ItemDisplay(color: Color(hex : "#D4C4FB"), custom: true, icon: "vest")
         case .household : return ItemDisplay(color: Color(hex : "#DAA520"), icon: "house")
         default         : return ItemDisplay(color: Color(hex : "#E7D46E"), icon: "questionmark")
         }

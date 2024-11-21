@@ -15,13 +15,6 @@ struct ConditionalStack<Content: View>: View {
         self.content = content()
     }
     
-//    var isPortraitMode: Bool {
-//        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-//            return windowScene.interfaceOrientation.isPortrait
-//        }
-//        return false
-//    }
-    
     var body: some View {
         Group {
             if GlobalSettings.shared.isPortraitMode {

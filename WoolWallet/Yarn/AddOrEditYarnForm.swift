@@ -254,23 +254,32 @@ struct AddOrEditYarnForm: View {
     }
     
     private func createOrUpdateYarn() {
-        if yarnToEdit == nil {
-            existingYarn = getExistingYarn(name: name, dyer : dyer, in: managedObjectContext)
-            
-            if existingYarn != nil {
-                showExistingYarnAlert = true
-            }
-        }
+//        if yarnToEdit == nil && weightAndYardages.first?.skeins > 0 {
+//            existingYarn = getExistingYarn(name: name, dyer : dyer, in: managedObjectContext)
+//            
+//            if existingYarn != nil {
+//                showExistingYarnAlert = true
+//            }
+//        }
+//        
+//        if !showExistingYarnAlert {
+//            let newYarn = persistYarn(yarn: yarnToEdit == nil ? Yarn(context: managedObjectContext) : yarnToEdit!)
+//            
+//            if onAdd != nil {
+//                onAdd!(newYarn)
+//            } else {
+//                hideKeyboard()
+//                dismiss()
+//            }
+//        }
         
-        if !showExistingYarnAlert {
-            let newYarn = persistYarn(yarn: yarnToEdit == nil ? Yarn(context: managedObjectContext) : yarnToEdit!)
-            
-            if onAdd != nil {
-                onAdd!(newYarn)
-            } else {
-                hideKeyboard()
-                dismiss()
-            }
+        let newYarn = persistYarn(yarn: yarnToEdit == nil ? Yarn(context: managedObjectContext) : yarnToEdit!)
+        
+        if onAdd != nil {
+            onAdd!(newYarn)
+        } else {
+            hideKeyboard()
+            dismiss()
         }
     }
     
@@ -320,13 +329,11 @@ struct AddOrEditYarnForm: View {
         
         // delete any items that we don't need anymore
         if yarnToEdit != nil {
-            yarnToEdit?.weightAndYardageItems.forEach { item in
+            yarnToEdit?.weightAndYardageArray.forEach { item in
                 if !weightAndYardages.contains(where: {element in element.id == item.id}) {
-                    let existingItem = item.existingItem!
+                    item.yarnPairings?.forEach { managedObjectContext.delete($0 as! NSManagedObject) }
                     
-                    existingItem.yarnPairings?.forEach { managedObjectContext.delete($0 as! NSManagedObject) }
-                    
-                    managedObjectContext.delete(existingItem)
+                    managedObjectContext.delete(item)
                 }
             }
             
@@ -403,7 +410,7 @@ struct AddOrEditYarnForm: View {
     
     func getExistingYarn(name: String, dyer : String, in context: NSManagedObjectContext) -> Yarn? {
         let fetchRequest: NSFetchRequest<Yarn> = Yarn.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "name ==[c] %@ AND dyer ==[c] %@", name, dyer)
+        fetchRequest.predicate = NSPredicate(format: "name ==[c] %@ AND dyer ==[c] %@ AND isSockSet == false", name, dyer)
         
         do {
             return try context.fetch(fetchRequest).first

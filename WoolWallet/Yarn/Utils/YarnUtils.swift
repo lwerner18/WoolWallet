@@ -14,9 +14,7 @@ class YarnUtils {
     private init() {}
     
     func getSkeinsText(skeins : Double) -> String {
-        let formattedSkeins = GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: skeins)) ?? "1"
-        
-        return "\(formattedSkeins) skein\(skeins > 1 ? "s" : "")"
+        return "\(skeins.formatted) skein\(skeins > 1 ? "s" : "")"
     }
     
     func toggleYarnArchived(at yarn: Yarn) {
@@ -43,7 +41,12 @@ class YarnUtils {
         
         context.delete(yarn)
         
-        PersistenceController.shared.save()
+        do {
+            try PersistenceController.shared.save()
+        } catch {
+            // Handle the error appropriately.
+            print("Failed to save context: \(error.localizedDescription)")
+        }
     }
     
     func getMaterial(item : CompositionItem) -> String {

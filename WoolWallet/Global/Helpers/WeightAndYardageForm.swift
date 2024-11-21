@@ -24,7 +24,7 @@ struct WeightAndYardageData {
     var grams             : Int? = nil
     var hasBeenWeighed    : Int = 0
     var totalGrams        : Double? = nil
-    var skeins            : Double = 1
+    var skeins            : Double = 0
     var hasPartialSkein   : Bool = false
     var length            : Double? = nil
     var parent            : WeightAndYardageParent = WeightAndYardageParent.yarn
@@ -226,7 +226,7 @@ struct WeightAndYardageForm: View {
                         HStack {
                             Text("Estimated Length Needed")
                             Spacer()
-                            Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.length!)) ?? "0") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
+                            Text("~\(weightAndYardage.length!.formatted) \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
                         }
                     }
                 }
@@ -292,7 +292,7 @@ struct WeightAndYardageForm: View {
                             
                             Spacer()
                             
-                            Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.length!)) ?? "0") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
+                            Text("\(weightAndYardage.length!.formatted) \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
                         }
                         .transition(.slide)
                     }
@@ -301,12 +301,12 @@ struct WeightAndYardageForm: View {
                         HStack {
                             Text("Skeins")
                             Spacer()
-                            Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.skeins)) ?? "1")")
+                            Text(weightAndYardage.skeins.formatted)
                         }
                         .transition(.slide)
                     }
                 } else if weightAndYardage.hasBeenWeighed == 0 {
-                    Stepper("Skeins: \(String(format: "%g", weightAndYardage.skeins))", value: $weightAndYardage.skeins, in: 1...50)
+                    Stepper("Skeins: \(String(format: "%g", weightAndYardage.skeins))", value: $weightAndYardage.skeins, in: 0...50)
                         .onChange(of: weightAndYardage.skeins) {
                             if weightAndYardage.yardage != nil {
                                 weightAndYardage.length = weightAndYardage.yardage! * weightAndYardage.skeins
@@ -324,7 +324,7 @@ struct WeightAndYardageForm: View {
                         HStack {
                             Text("Length Estimate")
                             Spacer()
-                            Text("~\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.length!)) ?? "0") \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
+                            Text("~\(weightAndYardage.length!.formatted) \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
                         }
                     }
                 }

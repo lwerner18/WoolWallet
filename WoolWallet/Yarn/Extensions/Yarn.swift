@@ -60,11 +60,7 @@ extension Yarn {
     }
     
     var weightAndYardageItems: [WeightAndYardageData] {
-        let weightsAndYardages = weightAndYardages?.allObjects as? [WeightAndYardage] ?? []
-        
-        let sortedWeightsAndYardages = weightsAndYardages.sorted { $0.order < $1.order}
-        
-        return sortedWeightsAndYardages.map { item in
+        return weightAndYardageArray.map { item in
             return WeightAndYardageData(
                 id                : item.id!,
                 weight            : item.weight != nil ? Weight(rawValue: item.weight!)! : Weight.none,
@@ -83,7 +79,7 @@ extension Yarn {
         }
     }
     
-    var weightAndYardage1 : [WeightAndYardage] {
+    var weightAndYardageArray : [WeightAndYardage] {
         let weightsAndYardages = weightAndYardages?.allObjects as? [WeightAndYardage] ?? []
         
         return weightsAndYardages.sorted { $0.order < $1.order}

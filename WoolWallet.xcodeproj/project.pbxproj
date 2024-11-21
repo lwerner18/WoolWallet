@@ -34,11 +34,11 @@
 		044E55CA2CCFED46004574FD /* FavoritePairing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044E55C92CCFED46004574FD /* FavoritePairing.swift */; };
 		0454B9A72CE084DD005B4391 /* Dashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0454B9A62CE084DD005B4391 /* Dashboard.swift */; };
 		0458137B2CD9382700784519 /* FilterPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0458137A2CD9382700784519 /* FilterPattern.swift */; };
-		0462D00B2C7FBB7700EBB11C /* ButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0462D00A2C7FBB7700EBB11C /* ButtonStyles.swift */; };
 		0464B6202CC2F78D00EADD48 /* PossiblePatterns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0464B61F2CC2F78D00EADD48 /* PossiblePatterns.swift */; };
 		0466F21B2CA919CE0094F3DA /* View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0466F21A2CA919CE0094F3DA /* View.swift */; };
 		0466F21D2CA91A780094F3DA /* AddOrEditPatternForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0466F21C2CA91A780094F3DA /* AddOrEditPatternForm.swift */; };
 		046A96442BA17B1C00E83055 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046A96432BA17B1C00E83055 /* Toast.swift */; };
+		046AAD422CE95BE500CCC55E /* Double.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046AAD412CE95BE500CCC55E /* Double.swift */; };
 		046DB2B82CD33D3400BAB71F /* RowCounterForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046DB2B72CD33D3400BAB71F /* RowCounterForm.swift */; };
 		046DB2BA2CD3F30000BAB71F /* RowCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046DB2B92CD3F30000BAB71F /* RowCounter.swift */; };
 		04726D992C9A98BC008769A3 /* Composition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04726D982C9A98BC008769A3 /* Composition.swift */; };
@@ -50,7 +50,6 @@
 		0486973B2CD6C2B100C69076 /* ViewLengthAndYardage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0486973A2CD6C2B100C69076 /* ViewLengthAndYardage.swift */; };
 		0486973D2CD7418C00C69076 /* SimpleHorizontalScroll.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0486973C2CD7418C00C69076 /* SimpleHorizontalScroll.swift */; };
 		048746B52CADC24700C3472B /* PatternEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048746B42CADC24700C3472B /* PatternEnums.swift */; };
-		048761F42CE31229007824C1 /* LengthHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048761F32CE31229007824C1 /* LengthHistory.swift */; };
 		048D66052CA0E9890051D7A3 /* EditComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048D66042CA0E9890051D7A3 /* EditComposition.swift */; };
 		048E0EB92CD17633009DBA67 /* Project.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048E0EB82CD17633009DBA67 /* Project.swift */; };
 		048E0EBB2CD17C43009DBA67 /* ProjectPairing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048E0EBA2CD17C43009DBA67 /* ProjectPairing.swift */; };
@@ -69,12 +68,10 @@
 		04A5C3E22C4C1DA600CD5870 /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3E12C4C1DA600CD5870 /* UIColor.swift */; };
 		04A5C3E52C4C1DE600CD5870 /* ColorPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3E42C4C1DE600CD5870 /* ColorPickerView.swift */; };
 		04A5C3E72C4C1E1600CD5870 /* UIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3E62C4C1E1600CD5870 /* UIImage.swift */; };
-		04A5C3EB2C4C1E5200CD5870 /* FormRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3EA2C4C1E5200CD5870 /* FormRow.swift */; };
 		04A5C3ED2C4C1E8F00CD5870 /* AnalyzeColorUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A5C3EC2C4C1E8F00CD5870 /* AnalyzeColorUtils.swift */; };
 		04A81CF32CA4743D00BF66CC /* StoredImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A81CF22CA4743D00BF66CC /* StoredImage.swift */; };
 		04A81CF52CA47C6100BF66CC /* ImageCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A81CF42CA47C6100BF66CC /* ImageCarousel.swift */; };
 		04A81CFA2CA47E2000BF66CC /* YarnEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A81CF92CA47E2000BF66CC /* YarnEnums.swift */; };
-		04A81D042CA4807D00BF66CC /* GlobalEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A81D032CA4807D00BF66CC /* GlobalEnums.swift */; };
 		04ADF9852CCB60EA00C821A5 /* WeightAndYardageUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04ADF9842CCB60EA00C821A5 /* WeightAndYardageUtils.swift */; };
 		04B15C5E2C74F6F900A03751 /* StoredColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B15C5D2C74F6F900A03751 /* StoredColor.swift */; };
 		04B15C602C76220300A03751 /* Yarn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B15C5F2C76220300A03751 /* Yarn.swift */; };
@@ -97,7 +94,6 @@
 		04D596032B9E9C2200E1913C /* AccessCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D596022B9E9C2200E1913C /* AccessCamera.swift */; };
 		04D5C44F2C87DFCD00DC9697 /* PatternList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D5C44E2C87DFCD00DC9697 /* PatternList.swift */; };
 		04D5C4512C87E01E00DC9697 /* ProjectList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D5C4502C87E01E00DC9697 /* ProjectList.swift */; };
-		04E2329B2C9FE802007C8863 /* Sequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E2329A2C9FE802007C8863 /* Sequence.swift */; };
 		04E6018E2CA915C100865991 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 04E6018D2CA915C100865991 /* .gitignore */; };
 		04F083E82CDB35DD002E40A0 /* FilterCapsule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F083E72CDB35DD002E40A0 /* FilterCapsule.swift */; };
 		04F083EA2CDBBF63002E40A0 /* ProjectPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F083E92CDBBF63002E40A0 /* ProjectPreview.swift */; };
@@ -155,11 +151,11 @@
 		044E55C92CCFED46004574FD /* FavoritePairing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritePairing.swift; sourceTree = "<group>"; };
 		0454B9A62CE084DD005B4391 /* Dashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dashboard.swift; sourceTree = "<group>"; };
 		0458137A2CD9382700784519 /* FilterPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterPattern.swift; sourceTree = "<group>"; };
-		0462D00A2C7FBB7700EBB11C /* ButtonStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonStyles.swift; sourceTree = "<group>"; };
 		0464B61F2CC2F78D00EADD48 /* PossiblePatterns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PossiblePatterns.swift; sourceTree = "<group>"; };
 		0466F21A2CA919CE0094F3DA /* View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = View.swift; sourceTree = "<group>"; };
 		0466F21C2CA91A780094F3DA /* AddOrEditPatternForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddOrEditPatternForm.swift; sourceTree = "<group>"; };
 		046A96432BA17B1C00E83055 /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
+		046AAD412CE95BE500CCC55E /* Double.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Double.swift; sourceTree = "<group>"; };
 		046DB2B72CD33D3400BAB71F /* RowCounterForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RowCounterForm.swift; sourceTree = "<group>"; };
 		046DB2B92CD3F30000BAB71F /* RowCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RowCounter.swift; sourceTree = "<group>"; };
 		04726D982C9A98BC008769A3 /* Composition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Composition.swift; sourceTree = "<group>"; };
@@ -171,7 +167,6 @@
 		0486973A2CD6C2B100C69076 /* ViewLengthAndYardage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewLengthAndYardage.swift; sourceTree = "<group>"; };
 		0486973C2CD7418C00C69076 /* SimpleHorizontalScroll.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleHorizontalScroll.swift; sourceTree = "<group>"; };
 		048746B42CADC24700C3472B /* PatternEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternEnums.swift; sourceTree = "<group>"; };
-		048761F32CE31229007824C1 /* LengthHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LengthHistory.swift; sourceTree = "<group>"; };
 		048D66042CA0E9890051D7A3 /* EditComposition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditComposition.swift; sourceTree = "<group>"; };
 		048E0EB82CD17633009DBA67 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
 		048E0EBA2CD17C43009DBA67 /* ProjectPairing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectPairing.swift; sourceTree = "<group>"; };
@@ -190,12 +185,10 @@
 		04A5C3E12C4C1DA600CD5870 /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
 		04A5C3E42C4C1DE600CD5870 /* ColorPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerView.swift; sourceTree = "<group>"; };
 		04A5C3E62C4C1E1600CD5870 /* UIImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImage.swift; sourceTree = "<group>"; };
-		04A5C3EA2C4C1E5200CD5870 /* FormRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormRow.swift; sourceTree = "<group>"; };
 		04A5C3EC2C4C1E8F00CD5870 /* AnalyzeColorUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyzeColorUtils.swift; sourceTree = "<group>"; };
 		04A81CF22CA4743D00BF66CC /* StoredImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredImage.swift; sourceTree = "<group>"; };
 		04A81CF42CA47C6100BF66CC /* ImageCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCarousel.swift; sourceTree = "<group>"; };
 		04A81CF92CA47E2000BF66CC /* YarnEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnEnums.swift; sourceTree = "<group>"; };
-		04A81D032CA4807D00BF66CC /* GlobalEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalEnums.swift; sourceTree = "<group>"; };
 		04ADF9842CCB60EA00C821A5 /* WeightAndYardageUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightAndYardageUtils.swift; sourceTree = "<group>"; };
 		04B15C5D2C74F6F900A03751 /* StoredColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredColor.swift; sourceTree = "<group>"; };
 		04B15C5F2C76220300A03751 /* Yarn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Yarn.swift; sourceTree = "<group>"; };
@@ -222,7 +215,6 @@
 		04D596022B9E9C2200E1913C /* AccessCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessCamera.swift; sourceTree = "<group>"; };
 		04D5C44E2C87DFCD00DC9697 /* PatternList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternList.swift; sourceTree = "<group>"; };
 		04D5C4502C87E01E00DC9697 /* ProjectList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectList.swift; sourceTree = "<group>"; };
-		04E2329A2C9FE802007C8863 /* Sequence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sequence.swift; sourceTree = "<group>"; };
 		04E6018D2CA915C100865991 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		04F083E72CDB35DD002E40A0 /* FilterCapsule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterCapsule.swift; sourceTree = "<group>"; };
 		04F083E92CDBBF63002E40A0 /* ProjectPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectPreview.swift; sourceTree = "<group>"; };
@@ -315,14 +307,6 @@
 			path = Dashboard;
 			sourceTree = "<group>";
 		};
-		0462D0092C7FBB5F00EBB11C /* Styles */ = {
-			isa = PBXGroup;
-			children = (
-				0462D00A2C7FBB7700EBB11C /* ButtonStyles.swift */,
-			);
-			path = Styles;
-			sourceTree = "<group>";
-		};
 		047D02B12CC0176F00DDF4F3 /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
@@ -396,14 +380,13 @@
 				04A5C3DF2C4C1D8300CD5870 /* Color.swift */,
 				04A5C3E12C4C1DA600CD5870 /* UIColor.swift */,
 				04A5C3E62C4C1E1600CD5870 /* UIImage.swift */,
-				04E2329A2C9FE802007C8863 /* Sequence.swift */,
 				04B710262CA1E76900D9292A /* AnyTransition.swift */,
 				04A81CF22CA4743D00BF66CC /* StoredImage.swift */,
 				0466F21A2CA919CE0094F3DA /* View.swift */,
 				042B87F72CB06E0B00B34698 /* Image.swift */,
 				043E16E82CB9A76D005046B6 /* WeightAndYardage.swift */,
 				044E55C92CCFED46004574FD /* FavoritePairing.swift */,
-				048761F32CE31229007824C1 /* LengthHistory.swift */,
+				046AAD412CE95BE500CCC55E /* Double.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -472,10 +455,8 @@
 			isa = PBXGroup;
 			children = (
 				04BAC0C02BAE0D1D00C26CD8 /* GlobalSettings.swift */,
-				0462D0092C7FBB5F00EBB11C /* Styles */,
 				04421B572BAE24E90034E16A /* Fonts */,
 				047DE4C02B9FEF7000F0A2D5 /* Controllers */,
-				04A81D022CA4806D00BF66CC /* Enums */,
 				04A5C3D82C4C1A6A00CD5870 /* Extensions */,
 				04D595FF2B9E9BC400E1913C /* Helpers */,
 				04A5C3E32C4C1DBA00CD5870 /* Utils */,
@@ -513,14 +494,6 @@
 				04B15C5F2C76220300A03751 /* Yarn.swift */,
 			);
 			path = Extensions;
-			sourceTree = "<group>";
-		};
-		04A81D022CA4806D00BF66CC /* Enums */ = {
-			isa = PBXGroup;
-			children = (
-				04A81D032CA4807D00BF66CC /* GlobalEnums.swift */,
-			);
-			path = Enums;
 			sourceTree = "<group>";
 		};
 		04A81D052CA480C100BF66CC /* MachineLearning */ = {
@@ -604,7 +577,6 @@
 			children = (
 				04D596022B9E9C2200E1913C /* AccessCamera.swift */,
 				042CC1E72BAB9BFF008DD2F6 /* ConditionalStack.swift */,
-				04A5C3EA2C4C1E5200CD5870 /* FormRow.swift */,
 				04A81CF42CA47C6100BF66CC /* ImageCarousel.swift */,
 				042BF1552CA61D9D008740FB /* TextFieldTypeahead.swift */,
 				04FB6FC92CB39955008A0FE8 /* InfoCard.swift */,
@@ -902,7 +874,6 @@
 				04726D992C9A98BC008769A3 /* Composition.swift in Sources */,
 				04A81CF52CA47C6100BF66CC /* ImageCarousel.swift in Sources */,
 				042B0A682CAE6300003CDCF0 /* PatternItem.swift in Sources */,
-				04A5C3EB2C4C1E5200CD5870 /* FormRow.swift in Sources */,
 				0486973D2CD7418C00C69076 /* SimpleHorizontalScroll.swift in Sources */,
 				042699B22CAF90E600F76B10 /* Pattern.swift in Sources */,
 				042B87F82CB06E0B00B34698 /* Image.swift in Sources */,
@@ -932,8 +903,8 @@
 				0464B6202CC2F78D00EADD48 /* PossiblePatterns.swift in Sources */,
 				04421B6B2BAF48B30034E16A /* OpenCVWrapper.mm in Sources */,
 				0486973B2CD6C2B100C69076 /* ViewLengthAndYardage.swift in Sources */,
+				046AAD422CE95BE500CCC55E /* Double.swift in Sources */,
 				048E0EB92CD17633009DBA67 /* Project.swift in Sources */,
-				04A81D042CA4807D00BF66CC /* GlobalEnums.swift in Sources */,
 				04ADF9852CCB60EA00C821A5 /* WeightAndYardageUtils.swift in Sources */,
 				04A15AA22CD5EE0100EA4B1D /* FancyHorizontalScroll.swift in Sources */,
 				04CA29212CDC17D30073DB20 /* PatternItemDisplay.swift in Sources */,
@@ -950,7 +921,6 @@
 				04B710272CA1E76900D9292A /* AnyTransition.swift in Sources */,
 				0466F21D2CA91A780094F3DA /* AddOrEditPatternForm.swift in Sources */,
 				0454B9A72CE084DD005B4391 /* Dashboard.swift in Sources */,
-				04E2329B2C9FE802007C8863 /* Sequence.swift in Sources */,
 				043E16E72CB9A0E1005046B6 /* RecYarnForm.swift in Sources */,
 				047D02B32CC0178800DDF4F3 /* RecYarnHeader.swift in Sources */,
 				048ED2E72CC7537A00DB790A /* ScrollDots.swift in Sources */,
@@ -963,7 +933,6 @@
 				04D5C4512C87E01E00DC9697 /* ProjectList.swift in Sources */,
 				047DE4CF2B9FF78700F0A2D5 /* Data.xcdatamodeld in Sources */,
 				04D415122C9F61BD004E1AFD /* AddOrEditYarnForm.swift in Sources */,
-				048761F42CE31229007824C1 /* LengthHistory.swift in Sources */,
 				042B0A6C2CAE641C003CDCF0 /* KnittingNeedle.swift in Sources */,
 				0411DCCE2CD28F5200007296 /* NewItemHeader.swift in Sources */,
 				04F083EA2CDBBF63002E40A0 /* ProjectPreview.swift in Sources */,
@@ -972,7 +941,6 @@
 				04B15C602C76220300A03751 /* Yarn.swift in Sources */,
 				04A15AA02CD5652B00EA4B1D /* PatternPreview.swift in Sources */,
 				04CA29232CDC17F70073DB20 /* ProjectDateDisplay.swift in Sources */,
-				0462D00B2C7FBB7700EBB11C /* ButtonStyles.swift in Sources */,
 				042B0A6F2CAEFFBA003CDCF0 /* PatternUtils.swift in Sources */,
 				04F083E82CDB35DD002E40A0 /* FilterCapsule.swift in Sources */,
 				042530BD2CB24DF8008804C7 /* MaterialPicker.swift in Sources */,

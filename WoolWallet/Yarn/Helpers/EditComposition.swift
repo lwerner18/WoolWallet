@@ -30,6 +30,8 @@ struct CompositionText : View {
     
     var body: some View {
         HStack {
+            Spacer()
+            
             let sortedCompositions = composition.sorted { $0.percentage > $1.percentage}
             
             ForEach(sortedCompositions, id: \.id) { compositionItem in
@@ -42,6 +44,8 @@ struct CompositionText : View {
                     .foregroundStyle(Color.primary)
                 }
             }
+            
+            Spacer()
         }
     }
 }

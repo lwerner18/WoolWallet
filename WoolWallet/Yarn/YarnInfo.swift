@@ -151,32 +151,14 @@ struct YarnInfo: View {
                                 }
                             }
                             
-                        
-                            
-//                            ForEach(yarn.weightAndYardage1.indices, id: \.self) { index in
-//                                
-//                                ViewWeightAndYardage(
-//                                    weightAndYardage: yarn.weightAndYardage1[index],
-//                                    isSockSet: yarn.isSockSet,
-//                                    totalCount: yarn.weightAndYardage1.count
-//                                )
-//                                
-//                                if let suggestion : PatternSuggestion = patternSuggestions.first(where: {$0.yarnWAndY.id == yarn.weightAndYardage1[index].id}) {
-//                                    PossiblePatterns(
-//                                        patternSuggestion : suggestion,
-//                                        favoritedPatterns : $favoritedPatterns
-//                                    )
-//                                }
-//                            }
-                            
-                            ForEach(yarn.weightAndYardage1, id: \.id) { wAndY in
+                            ForEach(yarn.weightAndYardageArray, id: \.id) { wAndY in
                                 if wAndY.originalLength != wAndY.currentLength {
                                     InfoCard() {
                                         VStack {
                                             HStack {
                                                 Text("Original Length").foregroundStyle(Color(UIColor.secondaryLabel))
                                                 Spacer()
-                                                Text("\(wAndY.isExact ? "" : "~")\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: wAndY.originalLength)) ?? "1") \(wAndY.unitOfMeasure!.lowercased())")
+                                                Text("\(wAndY.isExact ? "" : "~")\(wAndY.originalLength.formatted) \(wAndY.unitOfMeasure!.lowercased())")
                                                     .font(.headline).bold().foregroundStyle(Color.primary)
                                             }
                                             .yarnDataRow()
@@ -186,7 +168,7 @@ struct YarnInfo: View {
                                             HStack {
                                                 Text("Original Skeins").foregroundStyle(Color(UIColor.secondaryLabel))
                                                 Spacer()
-                                                Text(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: wAndY.originalSkeins)) ?? "0")
+                                                Text(wAndY.originalSkeins.formatted)
                                                     .font(.headline).bold().foregroundStyle(Color.primary)
                                             }
                                             .yarnDataRow()
@@ -198,7 +180,7 @@ struct YarnInfo: View {
                                 ViewWeightAndYardage(
                                     weightAndYardage: wAndY,
                                     isSockSet: yarn.isSockSet,
-                                    totalCount: yarn.weightAndYardage1.count
+                                    totalCount: yarn.weightAndYardageArray.count
                                 )
                                 
                                 if let suggestion : PatternSuggestion = patternSuggestions.first(where: {$0.yarnWAndY.id == wAndY.id}) {
@@ -267,7 +249,7 @@ struct YarnInfo: View {
                                 }
                             }
                             
-                            if yarn.notes != "" {
+                            if yarn.notes != nil {
                                 InfoCard() {
                                     Text(yarn.notes!)
                                         .foregroundStyle(Color.primary)
@@ -289,14 +271,14 @@ struct YarnInfo: View {
                 if browseMode {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button() {
-                            if yarn.weightAndYardageItems.count > 1 {
+                            if yarn.weightAndYardageArray.count > 1 {
                                 showChooseSkeinDialog = true
                             } else {
                                 // TODO: Let user choose skein
                                 projectPairing.append(
                                     ProjectPairingItem(
                                         patternWeightAndYardage: patternWAndYBrowsingFor!,
-                                        yarnWeightAndYardage: yarn.weightAndYardageItems.first!.existingItem!
+                                        yarnWeightAndYardage: yarn.weightAndYardageArray.first!
                                     )
                                 )
                                 browseMode = false
@@ -390,7 +372,7 @@ struct YarnInfo: View {
                 ForEach(favoritedPatterns, id: \.id) {element in
                     let wAndY = element.patternWeightAndYardage!
                     
-                    let text = "\(wAndY.pattern!.name!) \(wAndY.pattern!.weightAndYardageItems.count > 1 ? "(Color \(PatternUtils.shared.getLetter(for: Int(wAndY.order))))" : "")"
+                    let text = "\(wAndY.pattern!.name!) \(wAndY.pattern!.weightAndYardageArray.count > 1 ? "(Color \(PatternUtils.shared.getLetter(for: Int(wAndY.order))))" : "")"
 
 
                     Button("\(text)") {
@@ -403,15 +385,14 @@ struct YarnInfo: View {
                 Text("You've favorited multiple patterns. Which pattern would you like to use this yarn for?")
             }
             .confirmationDialog("", isPresented: $showChooseSkeinDialog) {
-                ForEach(yarn.weightAndYardageItems, id: \.id) {element in
-                    let existingItem : WeightAndYardage = element.existingItem!
-                    let text = "\(existingItem.order == 0 ? "Main Skein" : (existingItem.order == 1 ? "Mini Skein" : "Mini #2"))"
+                ForEach(yarn.weightAndYardageArray, id: \.id) {element in
+                    let text = "\(element.order == 0 ? "Main Skein" : (element.order == 1 ? "Mini Skein" : "Mini #2"))"
                     
                     Button("\(text)") {
                         projectPairing.append(
                             ProjectPairingItem(
                                 patternWeightAndYardage: patternWAndYBrowsingFor!,
-                                yarnWeightAndYardage: existingItem
+                                yarnWeightAndYardage: element
                             )
                         )
                         

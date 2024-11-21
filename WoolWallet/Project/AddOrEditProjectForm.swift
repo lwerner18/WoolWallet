@@ -151,17 +151,20 @@ struct AddOrEditProjectForm: View {
                                     let currentLength = wAndY.existingItem!.currentLength
                                     
                                     let length = currentLength > 0
-                                    ? "\(wAndY.existingItem!.isExact ? "" : "~")\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: currentLength)) ?? "1") \(unit)"
+                                    ? "\(wAndY.existingItem!.isExact ? "" : "~")\(currentLength.formatted) \(unit)"
                                         : ""
                                     
                                     let yardage = wAndY.yardage != nil && wAndY.grams != nil
-                                    ? "\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: wAndY.yardage!)) ?? "") \(unit) / \(wAndY.grams!) grams"
+                                    ? "\(wAndY.yardage!.formatted) \(unit) / \(wAndY.grams!) grams"
                                     : ""
                                     
                                     let text = "\(wAndY.weight != Weight.none ? "\(wAndY.weight.getDisplay()) weight," : "") \(length != "" ? "needs \(length)," : "") \(yardage == "" ? "" : yardage)"
                                     
-                                    Label(text, systemImage : "info.circle")
-                                        .font(.caption2)
+                                    if text != "" {
+                                        Label(text, systemImage : "info.circle")
+                                            .font(.caption2)
+                                    }
+                             
                                     
                                     Spacer()
                                 }
@@ -199,7 +202,7 @@ struct AddOrEditProjectForm: View {
                                             allowEdits : false,
                                             forProject: true,
                                             openByDefault : true,
-                                            title : pattern.weightAndYardageItems.count > 1
+                                            title : pattern.weightAndYardageArray.count > 1
                                             ? "Color \(PatternUtils.shared.getLetter(for: Int(wAndY.existingItem!.order)))"
                                             : "Yarn Suggestions",
                                             projectPairing: $projectPairing
@@ -218,7 +221,7 @@ struct AddOrEditProjectForm: View {
                                         allowEdits : false,
                                         forProject : true,
                                         openByDefault : true,
-                                        title : pattern.weightAndYardageItems.count > 1
+                                        title : pattern.weightAndYardageArray.count > 1
                                         ? "Color \(PatternUtils.shared.getLetter(for: Int(wAndY.existingItem!.order))) Suggestions"
                                         : "Yarn Suggestions",
                                         projectPairing: $projectPairing

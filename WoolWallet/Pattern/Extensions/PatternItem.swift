@@ -30,4 +30,16 @@ extension PatternItem {
         
         return patternItem
     }
+    
+    // Static function to create the fetch request with propertiesToFetch
+    static func fetchItems() -> NSFetchRequest<PatternItem> {
+        let request = NSFetchRequest<PatternItem>(entityName: "PatternItem")
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \PatternItem.item, ascending: true)]
+        
+        // Specify the properties you want to fetch
+        request.propertiesToFetch = ["item"]
+        request.resultType = .managedObjectResultType
+        
+        return request
+    }
 }

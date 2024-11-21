@@ -20,15 +20,23 @@ struct ViewLengthAndYardage:  View {
         
         
         if weightAndYardage.currentLength > 0 {
-            Text("\(weightAndYardage.isExact ? "" : "~")\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.currentLength)) ?? "1") \(unit)")
+            Text("\(weightAndYardage.isExact ? "" : "~")\(weightAndYardage.currentLength.formatted) \(unit)")
                 .font(.title3)
+                .foregroundStyle(Color.primary)
+        }
+        
+        if weightAndYardage.availableLength > 0 {
+            Spacer()
+            
+            Text("\(weightAndYardage.isExact ? "" : "~")\(weightAndYardage.availableLength.formatted) \(unit) available")
+                .font(.subheadline)
                 .foregroundStyle(Color.primary)
         }
         
         Spacer()
         
         if weightAndYardage.yardage > 0 && weightAndYardage.grams > 0 {
-            Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: weightAndYardage.yardage)) ?? "") \(unit) / \(weightAndYardage.grams) grams")
+            Text("\(weightAndYardage.yardage.formatted) \(unit) / \(weightAndYardage.grams) grams")
                 .font(.caption)
                 .foregroundStyle(Color(UIColor.secondaryLabel))
         }

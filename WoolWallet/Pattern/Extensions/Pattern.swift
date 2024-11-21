@@ -84,11 +84,7 @@ extension Pattern {
     }
     
     var weightAndYardageItems: [WeightAndYardageData] {
-        let weightsAndYardages = recWeightAndYardages?.allObjects as? [WeightAndYardage] ?? []
-        
-        let sortedWeightsAndYardages = weightsAndYardages.sorted { $0.order < $1.order}
-        
-        return sortedWeightsAndYardages.map { item in
+        return weightAndYardageArray.map { item in
             return WeightAndYardageData(
                 id                : item.id!,
                 weight            : item.weight != nil ? Weight(rawValue: item.weight!)! : Weight.none,
@@ -97,14 +93,20 @@ extension Pattern {
                 grams             : item.grams != 0 ? Int(item.grams) : nil,
                 hasBeenWeighed    : Int(item.hasBeenWeighed),
                 totalGrams        : item.totalGrams != 0 ? item.totalGrams : nil,
-                skeins            : item.skeins,
+                skeins            : item.currentSkeins,
                 hasPartialSkein   : item.hasPartialSkein,
-                length            : item.currentLength ?? 0,
+                length            : item.currentLength,
                 parent            : WeightAndYardageParent(rawValue: item.parent!)!,
                 hasExactLength    : Int(item.hasExactLength),
                 existingItem      : item
             )
         }
+    }
+    
+    var weightAndYardageArray : [WeightAndYardage] {
+        let weightsAndYardages = recWeightAndYardages?.allObjects as? [WeightAndYardage] ?? []
+        
+        return weightsAndYardages.sorted { $0.order < $1.order}
     }
     
     var uiImages: [ImageData] {
@@ -137,6 +139,18 @@ extension Pattern {
         // Specify the properties you want to fetch
         request.propertiesToFetch = ["designer"] // List properties to fetch
         request.relationshipKeyPathsForPrefetching = ["projects"]
+        request.resultType = .managedObjectResultType
+        
+        return request
+    }
+    
+    // Static function to create the fetch request with propertiesToFetch
+    static func fetchItems() -> NSFetchRequest<Pattern> {
+        let request = NSFetchRequest<Pattern>(entityName: "Pattern")
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \Pattern.name, ascending: true)]
+        
+        // Specify the properties you want to fetch
+        request.relationshipKeyPathsForPrefetching = ["items"]
         request.resultType = .managedObjectResultType
         
         return request

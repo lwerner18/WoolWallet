@@ -9,10 +9,15 @@ import Foundation
 import SwiftUI
 
 struct ProjectPreview:  View {
+    @Environment(\.mainTab) var mainTab: Binding<MainTab>
+    @Environment(\.projectToShowAutomatically) var projectToShowAutomatically : Binding<Project?>
+    
+    
     @ObservedObject var project : Project
     @Binding var displayedProject : Project?
     var yarnId : UUID? = nil
     var disableOnTap : Bool = false
+    var navigateOnTap : Bool = false
     
     var usedYarnWAndY : [ProjectPairingItem] {
         if yarnId == nil {
@@ -63,6 +68,7 @@ struct ProjectPreview:  View {
                                 Text(
                                     PatternUtils.shared.joinedItems(patternItems: pattern.patternItems)
                                 )
+                                .multilineTextAlignment(.center)
                                 .foregroundStyle(Color(UIColor.secondaryLabel))
                                 
                                 Spacer()
@@ -88,7 +94,7 @@ struct ProjectPreview:  View {
                                 
                                 let unit : String = usedYarnWAndY.first?.yarnWeightAndYardage.unitOfMeasure ?? ""
                                 
-                                Text("Used \(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: lengthUsed!)) ?? "1") \(unit)")
+                                Text("Used \(lengthUsed!.formatted) \(unit)")
                                     .font(.title3)
                                     .foregroundStyle(Color.primary)
                             }
@@ -109,7 +115,12 @@ struct ProjectPreview:  View {
         }
         .onTapGesture {
             if !disableOnTap {
-                displayedProject = project
+                if navigateOnTap {
+//                    projectToShowAutomatically.wrappedValue = project
+//                    mainTab.wrappedValue = MainTab.projects
+                } else {
+                    displayedProject = project
+                }
             }
         }
         .overlay(

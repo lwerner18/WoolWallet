@@ -109,14 +109,16 @@ struct FilterYarn: View {
                                         highlighted : selectedColors.contains(colorFilter.namedColor!),
                                         onClick : { toggleColorSelection(for: colorFilter.namedColor!) }
                                     ) {
-                                        // Diamond-shaped color view
-                                        Circle()
-                                            .fill(Color(uiColor : colorFilter.namedColor!.colors[0]))
-                                            .frame(width: 18, height: 18)
-                                            .overlay(
-                                                Circle()
-                                                    .stroke(Color.black, lineWidth: 0.25) // Black border with width
-                                            )
+                                        if colorFilter.namedColor!.name != "Other" {
+                                            // Diamond-shaped color view
+                                            Circle()
+                                                .fill(Color(uiColor : colorFilter.namedColor!.colors[0]))
+                                                .frame(width: 18, height: 18)
+                                                .overlay(
+                                                    Circle()
+                                                        .stroke(Color.black, lineWidth: 0.25) // Black border with width
+                                                )
+                                        }
                                         
                                         Text(colorFilter.namedColor!.name)
                                             .foregroundColor(

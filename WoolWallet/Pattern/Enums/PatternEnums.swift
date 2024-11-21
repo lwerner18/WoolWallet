@@ -25,7 +25,7 @@ enum PatternType : String, CaseIterable, Identifiable, Equatable {
     
     case crochet = "Crochet"
     case knit = "Knit"
-    case tunisianCrochet = "Tunisian Crochet"
+    case tunisian = "Tunisian"
 }
 
 enum CrochetHookSize : String, CaseIterable, Identifiable, Equatable {
@@ -92,6 +92,7 @@ enum Item : String, CaseIterable, Identifiable, Equatable {
     case none      = "--"
     case shirt     = "Shirt"
     case sweater   = "Sweater"
+    case shawl     = "Shawl"
     case beanie    = "Beanie"
     case socks     = "Socks"
     case blanket   = "Blanket"
@@ -100,6 +101,7 @@ enum Item : String, CaseIterable, Identifiable, Equatable {
     case cardigan  = "Cardigan"
     case bag       = "Bag"
     case tankTop   = "Tank Top"
+    case vest      = "Vest"
     case household = "Household"
     case other     = "Other"
 }

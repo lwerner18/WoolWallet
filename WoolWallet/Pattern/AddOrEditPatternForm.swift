@@ -62,7 +62,8 @@ struct AddOrEditPatternForm: View {
     @State private var name                 : String = ""
     @State private var designer             : String = ""
     @State private var items                : [PatternItemField] = [PatternItemField(item : Item.none)]
-    @State private var oneSize              : Int = -1
+    @State private var oneSize              : Bool = false
+    @State private var owned                : Bool = true
     @State private var intendedSize         : String = ""
     @State private var crochetHookSizes     : [Hook] = [Hook(hook: CrochetHookSize.none)]
     @State private var knittingNeedleSizes  : [Needle] = [Needle(needle: KnitNeedleSize.none)]
@@ -83,7 +84,8 @@ struct AddOrEditPatternForm: View {
             _designer             = State(initialValue : patternToEdit.designer ?? "")
             _notes                = State(initialValue : patternToEdit.notes ?? "")
             _items                = State(initialValue : patternToEdit.patternItems)
-            _oneSize              = State(initialValue : Int(patternToEdit.oneSize))
+            _oneSize              = State(initialValue : patternToEdit.oneSize)
+            _owned                = State(initialValue : patternToEdit.owned)
             _intendedSize         = State(initialValue : patternToEdit.intendedSize ?? "")
             _crochetHookSizes     = State(initialValue : patternToEdit.crochetHooks)
             _knittingNeedleSizes  = State(initialValue : patternToEdit.knittingNeedles)
@@ -165,16 +167,14 @@ struct AddOrEditPatternForm: View {
                     }
                 }
                 
-                Section(header: Text("Is this pattern one size?")) {
-                    Picker("", selection: $oneSize) {
-                        Text("Yes").tag(1)
-                        Text("No").tag(0)
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
+                Section(header: Text("Additional Information")) {
+                    Toggle("One Size", isOn: $oneSize)
                     
-                    if oneSize == 0 {
+                    if !oneSize {
                         TextField("Intended Size", text: $intendedSize).disableAutocorrection(true)
                     }
+                    
+                    Toggle("Owned", isOn: $owned)
                 }
                 
                 Section(header: Text("What kind of yarn do you need?")) {
@@ -203,7 +203,7 @@ struct AddOrEditPatternForm: View {
                                     if item.yardage != nil && item.grams != nil {
                                         HStack {
                                             Spacer()
-                                            Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: item.yardage!)) ?? "") \(item.unitOfMeasure.rawValue) / \(item.grams!) grams")
+                                            Text("\(item.yardage!.formatted) \(item.unitOfMeasure.rawValue) / \(item.grams!) grams")
                                             Spacer()
                                         }
                                         
@@ -222,7 +222,7 @@ struct AddOrEditPatternForm: View {
                                         HStack {
                                             Text("Skeins").foregroundStyle(Color(UIColor.secondaryLabel))
                                             Spacer()
-                                            Text("\(GlobalSettings.shared.numberFormatter.string(from: NSNumber(value: item.skeins)) ?? "")")
+                                            Text(item.skeins.formatted)
                                         }
                                     }
                                     
@@ -413,19 +413,18 @@ struct AddOrEditPatternForm: View {
         pattern.designer = designer
         pattern.type = patternType.rawValue
         
-        pattern.oneSize = Int16(oneSize)
-        pattern.intendedSize = oneSize == 1 ? nil : intendedSize
+        pattern.oneSize = oneSize
+        pattern.intendedSize = oneSize ? nil : intendedSize
+        pattern.owned = owned
         pattern.notes = notes
         
         // delete any items that we don't need anymore
         if patternToEdit != nil {
-            patternToEdit?.weightAndYardageItems.forEach { item in
+            patternToEdit?.weightAndYardageArray.forEach { item in
                 if !recWeightAndYardages.contains(where: {element in element.id == item.id}) {
-                    let existingItem = item.existingItem!
+                    item.patternPairings?.forEach { managedObjectContext.delete($0 as! NSManagedObject) }
                     
-                    existingItem.patternPairings?.forEach { managedObjectContext.delete($0 as! NSManagedObject) }
-                    
-                    managedObjectContext.delete(existingItem)
+                    managedObjectContext.delete(item)
                 }
             }
             

@@ -17,11 +17,12 @@ struct FilterPattern: View {
     @Binding var selectedItems : [Item]
     @Binding var selectedTypes : [PatternType]
     @Binding var selectedWeights : [Weight]
+    @Binding var owned : Bool?
     var filteredPatternCount: Int
     
     // Computed property
     private var filtersApplied: Bool {
-        !selectedItems.isEmpty || !selectedTypes.isEmpty || !selectedWeights.isEmpty
+        !selectedItems.isEmpty || !selectedTypes.isEmpty || !selectedWeights.isEmpty || owned != nil
     }
     
     // init function
@@ -29,11 +30,13 @@ struct FilterPattern: View {
         selectedItems : Binding<[Item]>,
         selectedTypes : Binding<[PatternType]>,
         selectedWeights : Binding<[Weight]>,
+        owned : Binding<Bool?>,
         filteredPatternCount : Int
     ) {
         self._selectedItems = selectedItems
         self._selectedTypes = selectedTypes
         self._selectedWeights = selectedWeights
+        self._owned = owned
         self.filteredPatternCount = filteredPatternCount
     }
     
@@ -66,6 +69,16 @@ struct FilterPattern: View {
                                     )
                                 }
                             }
+                        }
+                        
+                        Text("Owned").bold().padding(.top, 10)
+                        
+                        FlexView(data: [true, false], spacing: 6) { value in
+                            FilterCapsule(
+                                text : value ? "Yes" : "No",
+                                highlighted : owned == value,
+                                onClick : { owned = owned == value ? nil : value }
+                            )
                         }
                         
                         Text("Item").bold().padding(.top, 10)
