@@ -348,6 +348,8 @@ struct PatternInfo: View {
                                 Label("Start a Project", systemImage : "hammer")
                             }
                             
+                            Divider()
+                            
                             Button(role: .destructive) {
                                 showConfirmationDialog = true
                             } label: {

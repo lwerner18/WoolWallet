@@ -353,7 +353,7 @@ struct PatternList: View {
                     .listStyle(.plain)
                 }
             }
-            .navigationTitle("Patterns")
+            .navigationTitle(browseMode ? "Browse Patterns" : "Patterns")
             .searchable(
                 text: $searchText,
                 placement: .navigationBarDrawer(displayMode: .always),

@@ -314,7 +314,7 @@ struct YarnList: View {
                 }
                 
             }
-            .navigationTitle("My Stash")
+            .navigationTitle(browseMode ? "Browse Yarn" : "My Stash")
             .searchable(
                 text: $searchText,
                 placement: .navigationBarDrawer(displayMode: .always),

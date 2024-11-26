@@ -249,7 +249,7 @@ struct YarnInfo: View {
                                 }
                             }
                             
-                            if yarn.notes != nil {
+                            if yarn.notes != nil && yarn.notes != "" {
                                 InfoCard() {
                                     Text(yarn.notes!)
                                         .foregroundStyle(Color.primary)
@@ -320,6 +320,8 @@ struct YarnInfo: View {
                             } label: {
                                 Label(yarn.isArchived ? "Unarchive" : "Archive", systemImage : yarn.isArchived ? "tray.and.arrow.up" : "tray.and.arrow.down")
                             }
+                            
+                            Divider()
                             
                             Button(role: .destructive) {
                                 showDeleteConfirmation = true
