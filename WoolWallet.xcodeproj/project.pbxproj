@@ -626,6 +626,7 @@
 			buildConfigurationList = 04B74E952B9B6EFE00D19F52 /* Build configuration list for PBXNativeTarget "WoolWallet" */;
 			buildPhases = (
 				645D2749E750772DAB74830C /* [CP] Check Pods Manifest.lock */,
+				049901AA2CFF5C1000BE15FC /* ShellScript */,
 				04B74E6D2B9B6EFB00D19F52 /* Sources */,
 				04B74E6E2B9B6EFB00D19F52 /* Frameworks */,
 				04B74E6F2B9B6EFB00D19F52 /* Resources */,
@@ -756,6 +757,23 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		049901AA2CFF5C1000BE15FC /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nif [ -f \"../Podfile\" ]; then\n  echo \"Installing CocoaPods dependencies...\"\n  gem install cocoapods --no-document\n  pod install\nfi\n";
+		};
 		144F0031B410A0ABB7A11958 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
