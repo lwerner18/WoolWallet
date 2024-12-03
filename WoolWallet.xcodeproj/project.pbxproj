@@ -29,7 +29,6 @@
 		043E16ED2CBA0E52005046B6 /* ViewWeightAndYardage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043E16EC2CBA0E52005046B6 /* ViewWeightAndYardage.swift */; };
 		043E16EF2CBB6B6A005046B6 /* CollapsibleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043E16EE2CBB6B6A005046B6 /* CollapsibleView.swift */; };
 		04421B592BAE25110034E16A /* Lato in Resources */ = {isa = PBXBuildFile; fileRef = 04421B582BAE25110034E16A /* Lato */; };
-		04421B602BAE7A050034E16A /* UIImageColors in Frameworks */ = {isa = PBXBuildFile; productRef = 04421B5F2BAE7A050034E16A /* UIImageColors */; };
 		04421B6B2BAF48B30034E16A /* OpenCVWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04421B6A2BAF48B30034E16A /* OpenCVWrapper.mm */; };
 		044E55CA2CCFED46004574FD /* FavoritePairing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044E55C92CCFED46004574FD /* FavoritePairing.swift */; };
 		0454B9A72CE084DD005B4391 /* Dashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0454B9A62CE084DD005B4391 /* Dashboard.swift */; };
@@ -235,7 +234,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				04421B602BAE7A050034E16A /* UIImageColors in Frameworks */,
 				EAFBDCC3A5827221674ADABE /* Pods_WoolWallet.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -639,7 +637,6 @@
 			);
 			name = WoolWallet;
 			packageProductDependencies = (
-				04421B5F2BAE7A050034E16A /* UIImageColors */,
 			);
 			productName = WoolWallet;
 			productReference = 04B74E712B9B6EFB00D19F52 /* WoolWallet.app */;
@@ -717,7 +714,6 @@
 			);
 			mainGroup = 04B74E682B9B6EFB00D19F52;
 			packageReferences = (
-				04421B5E2BAE7A050034E16A /* XCRemoteSwiftPackageReference "UIImageColors" */,
 			);
 			productRefGroup = 04B74E722B9B6EFB00D19F52 /* Products */;
 			projectDirPath = "";
@@ -1297,25 +1293,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		04421B5E2BAE7A050034E16A /* XCRemoteSwiftPackageReference "UIImageColors" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "git@github.com:jathu/UIImageColors.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.2.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		04421B5F2BAE7A050034E16A /* UIImageColors */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 04421B5E2BAE7A050034E16A /* XCRemoteSwiftPackageReference "UIImageColors" */;
-			productName = UIImageColors;
-		};
-/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
 		047DE4CD2B9FF78700F0A2D5 /* Data.xcdatamodeld */ = {
