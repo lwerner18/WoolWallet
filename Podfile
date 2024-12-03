@@ -8,6 +8,8 @@ target 'WoolWallet' do
   # Pods for WoolWallet
   pod 'OpenCV2'
   pod 'Sweetercolor', :git => 'https://github.com/lwerner18/Sweetercolor.git'
+  pod 'UIImageColors', :git => 'https://github.com/jathu/UIImageColors.git'
+
   
   post_install do |installer|
     installer.pods_project.targets.each do |target|
