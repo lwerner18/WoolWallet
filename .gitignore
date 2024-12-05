@@ -26,7 +26,6 @@ Package.resolved
 
 # CocoaPods
 Pods/
-Podfile.lock
 
 # Carthage
 Carthage/Build/
