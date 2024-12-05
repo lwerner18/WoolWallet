@@ -2,7 +2,7 @@
 
 
 # Install CocoaPods using Homebrew.
-brew install cocoapods
+sudo gem install cocoapods --no-document
 
 
 # Install dependencies you manage with CocoaPods.
