@@ -60,6 +60,7 @@
 		048ED2EB2CC9522200DB790A /* AddOrEditProjectForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048ED2EA2CC9522200DB790A /* AddOrEditProjectForm.swift */; };
 		04943C4C2CDD8A000022165C /* FlexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04943C4B2CDD8A000022165C /* FlexView.swift */; };
 		04943C4E2CDD93870022165C /* InfoCapsules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04943C4D2CDD93870022165C /* InfoCapsules.swift */; };
+		049901AD2CFF671D00BE15FC /* UIImageColors in Frameworks */ = {isa = PBXBuildFile; productRef = 049901AC2CFF671D00BE15FC /* UIImageColors */; };
 		049FAA4F2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 049FAA4E2BD1BC3800CF06F7 /* yarn_segmentation_model.mlpackage */; };
 		04A15AA02CD5652B00EA4B1D /* PatternPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A15A9F2CD5652B00EA4B1D /* PatternPreview.swift */; };
 		04A15AA22CD5EE0100EA4B1D /* FancyHorizontalScroll.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A15AA12CD5EE0100EA4B1D /* FancyHorizontalScroll.swift */; };
@@ -234,6 +235,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				049901AD2CFF671D00BE15FC /* UIImageColors in Frameworks */,
 				EAFBDCC3A5827221674ADABE /* Pods_WoolWallet.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -626,7 +628,6 @@
 			buildConfigurationList = 04B74E952B9B6EFE00D19F52 /* Build configuration list for PBXNativeTarget "WoolWallet" */;
 			buildPhases = (
 				645D2749E750772DAB74830C /* [CP] Check Pods Manifest.lock */,
-				049901AA2CFF5C1000BE15FC /* ShellScript */,
 				04B74E6D2B9B6EFB00D19F52 /* Sources */,
 				04B74E6E2B9B6EFB00D19F52 /* Frameworks */,
 				04B74E6F2B9B6EFB00D19F52 /* Resources */,
@@ -638,6 +639,7 @@
 			);
 			name = WoolWallet;
 			packageProductDependencies = (
+				049901AC2CFF671D00BE15FC /* UIImageColors */,
 			);
 			productName = WoolWallet;
 			productReference = 04B74E712B9B6EFB00D19F52 /* WoolWallet.app */;
@@ -715,6 +717,7 @@
 			);
 			mainGroup = 04B74E682B9B6EFB00D19F52;
 			packageReferences = (
+				049901AB2CFF671D00BE15FC /* XCRemoteSwiftPackageReference "UIImageColors" */,
 			);
 			productRefGroup = 04B74E722B9B6EFB00D19F52 /* Products */;
 			projectDirPath = "";
@@ -757,23 +760,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		049901AA2CFF5C1000BE15FC /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nif [ -f \"../Podfile\" ]; then\n  echo \"Installing CocoaPods dependencies...\"\n  gem install cocoapods --no-document\n  pod install\nfi\n";
-		};
 		144F0031B410A0ABB7A11958 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1311,6 +1297,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		049901AB2CFF671D00BE15FC /* XCRemoteSwiftPackageReference "UIImageColors" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:jathu/UIImageColors.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		049901AC2CFF671D00BE15FC /* UIImageColors */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 049901AB2CFF671D00BE15FC /* XCRemoteSwiftPackageReference "UIImageColors" */;
+			productName = UIImageColors;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
 		047DE4CD2B9FF78700F0A2D5 /* Data.xcdatamodeld */ = {

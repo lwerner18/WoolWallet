@@ -8,7 +8,7 @@ target 'WoolWallet' do
   # Pods for WoolWallet
   pod 'OpenCV2'
   pod 'Sweetercolor', :git => 'https://github.com/lwerner18/Sweetercolor.git'
-  pod 'UIImageColors', :git => 'https://github.com/jathu/UIImageColors.git'
+  pod 'UIImageColors'
 
   
   post_install do |installer|
