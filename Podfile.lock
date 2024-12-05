@@ -1,0 +1,32 @@
+PODS:
+  - OpenCV2 (4.3.0)
+  - Sweetercolor (1.0.0)
+  - UIImageColors (2.1.0)
+
+DEPENDENCIES:
+  - OpenCV2
+  - Sweetercolor (from `https://github.com/lwerner18/Sweetercolor.git`)
+  - UIImageColors
+
+SPEC REPOS:
+  trunk:
+    - OpenCV2
+    - UIImageColors
+
+EXTERNAL SOURCES:
+  Sweetercolor:
+    :git: https://github.com/lwerner18/Sweetercolor.git
+
+CHECKOUT OPTIONS:
+  Sweetercolor:
+    :commit: 440a570fb56669446124afc790784b7f4a115f07
+    :git: https://github.com/lwerner18/Sweetercolor.git
+
+SPEC CHECKSUMS:
+  OpenCV2: ffe82e5cb5d16dc3fc01a5f4127b9a5b3cfc7d1b
+  Sweetercolor: 55e73dab95698598fbe006dfbf3e3df25ae642a9
+  UIImageColors: d2ef3b0877d203cbb06489eeb78ea8b7788caabe
+
+PODFILE CHECKSUM: ab2605cf0f3e15e0165fee64a7b84409ff9e5176
+
+COCOAPODS: 1.15.2

@@ -35,7 +35,6 @@ Carthage/Build/
 *.app
 
 # Other
-*.lock
 *.log
 
 # Xcode breakpoints
