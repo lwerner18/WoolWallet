@@ -104,7 +104,12 @@ struct Dashboard : View {
         var count = 0.0
         
         Array(weightsAndSkeins).forEach { weightAndYardage in
-            count += weightAndYardage.currentSkeins
+            if weightAndYardage.yarn!.isSockSet {
+                count += 1;
+            } else {
+                count += weightAndYardage.currentSkeins
+            }
+        
         }
         
         return count

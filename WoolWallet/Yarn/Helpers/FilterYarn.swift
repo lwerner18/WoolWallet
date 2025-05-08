@@ -117,7 +117,7 @@ struct FilterYarn: View {
                                         highlighted : selectedColors.contains(colorFilter.namedColor!),
                                         onClick : { toggleColorSelection(for: colorFilter.namedColor!) }
                                     ) {
-                                        if colorFilter.namedColor!.name != "Other" {
+                                        if !colorFilter.namedColor!.colors.isEmpty {
                                             // Diamond-shaped color view
                                             Circle()
                                                 .fill(Color(uiColor : colorFilter.namedColor!.colors[0]))

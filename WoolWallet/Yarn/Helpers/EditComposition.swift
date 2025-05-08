@@ -25,25 +25,37 @@ struct CompositionItem : Identifiable, Hashable {
 //    var description : String = ""
 //}
 
+let chartColors : [Color] = [
+    Color(hex : "#DAA520"),
+    Color(hex : "#A9C78A"),
+    Color(hex : "#76B2B8"),
+    Color(hex : "#B68BCE"),
+    Color(hex : "#C76A4D")
+]
+
 struct CompositionText : View {
     var composition : [CompositionItem]
     
     var body: some View {
         HStack {
             Spacer()
-            
-            let sortedCompositions = composition.sorted { $0.percentage > $1.percentage}
-            
-            ForEach(sortedCompositions, id: \.id) { compositionItem in
-                let material = YarnUtils.shared.getMaterial(item: compositionItem)
+            VStack {
+                let sortedCompositions = composition.sorted { $0.percentage > $1.percentage}
                 
-                if compositionItem.percentage != 0 && material != "" {
-                    Text(
-                        "\(compositionItem.percentage)% \(material)\(sortedCompositions.last != compositionItem ? "," : "")"
-                    )
-                    .foregroundStyle(Color.primary)
+                ForEach(sortedCompositions, id: \.id) { compositionItem in
+                    let material = YarnUtils.shared.getMaterial(item: compositionItem)
+                    
+                    if compositionItem.percentage != 0 && material != "" {
+                        Text(
+                            "\(compositionItem.percentage)% \(material)\(sortedCompositions.last != compositionItem ? "," : "") "
+                        )
+                        .foregroundStyle(Color.primary)
+                        .lineLimit(nil) // Allow wrapping
+                    }
                 }
             }
+            .multilineTextAlignment(.center) // Center the text
+            .frame(maxHeight: .infinity) // Vertically center in the parent
             
             Spacer()
         }
@@ -84,16 +96,16 @@ struct CompositionChart : View {
                 }
             }
             
-            ForEach(composition.reversed(), id: \.id) { compositionItem in
+            ForEach(Array(zip(composition.indices, composition.reversed())), id: \.0) { index, compositionItem in
                 if compositionItem.percentage != 0 && YarnUtils.shared.getMaterial(item: compositionItem) != "" {
                     SectorMark(
                         angle: .value("Percentage", compositionItem.percentage),
-//                        innerRadius: .ratio(0.65),
+                        //                        innerRadius: .ratio(0.65),
                         angularInset: 2
                     )
                     .cornerRadius(5)
-                    .foregroundStyle(Color.random())
-//                    .foregroundStyle(by: .value("Material", compositionItem.material ?? "New Material"))
+                    .foregroundStyle(index <= chartColors.count ? chartColors[index] :  Color.random())
+                    //                    .foregroundStyle(by: .value("Material", compositionItem.material ?? "New Material"))
                     .annotation(position: .overlay) {
                         Text("\(compositionItem.percentage)%")
                             .font(smallMode! ? .caption2 : .body)
@@ -300,8 +312,13 @@ struct PercentagePicker: View {
     
     var body: some View {
         CollapsibleWheelPicker(selection: $compositionItem.percentage) {
-            ForEach(0..<remainingComposition + 1, id: \.self) {
+            ForEach((0..<remainingComposition + 1).reversed(), id: \.self) {
                 Text("\($0) %").tag($0)
+            }
+            .onAppear {
+                if (compositionItem.percentage == 0) {
+                    compositionItem.percentage = remainingComposition
+                }
             }
         } label: {
             HStack {

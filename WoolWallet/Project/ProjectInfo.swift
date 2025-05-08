@@ -210,57 +210,6 @@ struct ProjectInfo: View {
                                 }
                             }
                             
-                            Text("Pattern")
-                                .infoCardHeader()
-                            
-                            InfoCard() {
-                                if displayedPattern != nil {
-                                    CenteredLoader()
-                                } else {
-                                    PatternPreview(pattern: pattern)
-                                }
-                            }
-                            .onTapGesture {
-                                if !isPopover {
-                                    displayedPattern = pattern
-                                }
-                            }
-                            
-                            if project.projectPairingItems.count == 1 {
-                                Text("Yarn")
-                                    .infoCardHeader()
-                            }
-                            
-                            SimpleHorizontalScroll(
-                                count: project.projectPairingItems.count,
-                                halfWidthInLandscape : !project.uiImages.isEmpty
-                            ) {
-                                ForEach(project.projectPairingItems, id : \.id) { projectPairingItem in
-                                    let patternWAndY = projectPairingItem.patternWeightAndYardage
-                                    
-                                    InfoCard(header : {
-                                        project.projectPairingItems.count > 1
-                                        ? AnyView(Text("COLOR \(PatternUtils.shared.getLetter(for: Int(patternWAndY.order)))"))
-                                        : AnyView(EmptyView())
-                                    }) {
-                                        if displayedYarn == projectPairingItem.yarnWeightAndYardage.yarn! {
-                                            CenteredLoader()
-                                        } else {
-                                            YarnPreviewForProject(
-                                                yarnWandY : projectPairingItem.yarnWeightAndYardage,
-                                                projectPairing : projectPairingItem.existingItem!,
-                                                project : project
-                                            )
-                                        }
-                                    }
-                                    .onTapGesture {
-                                        if !isPopover {
-                                            displayedYarn = projectPairingItem.yarnWeightAndYardage.yarn!
-                                        }
-                                    }
-                                }
-                            }
-                            
                             if !rowCounters.isEmpty {
                                 InfoCard(
                                     header : {
@@ -307,6 +256,57 @@ struct ProjectInfo: View {
                                             }
                                         }
                                         
+                                    }
+                                }
+                            }
+                            
+                            Text("Pattern")
+                            .infoCardHeader()
+                            
+                            InfoCard() {
+                                if displayedPattern != nil {
+                                    CenteredLoader()
+                                } else {
+                                    PatternPreview(pattern: pattern)
+                                }
+                            }
+                            .onTapGesture {
+                                if !isPopover {
+                                    displayedPattern = pattern
+                                }
+                            }
+                            
+                            if project.projectPairingItems.count == 1 {
+                                Text("Yarn")
+                                    .infoCardHeader()
+                            }
+                            
+                            SimpleHorizontalScroll(
+                                count: project.projectPairingItems.count,
+                                halfWidthInLandscape : !project.uiImages.isEmpty
+                            ) {
+                                ForEach(project.projectPairingItems, id : \.id) { projectPairingItem in
+                                    let patternWAndY = projectPairingItem.patternWeightAndYardage
+                                    
+                                    InfoCard(header : {
+                                        project.projectPairingItems.count > 1
+                                        ? AnyView(Text("COLOR \(PatternUtils.shared.getLetter(for: Int(patternWAndY.order)))"))
+                                        : AnyView(EmptyView())
+                                    }) {
+                                        if displayedYarn == projectPairingItem.yarnWeightAndYardage.yarn! {
+                                            CenteredLoader()
+                                        } else {
+                                            YarnPreviewForProject(
+                                                yarnWandY : projectPairingItem.yarnWeightAndYardage,
+                                                projectPairing : projectPairingItem.existingItem!,
+                                                project : project
+                                            )
+                                        }
+                                    }
+                                    .onTapGesture {
+                                        if !isPopover {
+                                            displayedYarn = projectPairingItem.yarnWeightAndYardage.yarn!
+                                        }
                                     }
                                 }
                             }

@@ -192,14 +192,18 @@ struct YarnInfo: View {
                             }
                             
                             if !yarn.compositionItems.isEmpty {
-                                InfoCard() {
-                                    VStack {
+                                InfoCard(
+                                    header : {
                                         HStack {
-                                            Text("Composition").font(.title3).bold().foregroundStyle(Color.primary)
+                                            Spacer()
+                                            Text("Composition")
                                             Spacer()
                                         }
+                                    }
+                                ) {
+                                    VStack {
                                         CompositionChart(composition: yarn.compositionItems, smallMode: true)
-                                        CompositionText(composition: yarn.compositionItems).font(.title3)
+                                        CompositionText(composition: yarn.compositionItems)
                                     }
                                 }
                             }

@@ -72,6 +72,7 @@ class PatternUtils {
         case .tankTop   : return ItemDisplay(color: Color(hex : "#B0E0E6"), custom: true, icon: "tanktop")
         case .vest      : return ItemDisplay(color: Color(hex : "#D4C4FB"), custom: true, icon: "vest")
         case .household : return ItemDisplay(color: Color(hex : "#DAA520"), icon: "house")
+        case .amigurumi : return ItemDisplay(color: Color(hex : "#B0A8B9"), icon: "teddybear")
         default         : return ItemDisplay(color: Color(hex : "#E7D46E"), icon: "questionmark")
         }
     }

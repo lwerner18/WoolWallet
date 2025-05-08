@@ -89,7 +89,9 @@ struct YarnList: View {
     // Computed property to get all the yarn with an optional searchText
     private var filteredYarn: FetchedResults<Yarn> {
         // Apply sorting
-        filteredFetchRequest.wrappedValue.nsSortDescriptors = [NSSortDescriptor(keyPath: \Yarn.name, ascending: true)]
+        filteredFetchRequest.wrappedValue.nsSortDescriptors = [
+            NSSortDescriptor(key: "name", ascending: true, selector: #selector(NSString.localizedStandardCompare))
+        ]
         
         var predicates: [NSPredicate] = []
         if searchText != "" {

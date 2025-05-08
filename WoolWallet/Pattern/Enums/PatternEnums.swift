@@ -103,6 +103,7 @@ enum Item : String, CaseIterable, Identifiable, Equatable {
     case tankTop   = "Tank Top"
     case vest      = "Vest"
     case household = "Household"
+    case amigurumi = "Amigurumi"
     case other     = "Other"
 }
 

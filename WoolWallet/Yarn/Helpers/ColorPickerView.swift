@@ -217,6 +217,10 @@ let namedColors = [
         ]
     ),
     NamedColor(
+        name: "Multicolored",
+        colors: []
+    ),
+    NamedColor(
         name: "Other",
         colors: []
     )
@@ -304,7 +308,7 @@ struct ColorPickerView: View {
                 Picker("Color", selection: $colorPickerItem.name) {
                     ForEach(namedColors, id: \.name) { color in
                         HStack {
-                            if !color.colors.isEmpty && colorPickerItem.name != color.name {
+                            if !color.colors.isEmpty {
                                 // Diamond-shaped color view
                                 Circle()
                                     .fill(Color(uiColor : color.colors[0]))

@@ -68,6 +68,8 @@ struct RowCounterForm: View {
                                 showMinus = false
                             }
                         }
+                        
+                        PersistenceController.shared.save()
                     }
                     .sensoryFeedback(.increase, trigger: displayedCount)
                     .edgesIgnoringSafeArea(.all) // Extend tappable area to edges

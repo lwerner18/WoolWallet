@@ -303,6 +303,13 @@ struct PatternInfo: View {
                             }
                         }
                         
+                        if !pattern.uiImages.isEmpty {
+                            Text("Images")
+                                .infoCardHeader()
+                            
+                            ImageCarousel(images: .constant(pattern.uiImages))
+                        }
+                        
                         if pattern.notes != "" {
                             InfoCard() {
                                 Text(pattern.notes!)
