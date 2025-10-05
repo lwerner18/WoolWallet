@@ -12,6 +12,7 @@
 		0411DCCC2CD2835B00007296 /* DateUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0411DCCB2CD2835B00007296 /* DateUtils.swift */; };
 		0411DCCE2CD28F5200007296 /* NewItemHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0411DCCD2CD28F5200007296 /* NewItemHeader.swift */; };
 		041265072CC2AF7700D497BF /* YarnSuggestions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 041265062CC2AF7700D497BF /* YarnSuggestions.swift */; };
+		04187D592E9105A7008389A8 /* YarnListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04187D582E9105A7008389A8 /* YarnListViewModel.swift */; };
 		042530BD2CB24DF8008804C7 /* MaterialPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042530BC2CB24DF8008804C7 /* MaterialPicker.swift */; };
 		042699B22CAF90E600F76B10 /* Pattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042699B12CAF90E600F76B10 /* Pattern.swift */; };
 		042B0A682CAE6300003CDCF0 /* PatternItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042B0A672CAE6300003CDCF0 /* PatternItem.swift */; };
@@ -125,6 +126,7 @@
 		0411DCCB2CD2835B00007296 /* DateUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateUtils.swift; sourceTree = "<group>"; };
 		0411DCCD2CD28F5200007296 /* NewItemHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewItemHeader.swift; sourceTree = "<group>"; };
 		041265062CC2AF7700D497BF /* YarnSuggestions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnSuggestions.swift; sourceTree = "<group>"; };
+		04187D582E9105A7008389A8 /* YarnListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnListViewModel.swift; sourceTree = "<group>"; };
 		042530BC2CB24DF8008804C7 /* MaterialPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialPicker.swift; sourceTree = "<group>"; };
 		042699B12CAF90E600F76B10 /* Pattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pattern.swift; sourceTree = "<group>"; };
 		042B0A672CAE6300003CDCF0 /* PatternItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternItem.swift; sourceTree = "<group>"; };
@@ -480,6 +482,7 @@
 				04A5C3E42C4C1DE600CD5870 /* ColorPickerView.swift */,
 				042530BC2CB24DF8008804C7 /* MaterialPicker.swift */,
 				0409BC3A2CDDE18B00BAC49C /* YarnPreview.swift */,
+				04187D582E9105A7008389A8 /* YarnListViewModel.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -911,6 +914,7 @@
 				04A5C3E22C4C1DA600CD5870 /* UIColor.swift in Sources */,
 				04B74E752B9B6EFB00D19F52 /* WoolWalletApp.swift in Sources */,
 				043E16ED2CBA0E52005046B6 /* ViewWeightAndYardage.swift in Sources */,
+				04187D592E9105A7008389A8 /* YarnListViewModel.swift in Sources */,
 				047DE4CC2B9FF40600F0A2D5 /* PersistenceController.swift in Sources */,
 				048E0EC52CD1D346009DBA67 /* ProjectInfo.swift in Sources */,
 				04BAC0C12BAE0D1D00C26CD8 /* GlobalSettings.swift in Sources */,

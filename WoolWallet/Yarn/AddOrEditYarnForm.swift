@@ -420,4 +420,54 @@ struct AddOrEditYarnForm: View {
             return nil
         }
     }
+    
+    func seedYarns() {
+        let context = PersistenceController.shared.container.viewContext
+        
+        for i in 1...51 {
+            // Create a new Yarn object in the Core Data context
+            let yarn = Yarn(context: context)
+            
+            // Fill in some example data (you can randomize this if you want)
+            yarn.name = "Sample Yarn \(i)"
+            yarn.dyer = "Dyer \(Int.random(in: 1...10))"
+            yarn.isSockSet = Bool.random()
+            yarn.isMini = Bool.random()
+            yarn.colorType = ["Solid", "Speckled", "Variegated", "Gradient"].randomElement() ?? "Solid"
+            yarn.isCaked = Bool.random()
+            yarn.isArchived = false
+            yarn.notes = "This is a sample yarn #\(i)"
+            
+            // Create a simple random-colored image for testing
+            let randomImage = randomColorImage()
+            
+            // Convert it to binary data
+            if let imageData = randomImage.pngData() {
+                let storedImage = StoredImage(context: context)
+                storedImage.id = UUID()
+                storedImage.order = 0
+                storedImage.image = imageData
+                
+                yarn.images = NSSet(array: [storedImage])
+            }
+            
+            // Call your existing persistence method
+            _ = persistYarn(yarn: yarn)
+        }
+        
+        print("✅ Added 51 yarn records.")
+    }
+    
+    func randomColorImage() -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 200, height: 200))
+        return renderer.image { ctx in
+            UIColor(
+                red: .random(in: 0...1),
+                green: .random(in: 0...1),
+                blue: .random(in: 0...1),
+                alpha: 1
+            ).setFill()
+            ctx.fill(CGRect(x: 0, y: 0, width: 200, height: 200))
+        }
+    }
 }
