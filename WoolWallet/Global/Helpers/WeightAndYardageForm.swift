@@ -16,7 +16,7 @@ enum WeightAndYardageParent : String, CaseIterable, Identifiable {
     case yarn = "Yarn"
 }
 
-struct WeightAndYardageData {
+struct WeightAndYardageData: Equatable {
     var id                : UUID = UUID()
     var weight            : Weight = Weight.none
     var unitOfMeasure     : UnitOfMeasure = UnitOfMeasure.yards
@@ -102,8 +102,9 @@ struct WeightAndYardageForm: View {
                         } label: {
                             Label("", systemImage : "xmark.circle")
                                 .font(.title2)
-                                .foregroundColor(.red)
+                                .foregroundStyle(Color.red)
                         }
+                        .accessibilityLabel("Remove")
                     }
                 }
             }

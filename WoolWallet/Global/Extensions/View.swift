@@ -14,7 +14,7 @@ extension View {
     }
     
     func cardBackground() -> some View {
-        self.cornerRadius(20)
+        self.clipShape(RoundedRectangle(cornerRadius: 20))
             .shadow(color: Color.black.opacity(0.5), radius: 4)
     }
     
@@ -35,18 +35,11 @@ extension View {
         }
     }
     
-    func simpleScrollItem(
-        count : Int,
-        halfWidthInLandscape : Bool,
-        isLandscape : Bool = true
-    ) -> some View {
-        self.frame(
-            width: UIScreen.main.bounds.width * (
-                count > 1
-                ? (isLandscape && halfWidthInLandscape ? 0.36 : 0.85)
-                : (isLandscape && halfWidthInLandscape ? 0.42 : 0.92)
-            )
-        )
+    /// Sizes a horizontally scrolling card relative to its scroll view, leaving the next card peeking when there are several.
+    func simpleScrollItem(count : Int) -> some View {
+        containerRelativeFrame(.horizontal) { length, _ in
+            count > 1 ? length * 0.9 : length
+        }
     }
     
     func infoCardHeader() -> some View {
@@ -58,10 +51,6 @@ extension View {
     
     func yarnDataRow() -> some View {
         modifier(YarnDataRow())
-    }
-    
-    func scrollTracker(scrollOffset: Binding<CGPoint>, name : String) -> some View {
-        modifier(ScrollTracker(scrollOffset : scrollOffset, name: name))
     }
     
     func customFormSection(background : Color = Color(UIColor.systemGroupedBackground)) -> some View {
@@ -94,7 +83,7 @@ extension View {
             .padding(.vertical, isSmall ? 5 : 8) // Padding for the section
             .padding(.horizontal, isSmall ? 8 : 12) // Padding for the section
             .background(background)
-            .cornerRadius(25) // Rounded corners for the section
+            .clipShape(RoundedRectangle(cornerRadius: 25))
             .shadow(radius: 0.5)
             .overlay(
                 thickBorder
@@ -114,6 +103,32 @@ extension View {
             }
         )
         .onPreferenceChange(SizePreferenceKey.self, perform: onChange)
+    }
+}
+
+/// Cancel button for add/edit forms that asks before throwing away unsaved changes.
+struct DiscardChangesButton: View {
+    var hasChanges: Bool
+    var onDiscard: () -> Void
+    
+    @State private var showConfirmation = false
+    
+    var body: some View {
+        Button("Cancel") {
+            if hasChanges {
+                showConfirmation = true
+            } else {
+                onDiscard()
+            }
+        }
+        .confirmationDialog(
+            "Are you sure you want to discard your changes?",
+            isPresented: $showConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Discard Changes", role: .destructive, action: onDiscard)
+            Button("Keep Editing", role: .cancel) {}
+        }
     }
 }
 

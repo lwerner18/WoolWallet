@@ -22,7 +22,7 @@ struct TextFieldTypeahead: View {
     
     var body: some View {
         TextField(label, text: $field)
-            .disableAutocorrection(true)
+            .autocorrectionDisabled()
             .onChange(of: field) {
                 // Cancel previous timer if it exists
                 debounceTimer?.cancel()
@@ -52,7 +52,7 @@ struct TextFieldTypeahead: View {
                     if filteredResult != field {
                         HStack {
                             Text(filteredResult)
-                                .foregroundColor(.blue) // Text color
+                                .foregroundStyle(Color.accentColor)
                                
                             
                             Spacer()

@@ -9,6 +9,7 @@ import Foundation
 import CoreML
 import Vision
 import SwiftUI
+import Sweetercolor
 
 enum AnalyzeColorError: Error {
     case unknownError
@@ -17,44 +18,40 @@ enum AnalyzeColorError: Error {
 class AnalyzeColorUtils {
     static let shared = AnalyzeColorUtils()
     
+    // Loaded once; `shared` is created lazily and thread-safely on first use
+    private let segmentationModel: VNCoreMLModel? = {
+        guard let modelURL = Bundle.main.url(forResource: "yarn_segmentation_model", withExtension: "mlmodelc"),
+              let coreMLModel = try? MLModel(contentsOf: modelURL) else {
+            return nil
+        }
+        return try? VNCoreMLModel(for: coreMLModel)
+    }()
+    
     private init() {}
     
+    /// Always calls `completion` exactly once, with nil on any failure.
     func classifyImageWithModel(image: UIImage, completion: @escaping (UIImage?) -> Void) {
-        print("Actually starting now")
-        // Step 1: Load the Core ML model and create a VNCoreMLModel
-        guard let modelURL = Bundle.main.url(forResource: "yarn_segmentation_model", withExtension: "mlmodelc"),
-              let coreMLModel = try? MLModel(contentsOf: modelURL),
-              let vnCoreMLModel = try? VNCoreMLModel(for: coreMLModel) else {
+        guard let segmentationModel else {
             print("Failed to load Core ML model")
             completion(nil)
             return
         }
         
-        // Step 2: Create a VNCoreMLRequest with a completion handler
-        let request = VNCoreMLRequest(model: vnCoreMLModel) { (request, error) in
-            print("request completed")
+        let request = VNCoreMLRequest(model: segmentationModel) { (request, error) in
             guard let results = request.results as? [VNCoreMLFeatureValueObservation],
                   let multiArray = results.first?.featureValue.multiArrayValue else {
                 print("Failed to obtain multi-array results:", error?.localizedDescription ?? "unknown error")
+                completion(nil)
                 return
             }
             
-            DispatchQueue.global(qos: .background).async {
-                // Now, process the MLMultiArray to create an image
-                if let image = self.mlMultiArrayToUIImage(multiArray, originalImage: image) {
-                    print("")
-                    // Do something with the image (e.g., display it in your app)
-                    completion(image)
-                }
+            DispatchQueue.global(qos: .userInitiated).async {
+                completion(self.mlMultiArrayToUIImage(multiArray, originalImage: image))
             }
-            
-            
         }
         
         let resizedImage = image.resize(to: CGSize(width: 256, height: 256))
         
-        
-        // Step 3: Create a VNImageRequestHandler and perform the request
         guard let cgImage = resizedImage?.cgImage else {
             print("Failed to get CGImage from input image")
             completion(nil)
@@ -63,10 +60,10 @@ class AnalyzeColorUtils {
         
         let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
         do {
-            print("About to perform request")
             try handler.perform([request])
         } catch {
             print("Failed to perform classification.\n\(error.localizedDescription)")
+            completion(nil)
         }
     }
     
@@ -149,38 +146,46 @@ class AnalyzeColorUtils {
         let result = UIImage(cgImage: cgImage)
         
         let targetSize = originalImage.size
+        let format = Self.bitmapFormat(scale: result.scale)
         
-        UIGraphicsBeginImageContextWithOptions(targetSize, false, result.scale)
-        result.draw(in: CGRect(origin: .zero, size: targetSize))
-        let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
+        let resizedImage = UIGraphicsImageRenderer(size: targetSize, format: format).image { _ in
+            result.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
         
-        UIGraphicsBeginImageContextWithOptions(resizedImage!.size, false, resizedImage!.scale)
-        let flipContext = UIGraphicsGetCurrentContext()!
-        
-        // Move the origin to the middle of the image so we will rotate and scale around the center.
-        flipContext.translateBy(x: resizedImage!.size.width, y: 0)
-        flipContext.scaleBy(x: -1.0, y: 1.0) // Flip horizontal
-        
-        // Draw the original image into the transformed context
-        resizedImage!.draw(at: CGPoint.zero)
-        let flippedImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
+        let flippedImage = UIGraphicsImageRenderer(size: resizedImage.size, format: format).image { rendererContext in
+            let flipContext = rendererContext.cgContext
+            
+            // Move the origin to the middle of the image so we will rotate and scale around the center.
+            flipContext.translateBy(x: resizedImage.size.width, y: 0)
+            flipContext.scaleBy(x: -1.0, y: 1.0) // Flip horizontal
+            
+            // Draw the original image into the transformed context
+            resizedImage.draw(at: CGPoint.zero)
+        }
         
         // Setup the context with the swapped dimensions for 90-degree rotation
-        UIGraphicsBeginImageContextWithOptions(CGSize(width: flippedImage!.size.height, height: flippedImage!.size.width), false, flippedImage!.scale)
-        guard let rotateContext = UIGraphicsGetCurrentContext() else { return nil }
-        
-        // Move the origin to the new bottom left (originally top left)
-        rotateContext.translateBy(x: flippedImage!.size.height, y: 0)
-        rotateContext.rotate(by: CGFloat.pi / 2)  // 90 degrees clockwise rotation
-        
-        // Draw the image onto the transformed context
-        flippedImage!.draw(at: CGPoint(x: 0, y: 0))
-        let rotatedImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
+        let rotatedSize = CGSize(width: flippedImage.size.height, height: flippedImage.size.width)
+        let rotatedImage = UIGraphicsImageRenderer(size: rotatedSize, format: format).image { rendererContext in
+            let rotateContext = rendererContext.cgContext
+            
+            // Move the origin to the new bottom left (originally top left)
+            rotateContext.translateBy(x: flippedImage.size.height, y: 0)
+            rotateContext.rotate(by: CGFloat.pi / 2)  // 90 degrees clockwise rotation
+            
+            // Draw the image onto the transformed context
+            flippedImage.draw(at: CGPoint(x: 0, y: 0))
+        }
         
         return rotatedImage
+    }
+    
+    /// `yarnColors` reads the mask as 4 bytes per pixel, so wide-color (16-bit) rendering must be avoided.
+    private static func bitmapFormat(scale: CGFloat) -> UIGraphicsImageRendererFormat {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = scale
+        format.opaque = false
+        format.preferredRange = .standard
+        return format
     }
     
     func yarnColors(from colorImage: UIImage, with maskImage: UIImage) throws -> [Color] {
@@ -208,8 +213,7 @@ class AnalyzeColorUtils {
         let maskDataLength = CFDataGetLength(maskBitmapData)
         let colorDataLength = CFDataGetLength(colorBitmapData)
         
-        var colorSet = Set<Color>()
-        var distinctColors = Set<Color>()
+        var ringColors: [(color: UIColor, pixelCount: CGFloat)] = []
         
         let centerX = width / 2
         let centerY = height / 2
@@ -265,28 +269,45 @@ class AnalyzeColorUtils {
                 let bAvg = bTotal / validPixelCount
                 let aAvg = aTotal / validPixelCount
                 
-                let averageColor = Color(uiColor: UIColor(red: rAvg, green: gAvg, blue: bAvg, alpha: aAvg).brightened(by: 0.3).saturated(by: 0.3))
+                let averageColor = UIColor(red: rAvg, green: gAvg, blue: bAvg, alpha: aAvg).brightened(by: 0.3).saturated(by: 0.3)
                 
-                colorSet.insert(averageColor)
+                ringColors.append((averageColor, validPixelCount))
             }
         }
-        print("Number of colors", colorSet.count)
         
-        for color in colorSet {
-            var isSimilar = false
-            for existingColor in distinctColors {
-                if color.isSimilar(to: existingColor, threshold: 0.05) {
-                    isSimilar = true
-                    break
-                }
+        return Self.distinctColors(from: ringColors).map { Color(uiColor: $0) }
+    }
+    
+    /// CIEDE2000 distance under which two samples count as the same yarn color.
+    private static let sameColorDistance: CGFloat = 15
+    /// Colors covering less than this share of the sampled yarn are treated as noise.
+    private static let minimumColorShare: CGFloat = 0.1
+    private static let maximumColorCount = 4
+    
+    /// Groups sampled colors that look alike, ordered from most to least of the yarn covered.
+    private static func distinctColors(from samples: [(color: UIColor, pixelCount: CGFloat)]) -> [UIColor] {
+        var groups: [(color: UIColor, pixelCount: CGFloat)] = []
+        
+        for sample in samples {
+            let closest = groups.indices.min { a, b in
+                groups[a].color.CIEDE2000(compare: sample.color) < groups[b].color.CIEDE2000(compare: sample.color)
             }
             
-            if !isSimilar {
-                distinctColors.insert(color)
+            if let closest, groups[closest].color.CIEDE2000(compare: sample.color) < sameColorDistance {
+                groups[closest].pixelCount += sample.pixelCount
+            } else {
+                groups.append(sample)
             }
         }
         
-        return Array(distinctColors)
+        let totalPixels = groups.reduce(0) { $0 + $1.pixelCount }
+        guard totalPixels > 0 else { return [] }
+        
+        return groups
+            .filter { $0.pixelCount / totalPixels >= minimumColorShare }
+            .sorted { $0.pixelCount > $1.pixelCount }
+            .prefix(maximumColorCount)
+            .map(\.color)
     }
 
     

@@ -50,10 +50,10 @@ struct ProjectPreview:  View {
             } else {
                 HStack {
                     if let pattern = project.pattern {
-                        if project.uiImages.isEmpty {
+                        if !project.hasImages {
                             PatternItemDisplay(pattern: pattern, size: Size.medium)
                         } else {
-                            ImageCarousel(images: .constant(project.uiImages), size: Size.extraSmall)
+                            StoredImageCarousel(images: project.images, size: Size.extraSmall)
                         }
                         
                         Spacer()
@@ -131,7 +131,7 @@ struct ProjectPreview:  View {
                     .scaledToFit() // Adjust the image's aspect ratio
                     .frame(width: 100, height: 75) // Set desired frame size
                     .offset(x: 32, y: 0)
-                    .cornerRadius(8)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
                     .shadow(radius: 3)
             )
             : AnyView(EmptyView()),

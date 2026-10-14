@@ -41,6 +41,32 @@ struct AddOrEditProjectForm: View {
     @State private var persisting              : Bool = false
     @State private var imagesChanged           : Bool = false
     
+    @State private var initialSnapshot         : FormSnapshot? = nil
+    
+    private struct FormSnapshot: Equatable {
+        var notes           : String
+        var inProgress      : Bool
+        var projectPairing  : [ProjectPairingItem]
+        var pattern         : Pattern?
+        var images          : [ImageData]
+        var statusSelection : Int
+    }
+    
+    private var snapshot: FormSnapshot {
+        FormSnapshot(
+            notes: notes,
+            inProgress: inProgress,
+            projectPairing: projectPairing,
+            pattern: pattern,
+            images: images,
+            statusSelection: statusSelection
+        )
+    }
+    
+    private var hasChanges: Bool {
+        initialSnapshot.map { $0 != snapshot } ?? false
+    }
+    
     init(
         projectToEdit : Project?,
         preSelectedPattern : Pattern?,
@@ -86,9 +112,10 @@ struct AddOrEditProjectForm: View {
                                 pattern = nil
                             }) {
                                 Label("", systemImage : "xmark.circle")
-                                    .foregroundColor(.red)
+                                    .foregroundStyle(Color.red)
                                     .font(.title3)
                             }
+                            .accessibilityLabel("Remove Pattern")
                         }
                     }
                 ) {
@@ -102,7 +129,7 @@ struct AddOrEditProjectForm: View {
                                 Label("Browse patterns", systemImage : "newspaper")
                                 Spacer()
                                 Image(systemName: "chevron.right")
-                                    .foregroundColor(.blue)
+                                    .foregroundStyle(Color.accentColor)
                             }
                             .contentShape(Rectangle())
                             
@@ -139,9 +166,10 @@ struct AddOrEditProjectForm: View {
                                         }
                                     }) {
                                         Label("", systemImage : "xmark.circle")
-                                            .foregroundColor(.red)
+                                            .foregroundStyle(Color.red)
                                             .font(.title3)
                                     }
+                                    .accessibilityLabel("Remove Yarn")
                                 }
                             },
                             footer: HStack {
@@ -183,7 +211,7 @@ struct AddOrEditProjectForm: View {
                                         Label("Browse \(header == "Yarn" ? "yarn" : "yarn for \(header)")", systemImage : "volleyball")
                                         Spacer()
                                         Image(systemName: "chevron.right")
-                                            .foregroundColor(.blue)
+                                            .foregroundStyle(Color.accentColor)
                                     }
                                     .contentShape(Rectangle())
                                     
@@ -267,21 +295,18 @@ struct AddOrEditProjectForm: View {
             .navigationTitle(projectToEdit == nil ? "New Project" : "Edit Project")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
+                ToolbarItem(placement: .cancellationAction) {
+                    DiscardChangesButton(hasChanges: hasChanges) {
                         dismiss()
-                    }) {
-                        Text("Cancel")
                     }
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button(action: {
                         createOrUpdatePattern()
                     }) {
                         if persisting {
-                            ProgressView("")
-                                .progressViewStyle(CircularProgressViewStyle())
+                            ProgressView()
                         } else {
                             Text(projectToEdit == nil ? "Add" : "Save")
                         }
@@ -304,7 +329,13 @@ struct AddOrEditProjectForm: View {
             .onChange(of: images) {
                 imagesChanged = true
             }
+            .onAppear {
+                if initialSnapshot == nil {
+                    initialSnapshot = snapshot
+                }
+            }
         }
+        .interactiveDismissDisabled(hasChanges)
     }
     
     private func createOrUpdatePattern() {

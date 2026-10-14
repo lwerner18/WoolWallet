@@ -71,17 +71,7 @@ struct WoolWalletApp: App {
             .environment(\.managedObjectContext, persistenceController.container.viewContext)
             .environment(\.mainTab, $selectedTab)
             .environment(\.projectToShowAutomatically, $projectToShowAutomatically)
-            .onAppear {
-                print("Documents Directory: \(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path ?? "Not found")")
-
-            }
-//            .onChange(of: selectedTab) {
-//                if projectToShowAutomatically != nil {
-//                    projectToShowAutomatically = nil
-//                }
-//            }
         }
-    
     }
 }
 

@@ -41,12 +41,7 @@ class YarnUtils {
         
         context.delete(yarn)
         
-        do {
-            try PersistenceController.shared.save()
-        } catch {
-            // Handle the error appropriately.
-            print("Failed to save context: \(error.localizedDescription)")
-        }
+        PersistenceController.shared.save()
     }
     
     func getMaterial(item : CompositionItem) -> String {
@@ -113,25 +108,6 @@ class YarnUtils {
             return try context.fetch(favoritesRequest)
         } catch {
             print("Failed to fetch favorites: \(error)")
-            return []
-        }
-    }
-    
-    func getProjects(for yarn : Yarn, in context: NSManagedObjectContext) -> [Project] {
-        let projectsRequest: NSFetchRequest<Project> = Project.fetchRequest()
-        
-        var predicates: [NSPredicate] = []
-        
-        yarn.weightAndYardageItems.forEach { element in
-            predicates.append(NSPredicate(format: "ANY pairings.yarnWeightAndYardage.id == %@", element.id as any CVarArg))
-        }
-        
-        projectsRequest.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: predicates)
-        
-        do {
-            return try context.fetch(projectsRequest)
-        } catch {
-            print("Failed to fetch projects: \(error)")
             return []
         }
     }

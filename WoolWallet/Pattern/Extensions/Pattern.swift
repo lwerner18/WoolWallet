@@ -87,7 +87,7 @@ extension Pattern {
         return weightAndYardageArray.map { item in
             return WeightAndYardageData(
                 id                : item.id!,
-                weight            : item.weight != nil ? Weight(rawValue: item.weight!)! : Weight.none,
+                weight            : Weight.fromStored(item.weight),
                 unitOfMeasure     : item.unitOfMeasure != nil ? UnitOfMeasure(rawValue: item.unitOfMeasure!)! : UnitOfMeasure.yards,
                 yardage           : item.yardage != 0 ? item.yardage : nil,
                 grams             : item.grams != 0 ? Int(item.grams) : nil,
@@ -110,17 +110,11 @@ extension Pattern {
     }
     
     var uiImages: [ImageData] {
-        let storedImages = images?.allObjects as? [StoredImage] ?? []
-        
-        let sortedImages = storedImages.sorted { $0.order < $1.order}
-        
-        return sortedImages.map { storedImage in
-            return ImageData(
-                id : storedImage.id!,
-                image: UIImage(data: storedImage.image ?? Data())!,
-                existingItem: storedImage
-            )
-        }
+        StoredImage.imageData(from: images, maxPixelSize: StoredImage.displayMaxPixelSize)
+    }
+    
+    var hasImages: Bool {
+        (images?.count ?? 0) > 0
     }
     
     var projectsArray: [Project] {

@@ -10,28 +10,21 @@ import SwiftUI
 
 struct SimpleHorizontalScroll<Content: View>: View {
     let count: Int
-    let halfWidthInLandscape : Bool
     let content: () -> Content // Closure for the content view
     
     init(
         count : Int,
-        halfWidthInLandscape : Bool = false,
         @ViewBuilder content: @escaping () -> Content
     ) {
         self.count = count
-        self.halfWidthInLandscape = halfWidthInLandscape
         self.content = content
     }
     
     var body: some View {
         ScrollView(.horizontal) {
-            HStack {
+            LazyHStack {
                 content()
-                    .simpleScrollItem(
-                        count: count,
-                        halfWidthInLandscape : halfWidthInLandscape,
-                        isLandscape: !GlobalSettings.shared.isPortraitMode
-                    )
+                    .simpleScrollItem(count: count)
             }
         }
         .scrollIndicators(.hidden)

@@ -118,7 +118,7 @@ struct YarnPreviewPart1: View {
     var body: some View {
         HStack {
             VStack {
-                ImageCarousel(images: .constant(yarnWandY.yarn!.uiImages), size: Size.extraSmall)
+                StoredImageCarousel(images: yarnWandY.yarn!.images, size: Size.extraSmall)
                 
                 if yarnWandY.yarn!.isSockSet {
                     Text("Sock Set")

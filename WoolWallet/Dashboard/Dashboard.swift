@@ -65,25 +65,19 @@ struct Dashboard : View {
     
     @Binding var mainTab : MainTab
     
-    var selectedYarnWeight: YarnWeightCount? {
+    func selectedYarnWeight(in weightCounts: [YarnWeightCount]) -> YarnWeightCount? {
+        guard let selectedAngle else { return nil }
+        
         var sum = 0.0
-        
-        if selectedAngle == nil {
-            return nil
-        }
-        
-        var selected : YarnWeightCount? = nil
-        
-        for yarnWeightCount in yarnWeightCounts {
+        for yarnWeightCount in weightCounts {
             sum += yarnWeightCount.count
             
-            if sum > selectedAngle! {
-                selected = yarnWeightCount
-                break
+            if sum > selectedAngle {
+                return yarnWeightCount
             }
         }
         
-        return selected
+        return nil
     }
     
     var averageTimeToComplete: Double {
@@ -101,86 +95,59 @@ struct Dashboard : View {
     }
     
     var unusedSkeins: Double {
-        var count = 0.0
-        
-        Array(weightsAndSkeins).forEach { weightAndYardage in
-            if weightAndYardage.yarn!.isSockSet {
-                count += 1;
-            } else {
-                count += weightAndYardage.currentSkeins
-            }
-        
+        weightsAndSkeins.reduce(0.0) { count, weightAndYardage in
+            count + (weightAndYardage.yarn?.isSockSet == true ? 1 : weightAndYardage.currentSkeins)
         }
-        
-        return count
     }
     
     var itemCounts: [ItemCount] {
-        var itemCounts : [ItemCount] = []
+        var countsByItem : [String: Int] = [:]
         
-        Item.allCases.forEach { item in
-            if item != Item.none {
-                let filteredCount = Array(patternItems).filter { patternItem in
-                    if patternItem.item != nil && patternItem.item == item.rawValue {
-                        switch patternTypeChart {
-                        case .all:
-                            return true
-                        case .crochet:
-                            return patternItem.pattern!.type == PatternType.crochet.rawValue
-                        case .knit:
-                            return patternItem.pattern!.type == PatternType.knit.rawValue
-                        case .tunisian:
-                            return patternItem.pattern!.type == PatternType.tunisian.rawValue
-                        }
-                    }
-                    
-                    return false
-                }.count
-                
-                itemCounts.append(ItemCount(item: item, count: filteredCount))
+        for patternItem in patternItems {
+            guard let item = patternItem.item else { continue }
+            
+            let matchesType: Bool
+            switch patternTypeChart {
+            case .all      : matchesType = true
+            case .crochet  : matchesType = patternItem.pattern?.type == PatternType.crochet.rawValue
+            case .knit     : matchesType = patternItem.pattern?.type == PatternType.knit.rawValue
+            case .tunisian : matchesType = patternItem.pattern?.type == PatternType.tunisian.rawValue
+            }
+            
+            if matchesType {
+                countsByItem[item, default: 0] += 1
             }
         }
         
-        return itemCounts.sorted(by: { $0.item.rawValue < $1.item.rawValue })
-    }
-    
-    var maxItemCount: Int {
-        var max : Int = 0
-        
-        itemCounts.forEach { itemCount in
-            if itemCount.count > max {
-                max = itemCount.count
-            }
-        }
-        
-        return max
+        return Item.allCases
+            .filter { $0 != Item.none }
+            .map { ItemCount(item: $0, count: countsByItem[$0.rawValue] ?? 0) }
+            .sorted(by: { $0.item.rawValue < $1.item.rawValue })
     }
     
     var yarnWeightCounts : [YarnWeightCount] {
-        var weightCounts : [YarnWeightCount] = []
+        var skeinsByWeight : [String: Double] = [:]
         
-        Weight.allCases.forEach { weight in
-            if weight != Weight.none {
-                var count = 0.0
-                
-                Array(weightsAndSkeins).filter { weightAndYardage in
-                    weightAndYardage.weight != nil && weightAndYardage.weight == weight.rawValue && weightAndYardage.currentSkeins > 0
-                }.forEach { weightAndYardage in
-                    count += weightAndYardage.currentSkeins
-                }
-                
-                weightCounts.append(YarnWeightCount(weight: weight, count: count))
+        for weightAndYardage in weightsAndSkeins where weightAndYardage.currentSkeins > 0 {
+            if let weight = weightAndYardage.weight {
+                skeinsByWeight[weight, default: 0] += weightAndYardage.currentSkeins
             }
         }
         
-        return weightCounts.sorted(by: { $0.weight.rawValue < $1.weight.rawValue })
-    }
-    
-    var totalYarnWeights : Double {
-        return yarnWeightCounts.map { $0.count }.reduce(0, +)
+        return Weight.allCases
+            .filter { $0 != Weight.none }
+            .map { YarnWeightCount(weight: $0, count: skeinsByWeight[$0.rawValue] ?? 0) }
+            .sorted(by: { $0.weight.rawValue < $1.weight.rawValue })
     }
     
     var body : some View {
+        // Each of these walks every fetched row, so compute them once per render
+        let yarnWeightCounts = self.yarnWeightCounts
+        let totalYarnWeights = yarnWeightCounts.reduce(0) { $0 + $1.count }
+        let selectedYarnWeight = self.selectedYarnWeight(in: yarnWeightCounts)
+        let itemCounts = self.itemCounts
+        let maxItemCount = itemCounts.map(\.count).max() ?? 0
+        
         NavigationStack {
             ScrollView {
                 LazyVStack {
@@ -321,8 +288,8 @@ struct Dashboard : View {
                                     let item = yarnWeightCounts[index]
                                     
                                     if item.count > 0 {
-                                        let startAngle = angle(for: index, in: yarnWeightCounts)
-                                        let endAngle = angle(for: index + 1, in: yarnWeightCounts)
+                                        let startAngle = angle(for: index, in: yarnWeightCounts, total: totalYarnWeights)
+                                        let endAngle = angle(for: index + 1, in: yarnWeightCounts, total: totalYarnWeights)
                                         let midAngle : Angle = (startAngle + endAngle) / 2
                                         let midAngleRadian = CGFloat(midAngle.radians - .pi*1.5)
                                         
@@ -376,11 +343,11 @@ struct Dashboard : View {
                                 let frame = geometry[anchor]
                                 
                                 HStack {
-                                    if selectedYarnWeight != nil {
+                                    if let selectedYarnWeight {
                                         VStack {
-                                            Text("\(selectedYarnWeight!.weight.getDisplay())")
-                                            Text(selectedYarnWeight!.count.formatted)
-                                            Text("\(((selectedYarnWeight!.count/totalYarnWeights)*100).formatted)%")
+                                            Text("\(selectedYarnWeight.weight.getDisplay())")
+                                            Text(selectedYarnWeight.count.formatted)
+                                            Text("\(((selectedYarnWeight.count/totalYarnWeights)*100).formatted)%")
                                         }
                                     }
                                 }
@@ -472,8 +439,8 @@ struct Dashboard : View {
     }
     
     // Function to calculate the angle for a given index
-    func angle(for index: Int, in segments: [YarnWeightCount]) -> Angle {
-        let ratio = segments.prefix(index).map { $0.count }.reduce(0, +) / totalYarnWeights
+    func angle(for index: Int, in segments: [YarnWeightCount], total: Double) -> Angle {
+        let ratio = segments.prefix(index).map { $0.count }.reduce(0, +) / total
         return .radians((.pi*2 * ratio) + .pi*1.5)
     }
     
@@ -489,7 +456,7 @@ struct Dashboard : View {
     func animateItems() {
         animateItemCounts = Item.allCases.filter{$0 != Item.none}.map{_ in return false}
         
-        for (index,_) in itemCounts.enumerated() {
+        for index in animateItemCounts.indices {
             DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.1) {
                 withAnimation(.easeInOut(duration: 0.5)) {
                     animateItemCounts[index] = true
@@ -501,7 +468,7 @@ struct Dashboard : View {
     func animateYarnWeightCounts() {
         animateWeightCounts = Weight.allCases.filter{$0 != Weight.none}.map{_ in return false}
         
-        for (index,_) in yarnWeightCounts.enumerated() {
+        for index in animateWeightCounts.indices {
             DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.1) {
                 withAnimation(.easeInOut(duration: 0.5)) {
                     animateWeightCounts[index] = true

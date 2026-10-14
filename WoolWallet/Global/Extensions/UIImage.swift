@@ -7,17 +7,60 @@
 
 import Foundation
 import SwiftUI
+import ImageIO
 
 extension UIImage {
+    /// Decodes image data directly at a reduced size, avoiding a full-resolution bitmap in memory.
+    static func downsampled(from data: Data, maxPixelSize: CGFloat) -> UIImage? {
+        let sourceOptions = [kCGImageSourceShouldCache: false] as CFDictionary
+        guard let source = CGImageSourceCreateWithData(data as CFData, sourceOptions) else { return nil }
+        
+        var targetPixelSize = maxPixelSize
+        if let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+           let width = (properties[kCGImagePropertyPixelWidth] as? NSNumber)?.doubleValue,
+           let height = (properties[kCGImagePropertyPixelHeight] as? NSNumber)?.doubleValue {
+            targetPixelSize = min(maxPixelSize, CGFloat(max(width, height)))
+        }
+        
+        let thumbnailOptions = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: targetPixelSize
+        ] as CFDictionary
+        
+        guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, thumbnailOptions) else { return nil }
+        return UIImage(cgImage: cgImage)
+    }
+    
+    /// Returns a copy whose longest edge is at most `maxPixelSize` pixels, or self if already smaller.
+    func scaledDown(toMaxPixelSize maxPixelSize: CGFloat) -> UIImage {
+        let pixelWidth = size.width * scale
+        let pixelHeight = size.height * scale
+        let longestEdge = max(pixelWidth, pixelHeight)
+        guard longestEdge > maxPixelSize else { return self }
+        
+        let ratio = maxPixelSize / longestEdge
+        let targetSize = CGSize(width: (pixelWidth * ratio).rounded(), height: (pixelHeight * ratio).rounded())
+        
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = true
+        
+        return UIGraphicsImageRenderer(size: targetSize, format: format).image { _ in
+            draw(in: CGRect(origin: .zero, size: targetSize))
+        }
+    }
+    
     func resize(to targetSize: CGSize) -> UIImage? {
-        let rect = CGRect(origin: .zero, size: targetSize)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = false
+        format.preferredRange = .standard
         
-        UIGraphicsBeginImageContextWithOptions(targetSize, false, 1.0)
-        self.draw(in: rect)
-        let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        
-        return resizedImage
+        return UIGraphicsImageRenderer(size: targetSize, format: format).image { _ in
+            draw(in: CGRect(origin: .zero, size: targetSize))
+        }
     }
     
 //    func distinctColorsTest(threshold: CGFloat = 0.35, blockSize: Int = 200) -> [Color] {

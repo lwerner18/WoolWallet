@@ -10,7 +10,6 @@
 		0409BC3B2CDDE18B00BAC49C /* YarnPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0409BC3A2CDDE18B00BAC49C /* YarnPreview.swift */; };
 		0409BC3D2CDDE63500BAC49C /* CenteredLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0409BC3C2CDDE63500BAC49C /* CenteredLoader.swift */; };
 		0411DCCC2CD2835B00007296 /* DateUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0411DCCB2CD2835B00007296 /* DateUtils.swift */; };
-		0411DCCE2CD28F5200007296 /* NewItemHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0411DCCD2CD28F5200007296 /* NewItemHeader.swift */; };
 		041265072CC2AF7700D497BF /* YarnSuggestions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 041265062CC2AF7700D497BF /* YarnSuggestions.swift */; };
 		04187D592E9105A7008389A8 /* YarnListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04187D582E9105A7008389A8 /* YarnListViewModel.swift */; };
 		042530BD2CB24DF8008804C7 /* MaterialPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042530BC2CB24DF8008804C7 /* MaterialPicker.swift */; };
@@ -124,7 +123,6 @@
 		0409BC3A2CDDE18B00BAC49C /* YarnPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnPreview.swift; sourceTree = "<group>"; };
 		0409BC3C2CDDE63500BAC49C /* CenteredLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CenteredLoader.swift; sourceTree = "<group>"; };
 		0411DCCB2CD2835B00007296 /* DateUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateUtils.swift; sourceTree = "<group>"; };
-		0411DCCD2CD28F5200007296 /* NewItemHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewItemHeader.swift; sourceTree = "<group>"; };
 		041265062CC2AF7700D497BF /* YarnSuggestions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnSuggestions.swift; sourceTree = "<group>"; };
 		04187D582E9105A7008389A8 /* YarnListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnListViewModel.swift; sourceTree = "<group>"; };
 		042530BC2CB24DF8008804C7 /* MaterialPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialPicker.swift; sourceTree = "<group>"; };
@@ -586,7 +584,6 @@
 				043E16EE2CBB6B6A005046B6 /* CollapsibleView.swift */,
 				048ED2E62CC7537A00DB790A /* ScrollDots.swift */,
 				048E0EC22CD18BF3009DBA67 /* Tabs.swift */,
-				0411DCCD2CD28F5200007296 /* NewItemHeader.swift */,
 				04A15AA12CD5EE0100EA4B1D /* FancyHorizontalScroll.swift */,
 				0486973A2CD6C2B100C69076 /* ViewLengthAndYardage.swift */,
 				0486973C2CD7418C00C69076 /* SimpleHorizontalScroll.swift */,
@@ -934,7 +931,6 @@
 				047DE4CF2B9FF78700F0A2D5 /* Data.xcdatamodeld in Sources */,
 				04D415122C9F61BD004E1AFD /* AddOrEditYarnForm.swift in Sources */,
 				042B0A6C2CAE641C003CDCF0 /* KnittingNeedle.swift in Sources */,
-				0411DCCE2CD28F5200007296 /* NewItemHeader.swift in Sources */,
 				04F083EA2CDBBF63002E40A0 /* ProjectPreview.swift in Sources */,
 				042B0A6A2CAE63B0003CDCF0 /* CrochetHook.swift in Sources */,
 				042CC1E82BAB9BFF008DD2F6 /* ConditionalStack.swift in Sources */,
@@ -1117,7 +1113,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = WoolWallet/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
-				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs to capture images to show in the app";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
@@ -1156,7 +1151,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = WoolWallet/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
-				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs to capture images to show in the app";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;

@@ -3,13 +3,8 @@
 <plist version="1.0">
 <dict>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>App needs photo library access in order to allow user to take photos of yarn and take photos of crafting projects  for cataloging</string>
+	<string>WoolWallet uses your photo library so you can add pictures of your yarn, patterns, and projects.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>App needs camera access in order to allow user to take photos of yarn and take photos of crafting projects for cataloging</string>
-	<key>UILaunchScreen</key>
-	<dict>
-		<key>UILaunchScreen</key>
-		<string></string>
-	</dict>
+	<string>WoolWallet uses the camera so you can photograph your yarn, patterns, and projects.</string>
 </dict>
 </plist>

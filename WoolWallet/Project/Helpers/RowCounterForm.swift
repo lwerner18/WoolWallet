@@ -72,7 +72,7 @@ struct RowCounterForm: View {
                         PersistenceController.shared.save()
                     }
                     .sensoryFeedback(.increase, trigger: displayedCount)
-                    .edgesIgnoringSafeArea(.all) // Extend tappable area to edges
+                    .ignoresSafeArea() // Extend tappable area to edges
                 
                 HStack {
                     if showMinus {
@@ -92,6 +92,7 @@ struct RowCounterForm: View {
                             Label("", systemImage : "minus")
                                 .font(.system(size: 40))
                         }
+                        .accessibilityLabel("Decrease Count")
                         .transition(.scale)
                     }
                     
@@ -104,6 +105,7 @@ struct RowCounterForm: View {
                             .font(.system(size: 30))
                             .foregroundStyle(Color.red)
                     }
+                    .accessibilityLabel("Delete Counter")
                     
                 }
                 .padding(20)

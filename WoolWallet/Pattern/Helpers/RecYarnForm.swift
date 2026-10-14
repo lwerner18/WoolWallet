@@ -34,12 +34,11 @@ struct RecYarnForm: View {
         .navigationTitle("Yarn Specs")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: .confirmationAction) {
                 Button(action: {
                     dismiss()
                 }) {
-                    Image(systemName: "checkmark") // Use a system icon
-                        .imageScale(.large)
+                    Text("Done")
                 }
             }
         }

@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import PhotosUI
+import CoreData
 
 struct ImageData: Equatable {
     var id = UUID()
@@ -33,18 +34,19 @@ struct ImageCarousel: View {
                     Button {
                         self.showCamera = true
                     } label: {
-                        Label("Take a photo", systemImage : "camera")
+                        Label("Take Photo", systemImage : "camera")
                     }
                     
                     Button {
                         self.showPhotoPicker = true
                     } label: {
-                        Label("Select photos", systemImage : "photo.on.rectangle")
+                        Label("Choose Photos", systemImage : "photo.on.rectangle")
                     }
                     
                 } label: {
                     Label("", systemImage : "photo.badge.plus").font(.system(size: 30)).frame(maxWidth: .infinity)
                 }
+                .accessibilityLabel("Add Photos")
                 .fullScreenCover(isPresented: self.$showCamera) {
                     accessCameraView(selectedImage: self.$capturedImage)
                 }
@@ -73,10 +75,11 @@ struct ImageCarousel: View {
                                     }) {
                                         Image(systemName: "xmark.circle")
                                             .font(.title)
-                                            .foregroundColor(Color.black.opacity(0.75))
+                                            .foregroundStyle(Color.black.opacity(0.75))
                                             .background(.white)
                                             .clipShape(Circle())
                                     }
+                                        .accessibilityLabel("Remove Photo")
                                         .padding(.top, 15)
                                         .padding(.trailing, 20))
                                     : AnyView(EmptyView()),
@@ -90,6 +93,7 @@ struct ImageCarousel: View {
                                     }) {
                                         Label("", systemImage : "photo.badge.plus").font(.title2)
                                     }
+                                        .accessibilityLabel("Add Photos")
                                         .padding(.bottom, 10)
                                         .padding(.trailing, 20))
                                     : AnyView(EmptyView()),
@@ -111,9 +115,9 @@ struct ImageCarousel: View {
                     }
                     
                     for item in selectedImages {
-                        if let data = try? await item.loadTransferable(type: Data.self) {
-                            let image = UIImage(data: data)
-                            images.append(ImageData(image: image!))
+                        if let data = try? await item.loadTransferable(type: Data.self),
+                           let image = UIImage(data: data) {
+                            images.append(ImageData(image: image))
                         } else {
                             print("Failed to load the image")
                         }
@@ -122,13 +126,13 @@ struct ImageCarousel: View {
             }
         }
         .onChange(of: capturedImage) {
-            if editMode && capturedImage != nil {
+            if editMode, let capturedImage {
                 Task {
                     if !editExistingImages {
                         images.removeAll()
                     }
                     
-                    images.append(ImageData(image: capturedImage!))
+                    images.append(ImageData(image: capturedImage))
                 }
             }
         }
@@ -144,9 +148,37 @@ struct ImageCarousel: View {
     }
 }
 
-struct ScrollOffsetPreferenceKey: PreferenceKey {
-    static var defaultValue: CGPoint = .zero
+/// Read-only carousel for list cards that loads saved photos in the background.
+struct StoredImageCarousel: View {
+    let images: NSSet?
+    var size: Size = Size.medium
     
-    static func reduce(value: inout CGPoint, nextValue: () -> CGPoint) {
+    @State private var loaded: (objectIDs: [NSManagedObjectID], items: [ImageData])? = nil
+    
+    var body: some View {
+        let objectIDs = StoredImage.objectIDs(from: images)
+        
+        Group {
+            if let loaded, loaded.objectIDs == objectIDs {
+                ImageCarousel(images: .constant(loaded.items), size: size)
+            } else if let cached = StoredImage.cachedThumbnails(for: objectIDs) {
+                ImageCarousel(images: .constant(cached), size: size)
+            } else {
+                RoundedRectangle(cornerRadius: 20.0)
+                    .fill(Color(UIColor.secondarySystemFill))
+                    .aspectRatio(1, contentMode: .fit)
+                    .padding(.vertical, 4)
+                    .if(size == Size.extraSmall) { view in
+                        view.frame(width: UIDevice.current.userInterfaceIdiom == .pad ? 200 : 100)
+                    }
+                    .if(size == Size.small && UIDevice.current.userInterfaceIdiom == .pad) { view in
+                        view.frame(width: 300)
+                    }
+            }
+        }
+        .task(id: objectIDs) {
+            let items = await StoredImage.loadThumbnails(for: objectIDs)
+            loaded = (objectIDs, items)
+        }
     }
 }

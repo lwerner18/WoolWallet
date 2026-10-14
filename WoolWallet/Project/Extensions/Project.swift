@@ -11,17 +11,11 @@ import CoreData
 
 extension Project {
     var uiImages: [ImageData] {
-        let storedImages = images?.allObjects as? [StoredImage] ?? []
-        
-        let sortedImages = storedImages.sorted { $0.order < $1.order}
-        
-        return sortedImages.map { storedImage in
-            return ImageData(
-                id : storedImage.id!,
-                image: UIImage(data: storedImage.image ?? Data())!,
-                existingItem: storedImage
-            )
-        }
+        StoredImage.imageData(from: images, maxPixelSize: StoredImage.displayMaxPixelSize)
+    }
+    
+    var hasImages: Bool {
+        (images?.count ?? 0) > 0
     }
     
     var projectPairingItems: [ProjectPairingItem] {

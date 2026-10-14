@@ -38,9 +38,10 @@ struct PostCompleteForm: View {
             VStack {
                 Label("", systemImage: "hands.clap")
                     .font(.system(size: 60))
-                    .foregroundColor(Color(hex: "#008000")) // Set text color
+                    .foregroundStyle(Color.green)
                     .symbolEffect(.bounce, value: animateCheckmark)
                     .padding()
+                    .accessibilityHidden(true)
                 
                 Text("Congrats!")
                     .font(.title2)

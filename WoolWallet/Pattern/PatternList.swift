@@ -87,7 +87,7 @@ struct PatternList: View {
         case .used:
             predicates.append(NSPredicate(format: "projects.@count > 0"))
         case .all:
-            print("")
+            break
         }
         
         filteredFetchRequest.wrappedValue.nsPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
@@ -179,7 +179,7 @@ struct PatternList: View {
                                                     showAddPatternForm = true
                                                 }) {
                                                     Text(" add a pattern ")
-                                                        .foregroundColor(.blue) // Customize the color to look like a link
+                                                        .foregroundStyle(Color.accentColor)
                                                 }
                                                 .buttonStyle(PlainButtonStyle()) // Remove default button styling
                                                 .padding(0)
@@ -216,7 +216,7 @@ struct PatternList: View {
                                                     showAddPatternForm = true
                                                 }) {
                                                     Text(" add a pattern ")
-                                                        .foregroundColor(.blue) // Customize the color to look like a link
+                                                        .foregroundStyle(Color.accentColor)
                                                 }
                                                 .buttonStyle(PlainButtonStyle()) // Remove default button styling
                                                 .padding(0)
@@ -253,7 +253,7 @@ struct PatternList: View {
                                                     showAddPatternForm = true
                                                 }) {
                                                     Text(" add a pattern ")
-                                                        .foregroundColor(.blue) // Customize the color to look like a link
+                                                        .foregroundStyle(Color.accentColor)
                                                 }
                                                 .buttonStyle(PlainButtonStyle()) // Remove default button styling
                                                 .padding(0)
@@ -274,7 +274,7 @@ struct PatternList: View {
                     }
                 } else {
                     List {
-                        ForEach(filteredPatterns, id: \.id) { pattern in
+                        ForEach(filteredPatterns, id: \.objectID) { pattern in
                             NavigationLink(
                                 destination: PatternInfo(pattern: pattern, selectedTab: $selectedTab, browseMode: $browseMode, browsePattern : $browsePattern)
                             ) {
@@ -334,8 +334,7 @@ struct PatternList: View {
                                         Button {
                                             patternToEdit = pattern
                                         } label: {
-                                            Label("", systemImage : "pencil")
-                                            
+                                            Label("Edit", systemImage : "pencil")
                                         }
                                         .tint(Color.accentColor)
                                         
@@ -343,7 +342,7 @@ struct PatternList: View {
                                             patternToDelete = pattern
                                             showConfirmationDialog = true
                                         } label: {
-                                            Label("", systemImage : "trash")
+                                            Label("Delete", systemImage : "trash")
                                         }
                                     }
                                 }
@@ -370,21 +369,19 @@ struct PatternList: View {
                 }
             }
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button(action: {
                         showFilterScreen = true
                     }) {
-                        Image(systemName: "slider.horizontal.3") // Use a system icon
-                            .imageScale(.large)
+                        Label("Filter", systemImage: "line.3.horizontal.decrease.circle")
                     }
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button(action: {
                         showAddPatternForm = true
                     }) {
-                        Image(systemName: "plus") // Use a system icon
-                            .imageScale(.large)
+                        Label("Add Pattern", systemImage: "plus")
                     }
                 }
             }
@@ -502,7 +499,7 @@ struct PatternFilterCapsules : View {
                         }
                         
                         Text(patternFilter.item!.rawValue)
-                            .foregroundColor(Color(UIColor.secondaryLabel))
+                            .foregroundStyle(Color(UIColor.secondaryLabel))
                     }
                 } else if patternFilter.owned != nil {
                     FilterCapsule(

@@ -110,7 +110,7 @@ struct ProjectList: View {
                                                 showAddProjectForm = true
                                             }) {
                                                 Text("start one")
-                                                    .foregroundColor(.blue) // Customize the color to look like a link
+                                                    .foregroundStyle(Color.accentColor)
                                             }
                                             .buttonStyle(PlainButtonStyle()) // Remove default button styling
                                             .padding(0)
@@ -144,7 +144,7 @@ struct ProjectList: View {
                                                 showAddProjectForm = true
                                             }) {
                                                 Text("start one")
-                                                    .foregroundColor(.blue) // Customize the color to look like a link
+                                                    .foregroundStyle(Color.accentColor)
                                             }
                                             .buttonStyle(PlainButtonStyle()) // Remove default button styling
                                             .padding(0)
@@ -178,7 +178,7 @@ struct ProjectList: View {
                                                 showAddProjectForm = true
                                             }) {
                                                 Text("start one")
-                                                    .foregroundColor(.blue) // Customize the color to look like a link
+                                                    .foregroundStyle(Color.accentColor)
                                             }
                                             .buttonStyle(PlainButtonStyle()) // Remove default button styling
                                             .padding(0)
@@ -213,10 +213,10 @@ struct ProjectList: View {
                                     
                                     Text("").frame(maxWidth: 0)
                                     
-                                    if project.uiImages.isEmpty {
+                                    if !project.hasImages {
                                         PatternItemDisplay(pattern: project.pattern!, size: Size.medium)
                                     } else {
-                                        ImageCarousel(images: .constant(project.uiImages), size: Size.extraSmall)
+                                        StoredImageCarousel(images: project.images, size: Size.extraSmall)
                                     }
                                     
                                     Spacer()
@@ -241,8 +241,7 @@ struct ProjectList: View {
                                         Button {
                                             projectToEdit = project
                                         } label: {
-                                            Label("", systemImage : "pencil")
-                                            
+                                            Label("Edit", systemImage : "pencil")
                                         }
                                         .tint(Color.accentColor)
                                     }
@@ -251,7 +250,7 @@ struct ProjectList: View {
                                         projectToDelete = project
                                         showConfirmationDialog = true
                                     } label: {
-                                        Label("", systemImage : "trash")
+                                        Label("Delete", systemImage : "trash")
                                     }
                                 }
                             }
@@ -291,12 +290,11 @@ struct ProjectList: View {
                 }
             }
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button(action: {
                         showAddProjectForm = true
                     }) {
-                        Image(systemName: "plus") // Use a system icon
-                            .imageScale(.large)
+                        Label("Add Project", systemImage: "plus")
                     }
                 }
             }

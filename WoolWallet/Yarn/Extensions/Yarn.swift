@@ -10,6 +10,11 @@ import SwiftUI
 import CoreData
 
 extension Yarn {
+    convenience init(context: NSManagedObjectContext) {
+        self.init(entity: Yarn.entity(), insertInto: context)
+        self.id = UUID() // Set a unique ID
+    }
+    
     var colorPickerItems: [ColorPickerItem] {
         let storedColors = colors?.allObjects as? [StoredColor] ?? []
         
@@ -46,24 +51,14 @@ extension Yarn {
     }
     
     var uiImages: [ImageData] {
-        let storedImages = images?.allObjects as? [StoredImage] ?? []
-        
-        let sortedImages = storedImages.sorted { $0.order < $1.order}
-        
-        return sortedImages.map { storedImage in
-            return ImageData(
-                id : storedImage.id!,
-                image: UIImage(data: storedImage.image ?? Data())!,
-                existingItem: storedImage
-            )
-        }
+        StoredImage.imageData(from: images, maxPixelSize: StoredImage.displayMaxPixelSize)
     }
     
     var weightAndYardageItems: [WeightAndYardageData] {
         return weightAndYardageArray.map { item in
             return WeightAndYardageData(
                 id                : item.id!,
-                weight            : item.weight != nil ? Weight(rawValue: item.weight!)! : Weight.none,
+                weight            : Weight.fromStored(item.weight),
                 unitOfMeasure     : item.unitOfMeasure != nil ? UnitOfMeasure(rawValue: item.unitOfMeasure!)! : UnitOfMeasure.yards,
                 yardage           : item.yardage != 0 ? item.yardage : nil,
                 grams             : item.grams != 0 ? Int(item.grams) : nil,
@@ -75,6 +70,59 @@ extension Yarn {
                 parent            : WeightAndYardageParent(rawValue: item.parent!)!,
                 hasExactLength    : Int(item.hasExactLength),
                 existingItem      : item
+            )
+        }
+    }
+    
+    /// Form data for duplicating a yarn: new IDs, no Core Data links, full original amounts.
+    var weightAndYardageItemsForCopy: [WeightAndYardageData] {
+        return weightAndYardageArray.map { item in
+            let fullLength = item.originalLength != 0 ? item.originalLength : item.currentLength
+            let fullSkeins = item.originalSkeins != 0 ? item.originalSkeins : item.currentSkeins
+            
+            return WeightAndYardageData(
+                id                : UUID(),
+                weight            : Weight.fromStored(item.weight),
+                unitOfMeasure     : item.unitOfMeasure != nil ? UnitOfMeasure(rawValue: item.unitOfMeasure!)! : UnitOfMeasure.yards,
+                yardage           : item.yardage != 0 ? item.yardage : nil,
+                grams             : item.grams != 0 ? Int(item.grams) : nil,
+                hasBeenWeighed    : 0,
+                totalGrams        : nil,
+                skeins            : fullSkeins,
+                hasPartialSkein   : false,
+                length            : fullLength,
+                parent            : WeightAndYardageParent(rawValue: item.parent!)!,
+                hasExactLength    : Int(item.hasExactLength),
+                existingItem      : nil
+            )
+        }
+    }
+    
+    var compositionItemsForCopy: [CompositionItem] {
+        compositionItems.map { item in
+            CompositionItem(
+                id: UUID(),
+                percentage: item.percentage,
+                material: item.material,
+                materialDescription: item.materialDescription,
+                existingItem: nil
+            )
+        }
+    }
+    
+    var colorPickerItemsForCopy: [ColorPickerItem] {
+        let items = colorPickerItems
+        if items.isEmpty {
+            return [ColorPickerItem(color: Color.white, name: "White")]
+        }
+        
+        return items.map { item in
+            ColorPickerItem(
+                id: UUID(),
+                color: item.color,
+                name: item.name,
+                description: item.description,
+                existingItem: nil
             )
         }
     }

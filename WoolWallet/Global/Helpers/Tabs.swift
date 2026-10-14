@@ -8,42 +8,22 @@
 import Foundation
 import SwiftUI
 
-struct Tabs<T: CaseIterable & Identifiable & Equatable & CustomStringConvertible>: View {
+struct Tabs<T: CaseIterable & Identifiable & Hashable & CustomStringConvertible>: View where T.AllCases: RandomAccessCollection {
     @Binding var selectedTab: T
     var tabCounts : [TabCount<T>]
     
     var body: some View {
-        HStack {
-            ForEach(Array(T.allCases)){ tab in
-                Button(action: {
-                    withAnimation {
-                        selectedTab = tab
-                    }
-                }) {
-                    Spacer()
-                    
-                    Text("\(tab.description) (\(tabCounts.first(where: {$0.tab == tab})!.count))")
-                        .foregroundColor(selectedTab == tab ? Color.accentColor : .gray)
-                        .frame(height: 35)
-                        .font(T.allCases.count > 2 ? .caption : .footnote)
-                    
-                    Spacer()
-                }
+        Picker("Show", selection: $selectedTab.animation()) {
+            ForEach(T.allCases) { tab in
+                Text("\(tab.description) (\(count(for: tab)))").tag(tab)
             }
         }
-        .overlay(
-            // Sliding underline
-            GeometryReader { geometry in
-                let buttonWidth = geometry.size.width / CGFloat(T.allCases.count)
-                let index : Int = T.allCases.firstIndex {$0 == selectedTab}! as! Int
-                
-                Rectangle()
-                    .fill(Color.accentColor)
-                    .frame(width: buttonWidth, height: 2)
-                    .offset(x: CGFloat(index) * buttonWidth, y: 33)
-                    .animation(.easeInOut, value: selectedTab)
-            }
-        )
-        .padding(.bottom, 5)
+        .pickerStyle(.segmented)
+        .padding(.horizontal)
+        .padding(.bottom, 8)
+    }
+    
+    private func count(for tab: T) -> Int {
+        tabCounts.first { $0.tab == tab }?.count ?? 0
     }
 }

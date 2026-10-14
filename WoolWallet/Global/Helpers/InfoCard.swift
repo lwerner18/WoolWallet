@@ -38,7 +38,7 @@ struct InfoCard<Header: View, Footer: View, Content: View>: View {
             content()
                 .padding(noPadding ? 0 : 15) // Padding for the content
                 .background(backgroundColor)
-                .cornerRadius(8) // Rounded corners for the card
+                .clipShape(RoundedRectangle(cornerRadius: 8))
                 .shadow(radius: 0.5)
             
             footer()

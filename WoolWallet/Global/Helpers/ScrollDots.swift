@@ -10,7 +10,7 @@ import SwiftUI
 
 
 struct ScrollDots:  View {
-    var scrollOffset : CGPoint
+    var currentIndex : Int
     var numberOfDots : Int
     var size : Size = Size.medium
     var hasBottomPadding : Bool
@@ -35,11 +35,6 @@ struct ScrollDots:  View {
     
     var body: some View {
         HStack {
-            
-            let screenWidth = UIScreen.main.bounds.size.width
-            let pagesSwiped = (scrollOffset.x / screenWidth) * -1.0
-            let currentItemIndex = Int(pagesSwiped.rounded(.up))
-            
             // Create a ZStack to overlay the dots on a capsule
             ZStack {
                 // Light gray capsule background
@@ -51,7 +46,7 @@ struct ScrollDots:  View {
                 HStack(spacing: 6) { // Adjust spacing between dots
                     ForEach(0..<numberOfDots, id: \.self) { index in
                         Circle()
-                            .fill(index == currentItemIndex ? Color.white : Color.gray)
+                            .fill(index == currentIndex ? Color.white : Color.gray)
                             .frame(width: dotSize, height: dotSize)
                     }
                 }
@@ -59,21 +54,7 @@ struct ScrollDots:  View {
             
         }
         .padding(.bottom, hasBottomPadding ? bottomPadding : 0)
-    }
-}
-
-struct ScrollTracker: ViewModifier {
-    @Binding var scrollOffset: CGPoint
-    var name : String
-    
-    func body(content: Content) -> some View {
-        content
-            .background(GeometryReader { geometry in
-                Color.clear
-                    .preference(key: ScrollOffsetPreferenceKey.self, value: geometry.frame(in: .named(name)).origin)
-            })
-            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
-                scrollOffset = value
-            }
+        .accessibilityElement()
+        .accessibilityLabel("Photo \(currentIndex + 1) of \(numberOfDots)")
     }
 }

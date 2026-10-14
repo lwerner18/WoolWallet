@@ -13,8 +13,7 @@ struct CenteredLoader : View {
         HStack {
             Spacer()
             
-            ProgressView("")
-                .progressViewStyle(CircularProgressViewStyle())
+            ProgressView()
             
             Spacer()
         }

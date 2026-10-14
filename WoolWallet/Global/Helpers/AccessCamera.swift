@@ -12,7 +12,6 @@ import SwiftUI
 struct accessCameraView: UIViewControllerRepresentable {
     
     @Binding var selectedImage: UIImage?
-    @Environment(\.presentationMode) var isPresented
     
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let imagePicker = UIImagePickerController()
@@ -42,7 +41,11 @@ struct accessCameraView: UIViewControllerRepresentable {
                 self.picker.selectedImage = image
             }
             
-            self.picker.isPresented.wrappedValue.dismiss()
+            picker.dismiss(animated: true)
+        }
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            picker.dismiss(animated: true)
         }
     }
 }

@@ -66,7 +66,7 @@ struct FilterYarn: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 // Scrollable content
                 ScrollView {
@@ -129,7 +129,7 @@ struct FilterYarn: View {
                                         }
                                         
                                         Text(colorFilter.namedColor!.name)
-                                            .foregroundColor(
+                                            .foregroundStyle(
                                                 selectedColors.contains(colorFilter.namedColor!) ?
                                                 Color.accentColor : Color(UIColor.secondaryLabel)
                                             )
@@ -157,7 +157,7 @@ struct FilterYarn: View {
             .navigationTitle("Filter")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button(action: {
                         dismiss()
                     }) {
@@ -165,7 +165,7 @@ struct FilterYarn: View {
                     }
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button(action: {
                         resetFilters()
                     }) {
@@ -294,7 +294,7 @@ struct RangedSliderView: View {
                 .padding(.bottom, 20)
             Circle()
                 .frame(width: 24, height: 24)
-                .foregroundColor(.primary)
+                .foregroundStyle(Color.primary)
                 .shadow(color: Color.black.opacity(0.16), radius: 8, x: 0, y: 2)
                 .contentShape(Rectangle())
         }

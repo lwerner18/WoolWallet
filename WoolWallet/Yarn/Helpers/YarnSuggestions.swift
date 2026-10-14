@@ -110,7 +110,9 @@ struct YarnSuggestionCollapsible : View {
                                     .font(.title3)
                                     .foregroundStyle(Color(UIColor.systemPink))
                                     .contentTransition(.symbolEffect(.replace))
-                            }.offset(x: 10, y: 0),
+                            }
+                            .accessibilityLabel(favoriteIndex != nil ? "Remove from Favorites" : "Add to Favorites")
+                            .offset(x: 10, y: 0),
                             alignment: .topTrailing
                             
                         )
@@ -129,6 +131,7 @@ struct YarnSuggestionCollapsible : View {
                                     } label: {
                                         Label("", systemImage : "plus.circle").font(.title3)
                                     }
+                                    .accessibilityLabel("Add to Project")
                                     .offset(x: 10, y: 0)
                                 }
                             },

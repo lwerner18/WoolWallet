@@ -44,12 +44,7 @@ class PatternUtils {
         
         context.delete(pattern)
         
-        do {
-            try PersistenceController.shared.save()
-        } catch {
-            // Handle the error appropriately.
-            print("Failed to save context: \(error.localizedDescription)")
-        }
+        PersistenceController.shared.save()
     }
     
     func getItemDisplay(for item: Item?) -> ItemDisplay {

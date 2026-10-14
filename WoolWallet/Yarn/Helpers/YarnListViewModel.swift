@@ -16,22 +16,23 @@ final class YarnListViewModel: NSObject, ObservableObject {
     private var fetchedResultsController: NSFetchedResultsController<Yarn>?
     private var context: NSManagedObjectContext?
     private var isStarted = false
+    private var hasFetched = false
     
     // MARK: - Start / Setup
     
-    /// Call once (e.g. onAppear) with the managed object context
+    /// Call once (e.g. onAppear) with the managed object context, then call `updateFilters` to load yarns
     func start(context: NSManagedObjectContext) {
         guard !isStarted else { return }
         self.context = context
-        setupFetchedResultsController(predicate: NSPredicate(value: true))
-        performFetch()
+        setupFetchedResultsController(predicate: nil)
+        refreshTabCounts()
         isStarted = true
     }
     
     private func setupFetchedResultsController(predicate: NSPredicate?) {
         guard let context = context else { return }
         
-        let request: NSFetchRequest<Yarn> = Yarn.fetchRequest() as! NSFetchRequest<Yarn>
+        let request: NSFetchRequest<Yarn> = Yarn.fetchRequest()
         // Keep a stable sort descriptor (required by NSFetchedResultsController)
         request.sortDescriptors = [
             NSSortDescriptor(key: "name", ascending: true, selector: #selector(NSString.localizedStandardCompare))
@@ -81,10 +82,16 @@ final class YarnListViewModel: NSObject, ObservableObject {
             selectedTab: selectedTab
         )
         
-        // If predicate object identity hasn't changed you could skip re-creating the FRC.
-        // For simplicity we keep the same FRC and just change its fetchRequest.predicate.
-        fetchedResultsController?.fetchRequest.predicate = predicate
+        guard let fetchedResultsController else { return }
+        
+        // The controller already tracks inserts, edits and deletes, so an unchanged predicate needs no refetch
+        if hasFetched && fetchedResultsController.fetchRequest.predicate == predicate {
+            return
+        }
+        
+        fetchedResultsController.fetchRequest.predicate = predicate
         performFetch()
+        hasFetched = true
     }
     
     // MARK: - Predicate builder (mirrors your earlier logic)
@@ -156,10 +163,10 @@ final class YarnListViewModel: NSObject, ObservableObject {
     }
     
     func refreshTabCounts() {
-        guard let context = context else { return }
+        guard context != nil else { return }
         
         let container = PersistenceController.shared.container
-        let bgContext = container.newBackgroundContext() // ✅ FIXED LINE
+        let bgContext = container.newBackgroundContext()
         
         bgContext.perform { [weak self] in
             let activeRequest: NSFetchRequest<NSNumber> = NSFetchRequest(entityName: "Yarn")

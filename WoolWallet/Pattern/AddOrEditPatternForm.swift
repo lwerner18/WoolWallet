@@ -73,6 +73,48 @@ struct AddOrEditPatternForm: View {
     @State private var notions              : [NotionItem] = [NotionItem(notion: PatternNotion.none)]
     @State private var techniques           : [TechniqueItem] = [TechniqueItem(technique: PatternTechnique.none)]
     
+    @State private var initialSnapshot      : FormSnapshot? = nil
+    
+    private struct FormSnapshot: Equatable {
+        var patternType          : PatternType
+        var name                 : String
+        var designer             : String
+        var items                : [PatternItemField]
+        var oneSize              : Bool
+        var owned                : Bool
+        var intendedSize         : String
+        var crochetHookSizes     : [Hook]
+        var knittingNeedleSizes  : [Needle]
+        var recWeightAndYardages : [WeightAndYardageData]
+        var notes                : String
+        var images               : [ImageData]
+        var notions              : [NotionItem]
+        var techniques           : [TechniqueItem]
+    }
+    
+    private var snapshot: FormSnapshot {
+        FormSnapshot(
+            patternType: patternType,
+            name: name,
+            designer: designer,
+            items: items,
+            oneSize: oneSize,
+            owned: owned,
+            intendedSize: intendedSize,
+            crochetHookSizes: crochetHookSizes,
+            knittingNeedleSizes: knittingNeedleSizes,
+            recWeightAndYardages: recWeightAndYardages,
+            notes: notes,
+            images: images,
+            notions: notions,
+            techniques: techniques
+        )
+    }
+    
+    private var hasChanges: Bool {
+        initialSnapshot.map { $0 != snapshot } ?? false
+    }
+    
     init(patternToEdit : Pattern?, onAdd: ((Pattern) -> Void)? = nil) {
         self.patternToEdit = patternToEdit
         self.onAdd = onAdd
@@ -123,7 +165,7 @@ struct AddOrEditPatternForm: View {
                         techniques = [TechniqueItem(technique: PatternTechnique.none)]
                     }
                     
-                    TextField("Name", text: $name).disableAutocorrection(true)
+                    TextField("Name", text: $name).autocorrectionDisabled()
                     
                     TextFieldTypeahead(field: $designer, label: "Designer", allResults: uniqueDesigners)
                 }
@@ -160,7 +202,7 @@ struct AddOrEditPatternForm: View {
                             .deleteDisabled(items.count < 2)
                             
                             if items[index].item == Item.other {
-                                TextField("Description", text: $items[index].description).disableAutocorrection(true)
+                                TextField("Description", text: $items[index].description).autocorrectionDisabled()
                             }
                         }
                         .onDelete(perform: deleteItem)
@@ -171,7 +213,7 @@ struct AddOrEditPatternForm: View {
                     Toggle("One Size", isOn: $oneSize)
                     
                     if !oneSize {
-                        TextField("Intended Size", text: $intendedSize).disableAutocorrection(true)
+                        TextField("Intended Size", text: $intendedSize).autocorrectionDisabled()
                     }
                     
                     Toggle("Owned", isOn: $owned)
@@ -307,7 +349,7 @@ struct AddOrEditPatternForm: View {
                             .deleteDisabled(techniques.count < 2)
                             
                             if techniques[index].technique == PatternTechnique.other {
-                                TextField("Description", text: $techniques[index].description).disableAutocorrection(true)
+                                TextField("Description", text: $techniques[index].description).autocorrectionDisabled()
                             }
                         }
                         .onDelete(perform: deleteTechnique)
@@ -338,7 +380,7 @@ struct AddOrEditPatternForm: View {
                             .deleteDisabled(notions.count < 2)
                             
                             if notions[index].notion == PatternNotion.other {
-                                TextField("Description", text: $notions[index].description).disableAutocorrection(true)
+                                TextField("Description", text: $notions[index].description).autocorrectionDisabled()
                             }
                         }
                         .onDelete(perform: deleteNotion)
@@ -363,15 +405,13 @@ struct AddOrEditPatternForm: View {
             .navigationTitle(patternToEdit == nil ? "New Pattern" : "Edit Pattern")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
+                ToolbarItem(placement: .cancellationAction) {
+                    DiscardChangesButton(hasChanges: hasChanges) {
                         dismiss()
-                    }) {
-                        Text("Cancel")
                     }
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button(action: {
                         createOrUpdatePattern()
                     }) {
@@ -383,7 +423,13 @@ struct AddOrEditPatternForm: View {
             .onChange(of: images) {
                 imagesChanged = true
             }
+            .onAppear {
+                if initialSnapshot == nil {
+                    initialSnapshot = snapshot
+                }
+            }
         }
+        .interactiveDismissDisabled(hasChanges)
     }
     
     private func createOrUpdatePattern() {
@@ -469,7 +515,7 @@ struct AddOrEditPatternForm: View {
         
         // weightAndYardages
         let weightAndYardageArray: [WeightAndYardage] = recWeightAndYardages.enumerated().map { (index, element) in
-            var data = element
+            let data = element
             
             let wAndY = WeightAndYardage.from(data: data, order: index, context: managedObjectContext)
             

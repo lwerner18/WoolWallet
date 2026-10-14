@@ -34,10 +34,7 @@ struct PossiblePatterns: View {
                     showArrows : true,
                     useInfoCard : true
                 ) {
-                    SimpleHorizontalScroll(
-                        count: patternSuggestion.suggestedWAndY.count,
-                        halfWidthInLandscape : true
-                    ) {
+                    SimpleHorizontalScroll(count: patternSuggestion.suggestedWAndY.count) {
                         let ratio = patternSuggestion.yarnWAndY.yardage / Double(patternSuggestion.yarnWAndY.grams)
                         
                         let sorted = patternSuggestion.suggestedWAndY.sorted {
@@ -119,7 +116,9 @@ struct PossiblePatterns: View {
                                             .font(.title3)
                                             .foregroundStyle(Color(UIColor.systemPink))
                                             .contentTransition(.symbolEffect(.replace))
-                                    }.offset(x: 10, y: 0),
+                                    }
+                                    .accessibilityLabel(favoriteIndex != nil ? "Remove from Favorites" : "Add to Favorites")
+                                    .offset(x: 10, y: 0),
                                     alignment: .topTrailing
                                     
                                 )

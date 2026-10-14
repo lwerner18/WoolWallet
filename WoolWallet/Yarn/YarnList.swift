@@ -71,8 +71,8 @@ struct YarnList: View {
     
     private var tabCounts: [TabCount<YarnTab>] {
         return [
-            TabCount(tab: YarnTab.active, count: viewModel.yarns.filter {!$0.isArchived}.count),
-            TabCount(tab: YarnTab.archived, count: viewModel.yarns.filter {$0.isArchived}.count),
+            TabCount(tab: YarnTab.active, count: viewModel.activeCount),
+            TabCount(tab: YarnTab.archived, count: viewModel.archivedCount),
         ]
     }
     
@@ -178,182 +178,182 @@ struct YarnList: View {
                 
             }
             
-            if viewModel.yarns.isEmpty {
-                ZStack {
-                    // Reserve space matching the scroll view's frame
-                    Spacer().containerRelativeFrame([.horizontal, .vertical])
-                    
-                    if selectedTab == YarnTab.active {
-                        VStack {
-                            Image("angelEyes") // Replace with your image's name
-                                .resizable() // If you want to adjust the size
-                                .scaledToFit() // Adjust the image's aspect ratio
-                                .frame(width: 300, height: 175) // Set desired frame size
+            VStack {
+                if viewModel.yarns.isEmpty {
+                    ScrollView {
+                        ZStack {
+                            // Reserve space matching the scroll view's frame
+                            Spacer().containerRelativeFrame([.horizontal, .vertical])
                             
-                            Text("No yarn?")
-                                .font(.title)
-                                .bold()
-                                .multilineTextAlignment(.center)
-                            
-                            VStack {
-                                Text("We couldn't find anything.")
-                                    .font(.body)
-                                
-                                HStack(spacing: 0) {
-                                    Text("Please")
-                                    
-                                    Button(action: {
-                                        showAddYarnForm = true
-                                    }) {
-                                        Text(" add some yarn ")
-                                            .foregroundColor(.blue) // Customize the color to look like a link
-                                    }
-                                    .buttonStyle(PlainButtonStyle()) // Remove default button styling
-                                    .padding(0)
-                                    
-                                    Text("or modify your search.")
-                                        .font(.body)
-                                }
-                                
-                            }
-                            .padding(.top, 5)
-                        }
-                        .padding()
-                    } else {
-                        VStack {
-                            Image("momo") // Replace with your image's name
-                                .resizable() // If you want to adjust the size
-                                .scaledToFit() // Adjust the image's aspect ratio
-                                .frame(width: 300, height: 125) // Set desired frame size
-                            
-                            Text("Looking for yarn is tough work! Time for a nap.")
-                                .font(.title)
-                                .bold()
-                                .multilineTextAlignment(.center)
-                            
-                            VStack {
-                                Text("We couldn't find anything.")
-                                    .font(.body)
-                                
-                                HStack(spacing: 0) {
-                                    Text("Please")
-                                    
-                                    Button(action: {
-                                        showAddYarnForm = true
-                                    }) {
-                                        Text(" add some yarn ")
-                                            .foregroundColor(.blue) // Customize the color to look like a link
-                                    }
-                                    .buttonStyle(PlainButtonStyle()) // Remove default button styling
-                                    .padding(0)
-                                    
-                                    Text("or modify your search.")
-                                        .font(.body)
-                                }
-                                
-                            }
-                            .padding(.top, 5)
-                        }
-                        .padding()
-                    }
-                }
-            } else {
-                ScrollView {
-                    LazyVGrid(columns: [.init(.adaptive(minimum: UIDevice.current.userInterfaceIdiom == .pad ? 300 : 150))], spacing: 5) {
-                        ForEach(viewModel.yarns, id: \.id) { yarn in
-                            NavigationLink(
-                                destination: YarnInfo(
-                                    yarn: yarn,
-                                    selectedTab : $selectedTab,
-                                    browseMode : $browseMode,
-                                    projectPairing: $projectPairing,
-                                    patternWAndYBrowsingFor : patternWAndYBrowsingFor
-                                )
-                            ) {
+                            if selectedTab == YarnTab.active {
                                 VStack {
-                                    ImageCarousel(images: .constant(yarn.uiImages), size : Size.small)
-                                        .contextMenu {
-                                            if !browseMode {
-                                                Button {
-                                                    yarnToEdit = yarn
-                                                } label: {
-                                                    Label("Edit", systemImage : "pencil")
-                                                }
-                                                
-                                                Button {
-                                                    YarnUtils.shared.toggleYarnArchived(at: yarn)
-                                                } label: {
-                                                    Label(yarn.isArchived ? "Unarchive" : "Archive", systemImage : yarn.isArchived ? "tray.and.arrow.up" : "tray.and.arrow.down")
-                                                }
-                                                
-                                                Button(role: .destructive) {
-                                                    yarnToDelete = yarn
-                                                    showConfirmationDialog = true
-                                                } label: {
-                                                    Label("Delete", systemImage : "trash")
+                                    Image("angelEyes") // Replace with your image's name
+                                        .resizable() // If you want to adjust the size
+                                        .scaledToFit() // Adjust the image's aspect ratio
+                                        .frame(width: 300, height: 175) // Set desired frame size
+                                    
+                                    Text("No yarn?")
+                                        .font(.title)
+                                        .bold()
+                                        .multilineTextAlignment(.center)
+                                    
+                                    VStack {
+                                        Text("We couldn't find anything.")
+                                            .font(.body)
+                                        
+                                        HStack(spacing: 0) {
+                                            Text("Please")
+                                            
+                                            Button(action: {
+                                                showAddYarnForm = true
+                                            }) {
+                                                Text(" add some yarn ")
+                                                    .foregroundStyle(Color.accentColor)
+                                            }
+                                            .buttonStyle(PlainButtonStyle()) // Remove default button styling
+                                            .padding(0)
+                                            
+                                            Text("or modify your search.")
+                                                .font(.body)
+                                        }
+                                        
+                                    }
+                                    .padding(.top, 5)
+                                }
+                                .padding()
+                            } else {
+                                VStack {
+                                    Image("momo") // Replace with your image's name
+                                        .resizable() // If you want to adjust the size
+                                        .scaledToFit() // Adjust the image's aspect ratio
+                                        .frame(width: 300, height: 125) // Set desired frame size
+                                    
+                                    Text("Looking for yarn is tough work! Time for a nap.")
+                                        .font(.title)
+                                        .bold()
+                                        .multilineTextAlignment(.center)
+                                    
+                                    VStack {
+                                        Text("We couldn't find anything.")
+                                            .font(.body)
+                                        
+                                        HStack(spacing: 0) {
+                                            Text("Please")
+                                            
+                                            Button(action: {
+                                                showAddYarnForm = true
+                                            }) {
+                                                Text(" add some yarn ")
+                                                    .foregroundStyle(Color.accentColor)
+                                            }
+                                            .buttonStyle(PlainButtonStyle()) // Remove default button styling
+                                            .padding(0)
+                                            
+                                            Text("or modify your search.")
+                                                .font(.body)
+                                        }
+                                        
+                                    }
+                                    .padding(.top, 5)
+                                }
+                                .padding()
+                            }
+                        }
+                    }
+                } else {
+                    ScrollView {
+                        LazyVGrid(columns: [.init(.adaptive(minimum: UIDevice.current.userInterfaceIdiom == .pad ? 300 : 150))], spacing: 5) {
+                            ForEach(viewModel.yarns, id: \.objectID) { yarn in
+                                NavigationLink(
+                                    destination: YarnInfo(
+                                        yarn: yarn,
+                                        selectedTab : $selectedTab,
+                                        browseMode : $browseMode,
+                                        projectPairing: $projectPairing,
+                                        patternWAndYBrowsingFor : patternWAndYBrowsingFor
+                                    )
+                                ) {
+                                    VStack {
+                                        StoredImageCarousel(images: yarn.images, size : Size.small)
+                                            .contextMenu {
+                                                if !browseMode {
+                                                    Button {
+                                                        yarnToEdit = yarn
+                                                    } label: {
+                                                        Label("Edit", systemImage : "pencil")
+                                                    }
+                                                    
+                                                    Button {
+                                                        YarnUtils.shared.toggleYarnArchived(at: yarn)
+                                                    } label: {
+                                                        Label(yarn.isArchived ? "Unarchive" : "Archive", systemImage : yarn.isArchived ? "tray.and.arrow.up" : "tray.and.arrow.down")
+                                                    }
+                                                    
+                                                    Button(role: .destructive) {
+                                                        yarnToDelete = yarn
+                                                        showConfirmationDialog = true
+                                                    } label: {
+                                                        Label("Delete", systemImage : "trash")
+                                                    }
                                                 }
                                             }
-                                        }
+                                        
+                                        
+                                        Text(yarn.name ?? "No Name")
+                                            .multilineTextAlignment(.center)
+                                            .foregroundStyle(Color.primary)
+                                            .bold()
+                                        
+                                        Text(yarn.dyer ?? "N/A")
+                                            .foregroundStyle(Color(UIColor.secondaryLabel))
+                                            .font(.caption)
+                                            .bold()
+                                    }
+                                    .padding(.horizontal, 7)
+                                    .padding(.top, 3)
                                     
-                                    
-                                    Text(yarn.name ?? "No Name")
-                                        .multilineTextAlignment(.center)
-                                        .foregroundStyle(Color.primary)
-                                        .bold()
-                                    
-                                    Text(yarn.dyer ?? "N/A")
-                                        .foregroundStyle(Color(UIColor.secondaryLabel))
-                                        .font(.caption)
-                                        .bold()
                                 }
-                                .padding(.horizontal, 7)
-                                .padding(.top, 3)
                                 
                             }
-                            
                         }
+                    }
+                    .padding(.vertical, 13)
+                    .padding(.horizontal, 5)
+                }
+            }
+            .navigationTitle(browseMode ? "Browse Yarn" : "My Stash")
+            .searchable(
+                text: $searchText,
+                placement: .navigationBarDrawer(displayMode: .always),
+                prompt: "Search by Name or Dyer...",
+                suggestions: {
+                    ForEach(filteredSuggestions, id: \.self) { suggestion in
+                        Text(suggestion).searchCompletion(suggestion).padding(.leading, 5)
                     }
                 }
-                .padding(.vertical, 13)
-                .padding(.horizontal, 5)
-                .navigationTitle(browseMode ? "Browse Yarn" : "My Stash")
-                .searchable(
-                    text: $searchText,
-                    placement: .navigationBarDrawer(displayMode: .always),
-                    prompt: "Search by Name or Dyer...",
-                    suggestions: {
-                        ForEach(filteredSuggestions, id: \.self) { suggestion in
-                            Text(suggestion).searchCompletion(suggestion).padding(.leading, 5)
-                        }
-                    }
-                )
-                .onChange(of: searchText) {
-                    if searchText.isEmpty {
-                        searchText = ""
+            )
+            .onChange(of: searchText) {
+                if searchText.isEmpty {
+                    searchText = ""
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: {
+                        showFilterScreen = true
+                    }) {
+                        Label("Filter", systemImage: "line.3.horizontal.decrease.circle")
                     }
                 }
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(action: {
-                            showFilterScreen = true
-                        }) {
-                            Image(systemName: "slider.horizontal.3") // Use a system icon
-                                .imageScale(.large)
-                        }
-                    }
-                    
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(action: {
-                            showAddYarnForm = true
-                        }) {
-                            Image(systemName: "plus") // Use a system icon
-                                .imageScale(.large)
-                        }
+                
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: {
+                        showAddYarnForm = true
+                    }) {
+                        Label("Add Yarn", systemImage: "plus")
                     }
                 }
             }
-        
-           
         }
         .onAppear {
             viewModel.start(context: managedObjectContext)
@@ -400,28 +400,32 @@ struct YarnList: View {
                 filteredYarnCount: viewModel.yarns.count
             )
         }
-        .fullScreenCover(isPresented: $showAddYarnForm) {
-            AddOrEditYarnForm(yarnToEdit : nil)  { addedYarn in
-                if browseMode {
-                    projectPairing.append(
-                        ProjectPairingItem(
-                            patternWeightAndYardage: patternWAndYBrowsingFor!,
-                            yarnWeightAndYardage: addedYarn.weightAndYardageArray.first!
+        .fullScreenCover(isPresented: $showAddYarnForm, onDismiss: { newYarn = nil }) {
+            // Swap to the success screen in place so the list never flashes between the two
+            if let newYarn {
+                YarnInfo(yarn: newYarn, selectedTab : $selectedTab, isNewYarn : true)
+                    .transition(.opacity)
+            } else {
+                AddOrEditYarnForm(yarnToEdit : nil)  { addedYarn in
+                    if browseMode {
+                        projectPairing.append(
+                            ProjectPairingItem(
+                                patternWeightAndYardage: patternWAndYBrowsingFor!,
+                                yarnWeightAndYardage: addedYarn.weightAndYardageArray.first!
+                            )
                         )
-                    )
-                    browseMode = false
-                } else {
-                    newYarn = addedYarn
+                        browseMode = false
+                        showAddYarnForm = false
+                    } else {
+                        withAnimation {
+                            newYarn = addedYarn
+                        }
+                    }
                 }
-                
-                showAddYarnForm = false
             }
         }
         .fullScreenCover(item: $yarnToEdit, onDismiss: { yarnToEdit = nil}) { yarn in
             AddOrEditYarnForm(yarnToEdit : yarn)
-        }
-        .sheet(item: $newYarn) { yarn in
-            YarnInfo(yarn: yarn, selectedTab : $selectedTab, isNewYarn : true)
         }
         .alert("Are you sure you want to delete this yarn?", isPresented: $showConfirmationDialog) {
             if let yarnToDelete = yarnToDelete {
@@ -536,7 +540,7 @@ struct YarnFilterCapsules : View {
                         }
     
                         Text(yarnFilter.color!.name)
-                            .foregroundColor(Color(UIColor.secondaryLabel))
+                            .foregroundStyle(Color(UIColor.secondaryLabel))
                     }
                     
                 } else if yarnFilter.last {

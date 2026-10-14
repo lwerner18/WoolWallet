@@ -36,7 +36,7 @@ struct FilterCapsule<Content: View> : View {
                 Spacer()
                 
                 if text != nil {
-                    Text(text!).foregroundColor(highlighted ? Color.accentColor : Color(UIColor.secondaryLabel))
+                    Text(text!).foregroundStyle(highlighted ? Color.accentColor : Color(UIColor.secondaryLabel))
                 } else {
                     content()
                 }
@@ -45,7 +45,7 @@ struct FilterCapsule<Content: View> : View {
                 
                 if showX {
                     Image(systemName: "xmark")
-                        .foregroundColor(Color(UIColor.secondaryLabel))
+                        .foregroundStyle(Color(UIColor.secondaryLabel))
                         .font(.caption)
                 }
        

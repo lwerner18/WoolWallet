@@ -17,7 +17,7 @@ struct Material : Identifiable, Hashable {
 let materials = [
     Material(
         category: MaterialCategory.wool,
-        subTypes: ["Merino Wool", "Virgin Wool", "Superwash Wool"]
+        subTypes: ["Merino Wool", "Virgin Wool", "Superwash Wool", "Non-Superwash Wool"]
     ),
     Material(
         category: MaterialCategory.alpaca,
@@ -32,6 +32,14 @@ let materials = [
         subTypes: ["Mohair"]
     ),
     Material(
+        category: MaterialCategory.suri,
+        subTypes: ["Suri"]
+    ),
+    Material(
+        category: MaterialCategory.silk,
+        subTypes: ["Silk"]
+    ),
+    Material(
         category: MaterialCategory.cotton,
         subTypes: ["American Cotton", "Pima Cotton", "Egyptian Cotton", "Mercerized Cotton"]
     ),
@@ -44,15 +52,11 @@ let materials = [
         subTypes: ["Bamboo"]
     ),
     Material(
-        category: MaterialCategory.silk,
-        subTypes: ["Silk"]
-    ),
-    Material(
         category: MaterialCategory.acrylic,
         subTypes: ["Acrylic"]
     ),
     Material(
-        category: MaterialCategory.acrylic,
+        category: MaterialCategory.nylon,
         subTypes: ["Nylon"]
     ),
     Material(
@@ -104,6 +108,7 @@ struct MaterialPicker: View {
                                 return 0
                             }
                         }
+                        .accessibilityAddTraits(material == subType ? .isSelected : [])
                     }
                 }
             }

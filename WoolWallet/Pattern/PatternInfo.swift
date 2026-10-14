@@ -74,301 +74,78 @@ struct PatternInfo: View {
     }
     
     var body: some View {
-        VStack {
-            if isNewPattern || isPopover {
-                NewItemHeader(onClose: { dismiss() })
+        if isNewPattern || isPopover {
+            NavigationStack {
+                content
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") { dismiss() }
+                        }
+                    }
+            }
+        } else {
+            content
+        }
+    }
+    
+    private var showsTrailingToolbarItem: Bool {
+        browseMode || browsePattern != nil || (!isNewPattern && !isPopover)
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        if showsTrailingToolbarItem {
+            ToolbarItem(placement: .topBarTrailing) {
+                trailingToolbarItem
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var trailingToolbarItem: some View {
+        if browseMode {
+            Button("Select") {
+                browsePattern = pattern
+                browseMode = false
+            }
+        } else if browsePattern != nil {
+            ProgressView()
+        } else {
+            moreMenu
+        }
+    }
+    
+    private var moreMenu: some View {
+        Menu {
+            Button {
+                showEditPatternForm = true
+            } label : {
+                Label("Edit", systemImage : "pencil")
             }
             
-            ScrollView {
-                if isNewPattern {
-                    VStack {
-                        Label("", systemImage: "checkmark.circle")
-                            .font(.system(size: 60))
-                            .foregroundColor(Color(hex: "#008000")) // Set text color
-                            .symbolEffect(.bounce, value: animateCheckmark)
-                            .padding()
-                        
-                        Text("Successfully created pattern")
-                            .font(.title2)
-                        
-                        Text("Now get crafting!")
-                            .foregroundColor(.gray)
-                            .font(.subheadline)
-                    }
-                    .onAppear {
-                        animateCheckmark.toggle()
-                    }
-                }
-                
-                LazyVStack {
-                    PatternItemDisplay(pattern: pattern, size: Size.large)
-                    
-                    VStack {
-                        Text(pattern.name ?? "N/A").font(.largeTitle).foregroundStyle(Color.primary)
-                            .frame(maxWidth: .infinity)
-                            .multilineTextAlignment(.center)
-                        
-                        Text(pattern.designer ?? "N/A").foregroundStyle(Color(UIColor.secondaryLabel))
-                    }
-                    .bold()
-                    
-                    InfoCapsules(detailProps: patternProperties)
-                    
-                    VStack {
-                        if !pattern.patternItems.isEmpty && pattern.patternItems.first!.item != Item.none {
-                            InfoCard() {
-                                Text(
-                                    PatternUtils.shared.joinedItems(patternItems: pattern.patternItems)
-                                )
-                                .multilineTextAlignment(.center)
-                                .font(.headline)
-                                .bold()
-                                .foregroundStyle(Color.primary)
-                                .frame(maxWidth: .infinity)
-                            }
-                        }
-                        
-                        if pattern.hasProjects {
-                            Text("Project\(pattern.projectsArray.count > 1 ? "s" : "")")
-                                .infoCardHeader()
-                            
-                            SimpleHorizontalScroll(count: pattern.projectsArray.count) {
-                                ForEach(pattern.projectsArray, id : \.id) { project in
-                                    ProjectPreview(project: project, displayedProject: $displayedProject, disableOnTap : isPopover)
-                                }
-                            }
-                        }
-                        
-                        if pattern.weightAndYardageArray.count > 3 {
-                            ForEach(pattern.weightAndYardageItems.indices, id: \.self) { index in
-                                let item : WeightAndYardageData = pattern.weightAndYardageItems[index]
-                                
-                                InfoCard() {
-                                    CollapsibleView(
-                                        label : {
-                                            RecYarnHeader(count: pattern.weightAndYardageArray.count, index: index, weightAndYardage: item)
-                                        },
-                                        showArrows : true
-                                    ) {
-                                        ViewWeightAndYardage(
-                                            weightAndYardage: item.existingItem!,
-                                            isSockSet: false,
-                                            totalCount: pattern.weightAndYardageArray.count,
-                                            hideName : true
-                                        )
-                                    }
-                                }
-                                
-                                if let suggestion : YarnSuggestion = yarnSuggestions.first(where: {$0.patternWAndY.id == item.id}) {
-                                    YarnSuggestions(yarnSuggestion: suggestion)
-                                }
-                            }
-                        } else {
-                            ForEach(pattern.weightAndYardageArray.indices, id: \.self) { index in
-                                let item : WeightAndYardage = pattern.weightAndYardageArray[index]
-                                
-                                ViewWeightAndYardage(
-                                    weightAndYardage: item,
-                                    isSockSet: false,
-                                    totalCount: pattern.weightAndYardageArray.count
-                                )
-                                
-                                if let suggestion : YarnSuggestion = yarnSuggestions.first(where: {$0.patternWAndY.id == item.id}) {
-                                    YarnSuggestions(yarnSuggestion: suggestion)
-                                }
-                            }
-                        }
-                        
-                        if pattern.intendedSize != nil && pattern.intendedSize != "" {
-                            InfoCard() {
-                                HStack {
-                                    Text("Intended Size").foregroundStyle(Color(UIColor.secondaryLabel))
-                                    Spacer()
-                                    Text(pattern.intendedSize!).font(.headline).bold().foregroundStyle(Color.primary)
-                                }
-                            }
-                        }
-                        
-                        if pattern.type != PatternType.knit.rawValue && pattern.crochetHooks.first?.hook != CrochetHookSize.none {
-                            InfoCard(
-                                header : {
-                                    if pattern.crochetHooks.count > 1 {
-                                        Text("Hooks")
-                                    }
-                                }
-                            ) {
-                                if pattern.crochetHooks.count == 1 {
-                                    HStack {
-                                        Text("Hook").foregroundStyle(Color(UIColor.secondaryLabel))
-                                        Spacer()
-                                        Text(pattern.crochetHooks.first!.hook.rawValue).font(.headline).bold().foregroundStyle(Color.primary)
-                                    }
-                                } else {
-                                    HStack{
-                                        Spacer()
-                                        
-                                        Text(
-                                            "\(pattern.crochetHooks.map{$0.hook.rawValue}.joined(separator: ", "))"
-                                        ).font(.headline).bold().foregroundStyle(Color.primary).yarnDataRow()
-                                        
-                                        Spacer()
-                                    }
-                                }
-                               
-                            }
-                        }
-                        
-                        if pattern.type == PatternType.knit.rawValue && pattern.knittingNeedles.first?.needle != KnitNeedleSize.none {
-                            InfoCard(
-                                header : {
-                                    if pattern.knittingNeedles.count > 1 {
-                                        Text("Needles")
-                                    }
-                                }
-                            ) {
-                                if pattern.knittingNeedles.count == 1 {
-                                    HStack {
-                                        Text("Needle").foregroundStyle(Color(UIColor.secondaryLabel))
-                                        Spacer()
-                                        Text(pattern.knittingNeedles.first!.needle.rawValue).font(.headline).bold().foregroundStyle(Color.primary)
-                                    }
-                                } else {
-                                    HStack{
-                                        
-                                        Spacer()
-                                        
-                                        Text(
-                                            "\(pattern.knittingNeedles.map{$0.needle.rawValue}.joined(separator: ", "))"
-                                        ).font(.headline).bold().foregroundStyle(Color.primary).yarnDataRow()
-                                        
-                                        Spacer()
-                                    }
-                                }
-                            }
-                        }
-                        
-                        if pattern.techniqueItems.first?.technique != PatternTechnique.none {
-                            InfoCard(
-                                header : {
-                                    if pattern.techniqueItems.count > 1 {
-                                        Text("Techniques")
-                                    }
-                                }
-                            ) {
-                                if pattern.techniqueItems.count == 1 {
-                                    HStack {
-                                        Text("Technique").foregroundStyle(Color(UIColor.secondaryLabel))
-                                        Spacer()
-                                        Text(pattern.techniqueItems.first!.technique.rawValue).font(.headline).bold().foregroundStyle(Color.primary)
-                                    }
-                                } else {
-                                    HStack{
-                                        Spacer()
-                                        
-                                        Text(
-                                            "\(pattern.techniqueItems.map{$0.technique == PatternTechnique.other ? $0.description : $0.technique.rawValue}.joined(separator: ", "))"
-                                        ).multilineTextAlignment(.center).font(.headline).bold().foregroundStyle(Color.primary).yarnDataRow()
-                                        
-                                        Spacer()
-                                    }
-                                }
-                            }
-                        }
-                        
-                        if pattern.notionItems.first?.notion != PatternNotion.none {
-                            InfoCard(
-                                header : {
-                                    if pattern.notionItems.count > 1 {
-                                        Text("Notions")
-                                    }
-                                }
-                            ) {
-                                if pattern.notionItems.count == 1 {
-                                    HStack {
-                                        Text("Notion").foregroundStyle(Color(UIColor.secondaryLabel))
-                                        Spacer()
-                                        Text(pattern.notionItems.first!.notion.rawValue).font(.headline).bold().foregroundStyle(Color.primary)
-                                    }
-                                } else {
-                                    HStack{
-                                        Spacer()
-                                        
-                                        Text(
-                                            "\(pattern.notionItems.map{$0.notion == PatternNotion.other ? $0.description : $0.notion.rawValue}.joined(separator: ", "))"
-                                        ).multilineTextAlignment(.center).font(.headline).bold().foregroundStyle(Color.primary).yarnDataRow()
-                                        
-                                        Spacer()
-                                    }
-                                }
-                            }
-                        }
-                        
-                        if !pattern.uiImages.isEmpty {
-                            Text("Images")
-                                .infoCardHeader()
-                            
-                            ImageCarousel(images: .constant(pattern.uiImages))
-                        }
-                        
-                        if pattern.notes != "" {
-                            InfoCard() {
-                                Text(pattern.notes!)
-                                    .foregroundStyle(Color.primary)
-                                    .frame(maxWidth: .infinity)
-                            }
-                        }
-                    }
-                }
-                .foregroundStyle(Color.black)
-                .padding()
+            Button {
+                showAddProjectForm = true
+            } label : {
+                Label("Start a Project", systemImage : "hammer")
             }
+            
+            Divider()
+            
+            Button(role: .destructive) {
+                showConfirmationDialog = true
+            } label: {
+                Label("Delete", systemImage : "trash")
+            }
+        } label: {
+            Label("More", systemImage : "ellipsis.circle")
+        }
+    }
+    
+    private var content: some View {
+        scrollContent
             .navigationTitle(pattern.name ?? "N/A")
             .navigationBarTitleDisplayMode(.inline)
-            .scrollBounceBehavior(.basedOnSize)
-            .toolbar {
-                if browseMode {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button() {
-                            browsePattern = pattern
-                            browseMode = false
-                        } label: {
-                            Text("Select")
-                        }
-                    }
-                } else if browsePattern != nil {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        ProgressView("")
-                            .progressViewStyle(CircularProgressViewStyle())
-                    }
-                } else {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Menu {
-                            Button {
-                                showEditPatternForm = true
-                            } label : {
-                                Label("Edit", systemImage : "pencil")
-                            }
-                            
-                            Button {
-                                showAddProjectForm = true
-                            } label : {
-                                Label("Start a Project", systemImage : "hammer")
-                            }
-                            
-                            Divider()
-                            
-                            Button(role: .destructive) {
-                                showConfirmationDialog = true
-                            } label: {
-                                Label("Delete", systemImage : "trash")
-                            }
-                            
-                        } label: {
-                            Label("more", systemImage : "ellipsis")
-                        }
-                    }
-                }
-            }
+            .toolbar { toolbarContent }
             .alert("Are you sure you want to delete this pattern?", isPresented: $showConfirmationDialog) {
                 Button("Delete", role: .destructive) {
                     PatternUtils.shared.removePattern(at: pattern, with: managedObjectContext)
@@ -384,35 +161,7 @@ struct PatternInfo: View {
                 AddOrEditPatternForm(patternToEdit: pattern)
             }
             .sheet(isPresented: $showAddProjectForm) {
-                AddOrEditProjectForm(
-                    projectToEdit: nil,
-                    preSelectedPattern: pattern,
-                    preSelectedPairings :    pattern.weightAndYardageItems.filter { patternWandY in
-                        let suggestions = yarnSuggestions.filter {$0.patternWAndY.id == patternWandY.id}.first?.suggestedWAndY
-                        
-                        if suggestions != nil && !suggestions!.isEmpty {
-                            let favedSuggestions = suggestions!.filter {$0.yarnFavorites != nil && $0.yarnFavorites!.count == 1}
-                            
-                            return favedSuggestions.count == 1
-                        }
-                        
-                        return false
-                    }.map { patternWandY in
-                        let suggestions = yarnSuggestions.filter {$0.patternWAndY.id == patternWandY.id}.first?.suggestedWAndY
-                        
-                        return ProjectPairingItem(
-                            patternWeightAndYardage: patternWandY.existingItem!,
-                            yarnWeightAndYardage: suggestions!.first!
-                        )
-                    },
-                    yarnSuggestions: yarnSuggestions
-                ) { addedProject in
-                    
-                    selectedTab = PatternTab.used
-                    // Capture the newly added project
-                    newProject = addedProject
-                    showAddProjectForm = false
-                }
+                addProjectSheet
             }
             .sheet(item: $newProject) { project in
                 ProjectInfo(project: project, isNewProject : true, isPopover : true)
@@ -420,16 +169,287 @@ struct PatternInfo: View {
             .sheet(item: $displayedProject) { project in
                 ProjectInfo(project: project, isPopover: true)
             }
+            .background(Color(UIColor.systemGroupedBackground))
+            .onAppear {
+                getSuggestions()
+            }
+    }
+    
+    private var scrollContent: some View {
+        ScrollView {
+            successHeader
             
+            LazyVStack {
+                PatternItemDisplay(pattern: pattern, size: Size.large)
+                
+                titleSection
+                
+                InfoCapsules(detailProps: patternProperties)
+                
+                VStack {
+                    itemsCard
+                    projectsSection
+                    weightAndYardageSection
+                    intendedSizeCard
+                    toolsCard
+                    listCard(
+                        title: "Technique",
+                        pluralTitle: "Techniques",
+                        values: pattern.techniqueItems.first?.technique == PatternTechnique.none ? [] : pattern.techniqueItems.map {
+                            $0.technique == PatternTechnique.other ? $0.description : $0.technique.rawValue
+                        }
+                    )
+                    listCard(
+                        title: "Notion",
+                        pluralTitle: "Notions",
+                        values: pattern.notionItems.first?.notion == PatternNotion.none ? [] : pattern.notionItems.map {
+                            $0.notion == PatternNotion.other ? $0.description : $0.notion.rawValue
+                        }
+                    )
+                    imagesSection
+                    notesSection
+                }
+            }
+            .foregroundStyle(Color.primary)
+            .padding()
         }
-        .background(Color(UIColor.systemGroupedBackground))
-        .onAppear {
-            getSuggestions()
+        .scrollBounceBehavior(.basedOnSize)
+    }
+    
+    @ViewBuilder
+    private var successHeader: some View {
+        if isNewPattern {
+            VStack {
+                Label("", systemImage: "checkmark.circle")
+                    .font(.system(size: 60))
+                    .foregroundStyle(Color.green)
+                    .symbolEffect(.bounce, value: animateCheckmark)
+                    .padding()
+                    .accessibilityHidden(true)
+                
+                Text("Successfully created pattern")
+                    .font(.title2)
+                
+                Text("Now get crafting!")
+                    .foregroundStyle(Color.secondary)
+                    .font(.subheadline)
+            }
+            .onAppear {
+                animateCheckmark.toggle()
+            }
+        }
+    }
+    
+    private var titleSection: some View {
+        VStack {
+            Text(pattern.name ?? "N/A").font(.largeTitle).foregroundStyle(Color.primary)
+                .frame(maxWidth: .infinity)
+                .multilineTextAlignment(.center)
+            
+            Text(pattern.designer ?? "N/A").foregroundStyle(Color(UIColor.secondaryLabel))
+        }
+        .bold()
+    }
+    
+    @ViewBuilder
+    private var itemsCard: some View {
+        if let firstItem = pattern.patternItems.first, firstItem.item != Item.none {
+            InfoCard() {
+                Text(
+                    PatternUtils.shared.joinedItems(patternItems: pattern.patternItems)
+                )
+                .multilineTextAlignment(.center)
+                .font(.headline)
+                .bold()
+                .foregroundStyle(Color.primary)
+                .frame(maxWidth: .infinity)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var projectsSection: some View {
+        if pattern.hasProjects {
+            Text("Project\(pattern.projectsArray.count > 1 ? "s" : "")")
+                .infoCardHeader()
+            
+            SimpleHorizontalScroll(count: pattern.projectsArray.count) {
+                ForEach(pattern.projectsArray, id : \.id) { project in
+                    ProjectPreview(project: project, displayedProject: $displayedProject, disableOnTap : isPopover)
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var weightAndYardageSection: some View {
+        if pattern.weightAndYardageArray.count > 3 {
+            ForEach(pattern.weightAndYardageItems.indices, id: \.self) { index in
+                collapsibleWeightAndYardage(at: index)
+            }
+        } else {
+            ForEach(pattern.weightAndYardageArray.indices, id: \.self) { index in
+                let item : WeightAndYardage = pattern.weightAndYardageArray[index]
+                
+                ViewWeightAndYardage(
+                    weightAndYardage: item,
+                    isSockSet: false,
+                    totalCount: pattern.weightAndYardageArray.count
+                )
+                
+                yarnSuggestions(for: item.id)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func collapsibleWeightAndYardage(at index: Int) -> some View {
+        let item : WeightAndYardageData = pattern.weightAndYardageItems[index]
+        
+        if let existingItem = item.existingItem {
+            InfoCard() {
+                CollapsibleView(
+                    label : {
+                        RecYarnHeader(count: pattern.weightAndYardageArray.count, index: index, weightAndYardage: item)
+                    },
+                    showArrows : true
+                ) {
+                    ViewWeightAndYardage(
+                        weightAndYardage: existingItem,
+                        isSockSet: false,
+                        totalCount: pattern.weightAndYardageArray.count,
+                        hideName : true
+                    )
+                }
+            }
+        }
+        
+        yarnSuggestions(for: item.id)
+    }
+    
+    @ViewBuilder
+    private func yarnSuggestions(for id: UUID?) -> some View {
+        if let suggestion : YarnSuggestion = yarnSuggestions.first(where: {$0.patternWAndY.id == id}) {
+            YarnSuggestions(yarnSuggestion: suggestion)
+        }
+    }
+    
+    @ViewBuilder
+    private var intendedSizeCard: some View {
+        if let intendedSize = pattern.intendedSize, intendedSize != "" {
+            InfoCard() {
+                HStack {
+                    Text("Intended Size").foregroundStyle(Color(UIColor.secondaryLabel))
+                    Spacer()
+                    Text(intendedSize).font(.headline).bold().foregroundStyle(Color.primary)
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var toolsCard: some View {
+        if pattern.type == PatternType.knit.rawValue {
+            listCard(
+                title: "Needle",
+                pluralTitle: "Needles",
+                values: pattern.knittingNeedles.first?.needle == KnitNeedleSize.none ? [] : pattern.knittingNeedles.map { $0.needle.rawValue }
+            )
+        } else {
+            listCard(
+                title: "Hook",
+                pluralTitle: "Hooks",
+                values: pattern.crochetHooks.first?.hook == CrochetHookSize.none ? [] : pattern.crochetHooks.map { $0.hook.rawValue }
+            )
+        }
+    }
+    
+    @ViewBuilder
+    private func listCard(title: String, pluralTitle: String, values: [String]) -> some View {
+        if values.count == 1 {
+            InfoCard() {
+                HStack {
+                    Text(title).foregroundStyle(Color(UIColor.secondaryLabel))
+                    Spacer()
+                    Text(values[0]).font(.headline).bold().foregroundStyle(Color.primary)
+                }
+            }
+        } else if values.count > 1 {
+            InfoCard(header: { Text(pluralTitle) }) {
+                HStack {
+                    Spacer()
+                    
+                    Text(values.joined(separator: ", "))
+                        .multilineTextAlignment(.center)
+                        .font(.headline)
+                        .bold()
+                        .foregroundStyle(Color.primary)
+                        .yarnDataRow()
+                    
+                    Spacer()
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var imagesSection: some View {
+        if pattern.hasImages {
+            Text("Images")
+                .infoCardHeader()
+            
+            ImageCarousel(images: .constant(pattern.uiImages))
+        }
+    }
+    
+    @ViewBuilder
+    private var notesSection: some View {
+        if let notes = pattern.notes, notes != "" {
+            InfoCard() {
+                Text(notes)
+                    .foregroundStyle(Color.primary)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+    }
+    
+    private var addProjectSheet: some View {
+        AddOrEditProjectForm(
+            projectToEdit: nil,
+            preSelectedPattern: pattern,
+            preSelectedPairings: preSelectedPairings,
+            yarnSuggestions: yarnSuggestions
+        ) { addedProject in
+            selectedTab = PatternTab.used
+            // Capture the newly added project
+            newProject = addedProject
+            showAddProjectForm = false
+        }
+    }
+    
+    // Pre-pair any recommended yarn that has exactly one favorited match
+    private var preSelectedPairings: [ProjectPairingItem] {
+        pattern.weightAndYardageItems.compactMap { patternWandY -> ProjectPairingItem? in
+            guard let existingItem = patternWandY.existingItem,
+                  let suggestions = yarnSuggestions.first(where: { $0.patternWAndY.id == patternWandY.id })?.suggestedWAndY,
+                  let firstSuggestion = suggestions.first else {
+                return nil
+            }
+            
+            let favedSuggestions = suggestions.filter { $0.yarnFavorites?.count == 1 }
+            
+            guard favedSuggestions.count == 1 else { return nil }
+            
+            return ProjectPairingItem(
+                patternWeightAndYardage: existingItem,
+                yarnWeightAndYardage: firstSuggestion
+            )
         }
     }
     
     func getSuggestions() {
-        DispatchQueue.global(qos: .background).async {
+        // viewContext is main-queue bound; perform keeps the fetches on its queue without blocking appear
+        managedObjectContext.perform {
             var temp : [YarnSuggestion] = []
             
             for wAndY in pattern.weightAndYardageItems {
@@ -441,9 +461,7 @@ struct PatternInfo: View {
                 )
             }
             
-            DispatchQueue.main.async { // Ensure UI updates are performed on the main thread
-                self.yarnSuggestions = temp
-            }
+            self.yarnSuggestions = temp
         }
     }
 }

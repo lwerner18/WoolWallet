@@ -100,8 +100,8 @@ extension WeightAndYardage {
         let request = NSFetchRequest<WeightAndYardage>(entityName: "WeightAndYardage")
         request.sortDescriptors = [NSSortDescriptor(keyPath: \WeightAndYardage.order, ascending: true)]
         
-        // Specify the properties you want to fetch
-        request.propertiesToFetch = ["weight", "currentSkeins"]
+        // Dashboard reads yarn.isSockSet for every row; load those yarns in one query
+        request.relationshipKeyPathsForPrefetching = ["yarn"]
         request.resultType = .managedObjectResultType
         
         request.predicate = NSPredicate(format: "parent == %@", WeightAndYardageParent.yarn.rawValue)

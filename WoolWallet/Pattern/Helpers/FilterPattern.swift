@@ -41,7 +41,7 @@ struct FilterPattern: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 // Scrollable content
                 ScrollView {
@@ -92,7 +92,7 @@ struct FilterPattern: View {
                                         }
                                         
                                         Text(item.rawValue)
-                                            .foregroundColor(
+                                            .foregroundStyle(
                                                 selectedItems.contains(item)
                                                 ? Color.accentColor
                                                 : Color(UIColor.secondaryLabel)
@@ -121,7 +121,7 @@ struct FilterPattern: View {
             .navigationTitle("Filter")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button(action: {
                         dismiss()
                     }) {
@@ -129,7 +129,7 @@ struct FilterPattern: View {
                     }
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button(action: {
                         resetFilters()
                     }) {

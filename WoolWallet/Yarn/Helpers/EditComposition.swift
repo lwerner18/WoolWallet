@@ -202,6 +202,7 @@ struct EditComposition: View {
                             } label: {
                                 Label("", systemImage : "plus.circle").font(.title3)
                             }
+                            .accessibilityLabel("Add Material")
                         }
                         
                         if tempComposition.count > 1 {
@@ -212,8 +213,9 @@ struct EditComposition: View {
                             } label: {
                                 Label("", systemImage : "xmark.circle")
                                     .font(.title3)
-                                    .foregroundColor(.red)
+                                    .foregroundStyle(Color.red)
                             }
+                            .accessibilityLabel("Remove Material")
                         }
                         
                     }
@@ -232,7 +234,7 @@ struct EditComposition: View {
                             Spacer()
                             
                             Text(tempComposition[index].material != "" ? tempComposition[index].material : "--")
-                                .foregroundColor(.gray)
+                                .foregroundStyle(Color.secondary)
                        
                         }
                     }
@@ -272,14 +274,13 @@ struct EditComposition: View {
         .navigationTitle("Composition")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: .confirmationAction) {
                 Button(action: {
                     composition = tempComposition
                     
                     dismiss()
                 }) {
-                    Image(systemName: "checkmark") // Use a system icon
-                        .imageScale(.large)
+                    Text("Done")
                 }
                 .disabled(saveDisabled)
             }
@@ -316,7 +317,7 @@ struct PercentagePicker: View {
                 Text("\($0) %").tag($0)
             }
             .onAppear {
-                if (compositionItem.percentage == 0) {
+                if compositionItem.percentage == 0 {
                     compositionItem.percentage = remainingComposition
                 }
             }

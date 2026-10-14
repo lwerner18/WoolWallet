@@ -31,7 +31,7 @@ extension Image {
             .resizable()
             .scaledToFit()
             .frame(width: frameSize, height: frameSize) // Adjust size as needed
-            .foregroundColor(.white) // Icon color
+            .foregroundStyle(Color.white)
             .padding(padding) // Padding inside the circle
             .background(background) // Circle background color
             .clipShape(Circle()) // Clip to circle shape

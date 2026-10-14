@@ -231,24 +231,67 @@ struct SquareColorPickerView: View {
     @Binding var colorValue: Color
     
     var body: some View {
-        
-        colorValue
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-            .clipShape(
-                .rect(
-                    topLeadingRadius: 10,
-                    bottomLeadingRadius: 0,
-                    bottomTrailingRadius: 0,
-                    topTrailingRadius: 10
+        Button {
+            ColorPickerPresenter.present(selectedColor: colorValue) { newColor in
+                colorValue = newColor
+            }
+        } label: {
+            colorValue
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                .clipShape(
+                    .rect(
+                        topLeadingRadius: 10,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: 0,
+                        topTrailingRadius: 10
+                    )
                 )
-            )
-            .overlay(
-                ColorPicker("", selection: $colorValue)
-                    .labelsHidden()
-                    .opacity(0.015)
-                    .scaleEffect(CGSize(width: 300, height: 35))
-            )
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Choose Color")
+    }
+}
+
+final class ColorPickerPresenter: NSObject, UIColorPickerViewControllerDelegate {
+    // The eyedropper dismisses the picker before delivering its color, so the
+    // delegate must outlive the picker (it is only replaced by the next presentation).
+    private static var current: ColorPickerPresenter?
+    
+    private let onChange: (Color) -> Void
+    
+    private init(onChange: @escaping (Color) -> Void) {
+        self.onChange = onChange
+    }
+    
+    static func present(selectedColor: Color, onChange: @escaping (Color) -> Void) {
+        guard let presentingController = topViewController() else { return }
         
+        let presenter = ColorPickerPresenter(onChange: onChange)
+        current = presenter
+        
+        let picker = UIColorPickerViewController()
+        picker.selectedColor = UIColor(selectedColor)
+        picker.supportsAlpha = false
+        picker.delegate = presenter
+        presentingController.present(picker, animated: true)
+    }
+    
+    func colorPickerViewController(_ viewController: UIColorPickerViewController, didSelect color: UIColor, continuously: Bool) {
+        onChange(Color(uiColor: color))
+    }
+    
+    private static func topViewController() -> UIViewController? {
+        let keyWindow = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow }
+        
+        var top = keyWindow?.rootViewController
+        while let presented = top?.presentedViewController, !presented.isBeingDismissed {
+            top = presented
+        }
+        return top
     }
 }
 
@@ -279,14 +322,16 @@ struct ColorPickerView: View {
                     Button(action : addAction) {
                         Label("", systemImage : "plus.circle").font(.title3)
                     }
+                    .accessibilityLabel("Add Color")
                 }
                 
                 if canRemove {
                     Button(action : removeAction) {
                         Label("", systemImage : "xmark.circle")
                             .font(.title3)
-                            .foregroundColor(.red)
+                            .foregroundStyle(Color.red)
                     }
+                    .accessibilityLabel("Remove Color")
                 }
                 
             }
@@ -352,16 +397,16 @@ struct ColorPickerView: View {
                 
                 let averageDistance = totalDistance / Double(namedColor.colors.count)
                 
-                print("Color", namedColor.name, "Average Distance", averageDistance)
-                
                 if averageDistance < minDistance {
                     minDistance = averageDistance
                     closestColor = namedColor.name
                 }
             }
             
+            guard let closestColor else { return }
+            
             DispatchQueue.main.async { // Ensure UI updates are performed on the main thread
-                self.colorPickerItem.name = closestColor!
+                self.colorPickerItem.name = closestColor
             }
         }
         

@@ -14,7 +14,7 @@ struct FancyHorizontalScroll<Content: View>: View {
     let hasBottomPadding : Bool
     let content: () -> Content // Closure for the content view
     
-    @State private var scrollOffset = CGPoint.zero
+    @State private var currentIndex: Int? = 0
     
     init(
         count : Int,
@@ -40,16 +40,14 @@ struct FancyHorizontalScroll<Content: View>: View {
                     }
                     .padding(.vertical, 4)
             }
-            .scrollTracker(
-                scrollOffset : $scrollOffset,
-                name: "scroll"
-            )
+            .scrollTargetLayout()
         }
+        .scrollPosition(id: $currentIndex)
         .overlay(
             count > 1
             ? AnyView(
                 ScrollDots(
-                    scrollOffset: scrollOffset,
+                    currentIndex: currentIndex ?? 0,
                     numberOfDots: count,
                     size: size,
                     hasBottomPadding: hasBottomPadding

@@ -22,26 +22,38 @@ enum YarnTab : String, CaseIterable, Identifiable, Equatable, CustomStringConver
 enum Weight : String, CaseIterable, Identifiable, Equatable {
     var id: String { self.rawValue }
     
-    case none = "--"
-    case zero = "0 - Lace"
-    case one = "1 - Fingering"
-    case two = "2 - Sport"
+    case none  = "--"
+    case zero  = "0 - Lace"
+    case one   = "1 - Fingering"
+    case two   = "2 - Sport"
     case three = "3 - DK"
-    case four = "4 - Worsted"
-    case five = "5 - Chunky"
-    case six = "6 - Super Bulky"
+    case four  = "4 - Worsted"
+    case five  = "5 - Bulky"
+    case six   = "6 - Super Bulky"
     case seven = "7 - Jumbo"
+    
+    /// Parses stored Core Data values, including the legacy "5 - Chunky" label.
+    static func fromStored(_ value: String?) -> Weight {
+        guard let value else { return .none }
+        if let weight = Weight(rawValue: value) {
+            return weight
+        }
+        if value == "5 - Chunky" {
+            return .five
+        }
+        return .none
+    }
     
     func getDisplay() -> String {
         switch self {
-        case .none : return ""
-        case .zero : return "Lace"
-        case .one : return "Fingering"
-        case .two : return "Sport"
+        case .none  : return ""
+        case .zero  : return "Lace"
+        case .one   : return "Fingering"
+        case .two   : return "Sport"
         case .three : return "DK"
-        case .four : return "Worsted"
-        case .five : return "Chunky"
-        case .six : return "Super Bulky"
+        case .four  : return "Worsted"
+        case .five  : return "Bulky"
+        case .six   : return "Super Bulky"
         case .seven : return "Jumbo"
         }
     }
@@ -62,6 +74,7 @@ enum MaterialCategory : String, CaseIterable, Identifiable, Equatable {
     case alpaca   = "Alpaca"
     case cashmere = "Cashmere"
     case mohair   = "Mohair"
+    case suri     = "Suri"
     case cotton   = "Cotton"
     case linen    = "Linen"
     case bamboo   = "Bamboo"

@@ -52,9 +52,10 @@ struct ToastView: View {
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             Image(systemName: style.iconFileName)
-                .foregroundColor(style.themeColor)
+                .foregroundStyle(style.themeColor)
+                .accessibilityHidden(true)
             Text(message)
-                .foregroundColor(.black)
+                .foregroundStyle(Color.primary)
             
             Spacer(minLength: 10)
             
@@ -62,19 +63,20 @@ struct ToastView: View {
                 onCancelTapped()
             } label: {
                 Image(systemName: "xmark")
-                    .foregroundColor(style.themeColor)
+                    .foregroundStyle(style.themeColor)
             }
+            .accessibilityLabel("Dismiss")
         }
         .padding()
         .zIndex(2) // Set a higher zIndex for the overlay view
         .frame(minWidth: 0, maxWidth: width)
-        .cornerRadius(8)
+        .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 10))
         .overlay(
             RoundedRectangle(cornerRadius: 10) // Apply corner radius to the border
-                .stroke(Color.black, lineWidth: 0.5)
+                .stroke(Color(UIColor.separator), lineWidth: 0.5)
         )
+        .shadow(color: Color.black.opacity(0.1), radius: 6, y: 2)
         .padding(.horizontal, 16)
-        .background(Color.white)
     }
 }
 

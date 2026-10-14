@@ -81,20 +81,32 @@ struct ProjectInfo: View {
     
     
     var body: some View {
-        VStack {
-            if isPopover {
-                NewItemHeader(onClose: { dismiss() })
+        if isPopover {
+            NavigationStack {
+                content
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") { dismiss() }
+                        }
+                    }
             }
-            
+        } else {
+            content
+        }
+    }
+    
+    private var content: some View {
+        VStack {
             if let pattern = project.pattern {
                 ScrollView {
                     if isNewProject {
                         VStack {
                             Label("", systemImage: "checkmark.circle")
                                 .font(.system(size: 60))
-                                .foregroundColor(Color(hex: "#008000")) // Set text color
+                                .foregroundStyle(Color.green)
                                 .symbolEffect(.bounce, value: animateCheckmark)
                                 .padding()
+                                .accessibilityHidden(true)
                             
                             Text("Successfully created project")
                                 .font(.title2)
@@ -106,13 +118,13 @@ struct ProjectInfo: View {
                     }
                     
                     ConditionalStack() {
-                        if !project.uiImages.isEmpty {
+                        if project.hasImages {
                             ImageCarousel(images: .constant(project.uiImages))
                         }
                         
                         LazyVStack {
                             
-                            if project.uiImages.isEmpty {
+                            if !project.hasImages {
                                 PatternItemDisplay(pattern: pattern, size: Size.large)
                             }
                             
@@ -281,10 +293,7 @@ struct ProjectInfo: View {
                                     .infoCardHeader()
                             }
                             
-                            SimpleHorizontalScroll(
-                                count: project.projectPairingItems.count,
-                                halfWidthInLandscape : !project.uiImages.isEmpty
-                            ) {
+                            SimpleHorizontalScroll(count: project.projectPairingItems.count) {
                                 ForEach(project.projectPairingItems, id : \.id) { projectPairingItem in
                                     let patternWAndY = projectPairingItem.patternWeightAndYardage
                                     
@@ -320,7 +329,7 @@ struct ProjectInfo: View {
                             }
                         }
                     }
-                    .foregroundStyle(Color.black)
+                    .foregroundStyle(Color.primary)
                     .padding()
                     
                 }
@@ -328,99 +337,96 @@ struct ProjectInfo: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .scrollBounceBehavior(.basedOnSize)
                 .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Menu {
-                            
-                            Button {
-                                showEditProjectForm = true
-                            } label : {
-                                Label("Edit", systemImage : "pencil")
-                            }
-                            
-                            Button {
-                                let newRowCounter = RowCounter(context: managedObjectContext)
-                                newRowCounter.name = "Row Counter \(project.rowCounterItems.count)"
-                                newRowCounter.project = project
+                    if !isPopover {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Menu {
+                                Button {
+                                    showEditProjectForm = true
+                                } label : {
+                                    Label("Edit", systemImage : "pencil")
+                                }
                                 
-                                PersistenceController.shared.save()
+                                Button {
+                                    let newRowCounter = RowCounter(context: managedObjectContext)
+                                    newRowCounter.name = "Row Counter \(project.rowCounterItems.count)"
+                                    newRowCounter.project = project
+                                    
+                                    PersistenceController.shared.save()
+                                    
+                                    rowCounter = newRowCounter
+                                } label : {
+                                    Label("Add Row Counter", systemImage : "number")
+                                }
                                 
-                                rowCounter = newRowCounter
-                            } label : {
-                                Label("Add Row Counter", systemImage : "number")
-                            }
-                            
-                            Divider()
-                          
-                            
-                            if project.inProgress {
-                                Button {
-                                    project.inProgress = false
-                                    project.startDate = nil
-                                    
-                                    selectedTab = ProjectTab.notStarted
-                                    
-                                    PersistenceController.shared.save()
-                                } label : {
-                                    Label("Mark as not started", systemImage : "pause.circle")
+                                Divider()
+                                
+                                if project.inProgress {
+                                    Button {
+                                        project.inProgress = false
+                                        project.startDate = nil
+                                        
+                                        selectedTab = ProjectTab.notStarted
+                                        
+                                        PersistenceController.shared.save()
+                                    } label : {
+                                        Label("Mark as Not Started", systemImage : "pause.circle")
+                                    }
                                 }
-                            }
-                            
-                            if !project.complete && project.inProgress {
-                                Button {
-                                    project.inProgress = false
-                                    project.complete = true
-                                    project.endDate = Date.now
-                                    
-                                    selectedTab = ProjectTab.completed
-                                    
-                                    PersistenceController.shared.save()
-                                    
-                                    showPostCompleteForm = true
-                                } label : {
-                                    Label("Complete", systemImage : "checkmark.circle")
+                                
+                                if !project.complete && project.inProgress {
+                                    Button {
+                                        project.inProgress = false
+                                        project.complete = true
+                                        project.endDate = Date.now
+                                        
+                                        selectedTab = ProjectTab.completed
+                                        
+                                        PersistenceController.shared.save()
+                                        
+                                        showPostCompleteForm = true
+                                    } label : {
+                                        Label("Complete", systemImage : "checkmark.circle")
+                                    }
                                 }
-                            }
-                            
-                            if project.complete  {
-                                Button {
-                                    project.inProgress = true
-                                    project.startDate = Date.now
-                                    project.complete = false
-                                    project.endDate = nil
-                                    
-                                    selectedTab = ProjectTab.inProgress
-                                    
-                                    PersistenceController.shared.save()
-                                } label : {
-                                    Label("Mark as in progress", systemImage : "play.circle")
+                                
+                                if project.complete  {
+                                    Button {
+                                        project.inProgress = true
+                                        project.startDate = Date.now
+                                        project.complete = false
+                                        project.endDate = nil
+                                        
+                                        selectedTab = ProjectTab.inProgress
+                                        
+                                        PersistenceController.shared.save()
+                                    } label : {
+                                        Label("Mark as In Progress", systemImage : "play.circle")
+                                    }
                                 }
-                            }
-                            
-                            if !project.complete && !project.inProgress  {
-                                Button {
-                                    project.inProgress = true
-                                    project.startDate = Date.now
-                                    
-                                    selectedTab = ProjectTab.inProgress
-                                    
-                                    PersistenceController.shared.save()
-                                } label : {
-                                    Label("Start", systemImage : "play.circle")
+                                
+                                if !project.complete && !project.inProgress  {
+                                    Button {
+                                        project.inProgress = true
+                                        project.startDate = Date.now
+                                        
+                                        selectedTab = ProjectTab.inProgress
+                                        
+                                        PersistenceController.shared.save()
+                                    } label : {
+                                        Label("Start", systemImage : "play.circle")
+                                    }
                                 }
-                            }
-                            
-                            Divider()
-                            
-                            Button(role: .destructive) {
-                                showConfirmationDialog = true
+                                
+                                Divider()
+                                
+                                Button(role: .destructive) {
+                                    showConfirmationDialog = true
+                                } label: {
+                                    Label("Delete", systemImage : "trash")
+                                }
                             } label: {
-                                Label("Delete", systemImage : "trash")
+                                Label("More", systemImage : "ellipsis.circle")
                             }
-                            
-                          
-                            
-                        } label: {
-                            Label("more", systemImage : "ellipsis")
                         }
                     }
                 }

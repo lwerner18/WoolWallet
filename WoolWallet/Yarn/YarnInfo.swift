@@ -52,10 +52,17 @@ struct YarnInfo: View {
         self.patternWAndYBrowsingFor = patternWAndYBrowsingFor
         self.isNewYarn = isNewYarn
         self.isPopover = isPopover
+        self._projects = FetchRequest(
+            entity: Project.entity(),
+            sortDescriptors: [NSSortDescriptor(keyPath: \Project.startDate, ascending: true)],
+            predicate: NSPredicate(format: "ANY pairings.yarnWeightAndYardage.yarn == %@", yarn)
+        )
     }
     
     // Internal state trackers
     @State private var showEditYarnForm        : Bool = false
+    @State private var showCopyYarnForm        : Bool = false
+    @State private var copiedYarn              : Yarn? = nil
     @State private var yarnInfoToast           : Toast? = nil
     @State private var showDeleteConfirmation  : Bool = false
     @State private var showChoosePatternDialog : Bool = false
@@ -68,9 +75,7 @@ struct YarnInfo: View {
     @State private var newProject              : Project? = nil
     @State private var displayedProject        : Project? = nil
     
-    var projects: [Project] {
-        return YarnUtils.shared.getProjects(for: yarn, in: managedObjectContext)
-    }
+    @FetchRequest private var projects: FetchedResults<Project>
     
     var yarnProperties: [DetailProp] {
         var props : [DetailProp] = []
@@ -103,244 +108,111 @@ struct YarnInfo: View {
     }
     
     var body: some View {
-        VStack {
-            if isNewYarn || isPopover {
-                NewItemHeader(onClose: { dismiss() })
+        if isNewYarn || isPopover {
+            NavigationStack {
+                content
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") { dismiss() }
+                        }
+                    }
+            }
+        } else {
+            content
+        }
+    }
+    
+    private var showsTrailingToolbarItem: Bool {
+        browseMode || !projectPairing.isEmpty || (!isNewYarn && !isPopover)
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        if showsTrailingToolbarItem {
+            ToolbarItem(placement: .topBarTrailing) {
+                trailingToolbarItem
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var trailingToolbarItem: some View {
+        if browseMode {
+            Button("Select", action: selectYarn)
+                .disabled(yarn.weightAndYardageArray.isEmpty)
+        } else if !projectPairing.isEmpty {
+            ProgressView()
+        } else {
+            moreMenu
+        }
+    }
+    
+    private func selectYarn() {
+        if yarn.weightAndYardageArray.count > 1 {
+            showChooseSkeinDialog = true
+        } else if let skein = yarn.weightAndYardageArray.first,
+                  let patternWAndY = patternWAndYBrowsingFor {
+            projectPairing.append(
+                ProjectPairingItem(
+                    patternWeightAndYardage: patternWAndY,
+                    yarnWeightAndYardage: skein
+                )
+            )
+            browseMode = false
+        }
+    }
+    
+    private var moreMenu: some View {
+        Menu {
+            Button {
+                showEditYarnForm = true
+            } label : {
+                Label("Edit", systemImage : "pencil")
             }
             
-            ScrollView {
-                if isNewYarn {
-                    VStack {
-                        Label("", systemImage: "checkmark.circle")
-                            .font(.system(size: 60))
-                            .foregroundColor(Color(hex: "#008000")) // Set text color
-                            .symbolEffect(.bounce, value: animateCheckmark)
-                            .padding()
-                        
-                        Text("Successfully created yarn")
-                            .font(.title2)
-                        
-                        Text("Now get crafting!")
-                            .foregroundColor(.gray)
-                            .font(.subheadline)
+            if !favoritedPatterns.isEmpty {
+                Button {
+                    if favoritedPatterns.count > 1 {
+                        showChoosePatternDialog = true
+                    } else {
+                        showAddProjectForm = true
                     }
-                    .onAppear {
-                        animateCheckmark.toggle()
-                    }
+                } label : {
+                    Label("Start a Project", systemImage : "hammer")
                 }
-                
-                ConditionalStack() {
-                    ImageCarousel(images : .constant(yarn.uiImages))
-                    
-                    LazyVStack {
-                        VStack {
-                            Text(yarn.name ?? "N/A").bold().font(.largeTitle).foregroundStyle(Color.primary).multilineTextAlignment(.center)
-                            
-                            Text(yarn.dyer ?? "N/A").bold().foregroundStyle(Color(UIColor.secondaryLabel))
-                        }
-                        
-                        InfoCapsules(detailProps: yarnProperties)
-                        
-                        VStack {
-                            InfoCard() {
-                                HStack {
-                                    Text("Weight").foregroundStyle(Color(UIColor.secondaryLabel))
-                                    Spacer()
-                                    Text(yarn.weightAndYardageItems.first?.weight.rawValue ?? "N/A")
-                                        .font(.headline).bold().foregroundStyle(Color.primary)
-                                }
-                            }
-                            
-                            ForEach(yarn.weightAndYardageArray, id: \.id) { wAndY in
-                                if wAndY.originalLength != wAndY.currentLength {
-                                    InfoCard() {
-                                        VStack {
-                                            HStack {
-                                                Text("Original Length").foregroundStyle(Color(UIColor.secondaryLabel))
-                                                Spacer()
-                                                Text("\(wAndY.isExact ? "" : "~")\(wAndY.originalLength.formatted) \(wAndY.unitOfMeasure!.lowercased())")
-                                                    .font(.headline).bold().foregroundStyle(Color.primary)
-                                            }
-                                            .yarnDataRow()
-                                            
-                                            Divider()
-                                            
-                                            HStack {
-                                                Text("Original Skeins").foregroundStyle(Color(UIColor.secondaryLabel))
-                                                Spacer()
-                                                Text(wAndY.originalSkeins.formatted)
-                                                    .font(.headline).bold().foregroundStyle(Color.primary)
-                                            }
-                                            .yarnDataRow()
-                                        }
-                                        
-                                    }
-                                }
-                                    
-                                ViewWeightAndYardage(
-                                    weightAndYardage: wAndY,
-                                    isSockSet: yarn.isSockSet,
-                                    totalCount: yarn.weightAndYardageArray.count
-                                )
-                                
-                                if let suggestion : PatternSuggestion = patternSuggestions.first(where: {$0.yarnWAndY.id == wAndY.id}) {
-                                    PossiblePatterns(
-                                        patternSuggestion : suggestion,
-                                        favoritedPatterns : $favoritedPatterns
-                                    )
-                                }
-                            }
-                            
-                            if !yarn.compositionItems.isEmpty {
-                                InfoCard(
-                                    header : {
-                                        HStack {
-                                            Spacer()
-                                            Text("Composition")
-                                            Spacer()
-                                        }
-                                    }
-                                ) {
-                                    VStack {
-                                        CompositionChart(composition: yarn.compositionItems, smallMode: true)
-                                        CompositionText(composition: yarn.compositionItems)
-                                    }
-                                }
-                            }
-                            
-                            if projects.count > 0 {
-                                Text("Project\(projects.count > 1 ? "s" : "")")
-                                    .infoCardHeader()
-                                
-                                SimpleHorizontalScroll(count: projects.count, halfWidthInLandscape : true) {
-                                    ForEach(projects, id : \.id) { project in
-                                        ProjectPreview(
-                                            project: project,
-                                            displayedProject: $displayedProject,
-                                            yarnId : yarn.id,
-                                            disableOnTap : isPopover
-                                        )
-                                    }
-                                }
-                            }
-                            
-                            InfoCard(noPadding: true) {
-                                ForEach(yarn.colorPickerItems, id: \.id) { colorPickerItem in
-                                    VStack {
-                                        colorPickerItem.color
-                                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                                            .frame(height: 35)
-                                            .clipShape(
-                                                .rect(
-                                                    topLeadingRadius: 10,
-                                                    bottomLeadingRadius: 0,
-                                                    bottomTrailingRadius: 0,
-                                                    topTrailingRadius: 10
-                                                )
-                                            )
-                                        
-                                        let colorName = colorPickerItem.description != "" ? colorPickerItem.description : colorPickerItem.name
-                                        
-                                        HStack {
-                                            Text("Color").foregroundStyle(Color(UIColor.secondaryLabel))
-                                            Spacer()
-                                            Text(colorName).font(.headline).bold().foregroundStyle(Color.primary)
-                                        }
-                                        .padding(.horizontal, 15)
-                                        .padding(.top, 8)
-                                        .padding(.bottom, 15)
-                                    }
-                                }
-                            }
-                            
-                            if yarn.notes != nil && yarn.notes != "" {
-                                InfoCard() {
-                                    Text(yarn.notes!)
-                                        .foregroundStyle(Color.primary)
-                                        .frame(maxWidth: .infinity)
-                                }
-                            }
-                        }
-                    }
-                    
-                }
-                .foregroundStyle(Color.black)
-                .padding()
             }
-            .toastView(toast: $yarnInfoToast)
-            .scrollBounceBehavior(.basedOnSize)
+            
+            Button {
+                YarnUtils.shared.toggleYarnArchived(at: yarn)
+                
+                selectedTab = selectedTab == YarnTab.active ? YarnTab.archived : YarnTab.active
+            } label: {
+                Label(yarn.isArchived ? "Unarchive" : "Archive", systemImage : yarn.isArchived ? "tray.and.arrow.up" : "tray.and.arrow.down")
+            }
+            
+            Button {
+                showCopyYarnForm = true
+            } label: {
+                Label("Copy", systemImage : "doc.on.doc")
+            }
+            
+            Divider()
+            
+            Button(role: .destructive) {
+                showDeleteConfirmation = true
+            } label: {
+                Label("Delete", systemImage : "trash")
+            }
+        } label: {
+            Label("More", systemImage : "ellipsis.circle")
+        }
+    }
+    
+    private var content: some View {
+        scrollContent
             .navigationTitle(yarn.name ?? "N/A")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                if browseMode {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button() {
-                            if yarn.weightAndYardageArray.count > 1 {
-                                showChooseSkeinDialog = true
-                            } else {
-                                // TODO: Let user choose skein
-                                projectPairing.append(
-                                    ProjectPairingItem(
-                                        patternWeightAndYardage: patternWAndYBrowsingFor!,
-                                        yarnWeightAndYardage: yarn.weightAndYardageArray.first!
-                                    )
-                                )
-                                browseMode = false
-                            }
-                        } label: {
-                            Text("Select")
-                        }
-                    }
-                } else if !projectPairing.isEmpty {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        ProgressView("")
-                            .progressViewStyle(CircularProgressViewStyle())
-                    }
-                } else {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Menu {
-                            Button {
-                                showEditYarnForm = true
-                            } label : {
-                                Label("Edit", systemImage : "pencil")
-                            }
-                            
-                            if !favoritedPatterns.isEmpty {
-                                Button {
-                                    if favoritedPatterns.count > 1 {
-                                        showChoosePatternDialog = true
-                                    } else {
-                                        showAddProjectForm = true
-                                    }
-                                } label : {
-                                    Label("Start a Project", systemImage : "hammer")
-                                }
-                            }
-                            
-                            Button {
-                                YarnUtils.shared.toggleYarnArchived(at: yarn)
-                                
-                                selectedTab = selectedTab == YarnTab.active ? YarnTab.archived : YarnTab.active
-                            } label: {
-                                Label(yarn.isArchived ? "Unarchive" : "Archive", systemImage : yarn.isArchived ? "tray.and.arrow.up" : "tray.and.arrow.down")
-                            }
-                            
-                            Divider()
-                            
-                            Button(role: .destructive) {
-                                showDeleteConfirmation = true
-                            } label: {
-                                Label("Delete", systemImage : "trash")
-                            }
-                            
-                        } label: {
-                            Label("more", systemImage : "ellipsis")
-                        }
-                        
-                    }
-                }
-               
-            }
+            .toolbar { toolbarContent }
             .alert("Are you sure you want to delete this yarn?", isPresented: $showDeleteConfirmation) {
                 Button("Delete", role: .destructive) {
                     YarnUtils.shared.removeYarn(at: yarn, with: managedObjectContext)
@@ -353,17 +225,266 @@ struct YarnInfo: View {
             .fullScreenCover(isPresented: $showEditYarnForm, onDismiss: getSuggestions) {
                 AddOrEditYarnForm(yarnToEdit : yarn)
             }
+            .fullScreenCover(isPresented: $showCopyYarnForm, onDismiss: { copiedYarn = nil }) {
+                copyYarnCover
+            }
             .sheet(isPresented: $showAddProjectForm) {
-                let firstFavorite : WeightAndYardage = favoritedPatterns.first.unsafelyUnwrapped.patternWeightAndYardage!
-                let patternWandY : WeightAndYardage = patternWAndYForProject == nil ? firstFavorite : patternWAndYForProject!
+                addProjectSheet
+            }
+            .sheet(item: $newProject) { project in
+                ProjectInfo(project: project, isNewProject : true, isPopover: true)
+            }
+            .sheet(item: $displayedProject) { project in
+                ProjectInfo(project: project, isPopover: true)
+            }
+            .modifier(dialogs)
+            .background(Color(UIColor.systemGroupedBackground))
+            .onAppear {
+                getSuggestions()
+            }
+    }
+    
+    private var scrollContent: some View {
+        ScrollView {
+            successHeader
+            
+            ConditionalStack() {
+                ImageCarousel(images : .constant(yarn.uiImages))
                 
-                let yarnWandY : WeightAndYardage = favoritedPatterns.first(where: {
-                    $0.patternWeightAndYardage == patternWandY
-                }).unsafelyUnwrapped.yarnWeightAndYardage!
+                LazyVStack {
+                    titleSection
+                    
+                    InfoCapsules(detailProps: yarnProperties)
+                    
+                    VStack {
+                        weightCard
+                        skeinSections
+                        compositionSection
+                        projectsSection
+                        colorSection
+                        notesSection
+                    }
+                }
+            }
+            .foregroundStyle(Color.primary)
+            .padding()
+        }
+        .toastView(toast: $yarnInfoToast)
+        .scrollBounceBehavior(.basedOnSize)
+    }
+    
+    @ViewBuilder
+    private var successHeader: some View {
+        if isNewYarn {
+            VStack {
+                Label("", systemImage: "checkmark.circle")
+                    .font(.system(size: 60))
+                    .foregroundStyle(Color.green)
+                    .symbolEffect(.bounce, value: animateCheckmark)
+                    .padding()
+                    .accessibilityHidden(true)
                 
+                Text("Successfully created yarn")
+                    .font(.title2)
+                
+                Text("Now get crafting!")
+                    .foregroundStyle(Color.secondary)
+                    .font(.subheadline)
+            }
+            .onAppear {
+                animateCheckmark.toggle()
+            }
+        }
+    }
+    
+    private var titleSection: some View {
+        VStack {
+            Text(yarn.name ?? "N/A").bold().font(.largeTitle).foregroundStyle(Color.primary).multilineTextAlignment(.center)
+            
+            Text(yarn.dyer ?? "N/A").bold().foregroundStyle(Color(UIColor.secondaryLabel))
+        }
+    }
+    
+    private var weightCard: some View {
+        InfoCard() {
+            HStack {
+                Text("Weight").foregroundStyle(Color(UIColor.secondaryLabel))
+                Spacer()
+                Text(yarn.weightAndYardageItems.first?.weight.rawValue ?? "N/A")
+                    .font(.headline).bold().foregroundStyle(Color.primary)
+            }
+        }
+    }
+    
+    private var skeinSections: some View {
+        ForEach(yarn.weightAndYardageArray, id: \.id) { wAndY in
+            skeinSection(for: wAndY)
+        }
+    }
+    
+    @ViewBuilder
+    private func skeinSection(for wAndY: WeightAndYardage) -> some View {
+        if wAndY.originalLength != wAndY.currentLength {
+            originalAmountsCard(for: wAndY)
+        }
+        
+        ViewWeightAndYardage(
+            weightAndYardage: wAndY,
+            isSockSet: yarn.isSockSet,
+            totalCount: yarn.weightAndYardageArray.count
+        )
+        
+        if let suggestion : PatternSuggestion = patternSuggestions.first(where: {$0.yarnWAndY.id == wAndY.id}) {
+            PossiblePatterns(
+                patternSuggestion : suggestion,
+                favoritedPatterns : $favoritedPatterns
+            )
+        }
+    }
+    
+    private func originalAmountsCard(for wAndY: WeightAndYardage) -> some View {
+        InfoCard() {
+            VStack {
+                HStack {
+                    Text("Original Length").foregroundStyle(Color(UIColor.secondaryLabel))
+                    Spacer()
+                    Text("\(wAndY.isExact ? "" : "~")\(wAndY.originalLength.formatted) \(wAndY.unitOfMeasure?.lowercased() ?? "")")
+                        .font(.headline).bold().foregroundStyle(Color.primary)
+                }
+                .yarnDataRow()
+                
+                Divider()
+                
+                HStack {
+                    Text("Original Skeins").foregroundStyle(Color(UIColor.secondaryLabel))
+                    Spacer()
+                    Text(wAndY.originalSkeins.formatted)
+                        .font(.headline).bold().foregroundStyle(Color.primary)
+                }
+                .yarnDataRow()
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var compositionSection: some View {
+        if !yarn.compositionItems.isEmpty {
+            InfoCard(
+                header : {
+                    HStack {
+                        Spacer()
+                        Text("Composition")
+                        Spacer()
+                    }
+                }
+            ) {
+                VStack {
+                    CompositionChart(composition: yarn.compositionItems, smallMode: true)
+                    CompositionText(composition: yarn.compositionItems)
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var projectsSection: some View {
+        if projects.count > 0 {
+            Text("Project\(projects.count > 1 ? "s" : "")")
+                .infoCardHeader()
+            
+            SimpleHorizontalScroll(count: projects.count) {
+                ForEach(projects, id : \.id) { project in
+                    ProjectPreview(
+                        project: project,
+                        displayedProject: $displayedProject,
+                        yarnId : yarn.id,
+                        disableOnTap : isPopover
+                    )
+                }
+            }
+        }
+    }
+    
+    private var colorSection: some View {
+        InfoCard(noPadding: true) {
+            ForEach(yarn.colorPickerItems, id: \.id) { colorPickerItem in
+                colorRow(for: colorPickerItem)
+            }
+        }
+    }
+    
+    private func colorRow(for colorPickerItem: ColorPickerItem) -> some View {
+        let colorName = colorPickerItem.description != "" ? colorPickerItem.description : colorPickerItem.name
+        
+        return VStack {
+            colorPickerItem.color
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                .frame(height: 35)
+                .clipShape(
+                    .rect(
+                        topLeadingRadius: 10,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: 0,
+                        topTrailingRadius: 10
+                    )
+                )
+            
+            HStack {
+                Text("Color").foregroundStyle(Color(UIColor.secondaryLabel))
+                Spacer()
+                Text(colorName).font(.headline).bold().foregroundStyle(Color.primary)
+            }
+            .padding(.horizontal, 15)
+            .padding(.top, 8)
+            .padding(.bottom, 15)
+        }
+    }
+    
+    @ViewBuilder
+    private var notesSection: some View {
+        if let notes = yarn.notes, notes != "" {
+            InfoCard() {
+                Text(notes)
+                    .foregroundStyle(Color.primary)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+    }
+    
+    // Swap to the success screen in place so this page never flashes between the two
+    @ViewBuilder
+    private var copyYarnCover: some View {
+        if let copiedYarn {
+            YarnInfo(
+                yarn: copiedYarn,
+                selectedTab: $selectedTab,
+                isNewYarn: true,
+                isPopover: true
+            )
+            .transition(.opacity)
+        } else {
+            AddOrEditYarnForm(yarnToEdit: yarn, isCopy: true) { addedYarn in
+                // Copies are always active — switch tabs so the new yarn is visible in the list
+                if selectedTab == .archived {
+                    selectedTab = .active
+                }
+                withAnimation {
+                    copiedYarn = addedYarn
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var addProjectSheet: some View {
+        if let firstFavorite = favoritedPatterns.first?.patternWeightAndYardage {
+            let patternWandY : WeightAndYardage = patternWAndYForProject ?? firstFavorite
+            
+            if let yarnWandY = favoritedPatterns.first(where: { $0.patternWeightAndYardage == patternWandY })?.yarnWeightAndYardage,
+               let pattern = patternWandY.pattern {
                 AddOrEditProjectForm(
                     projectToEdit: nil,
-                    preSelectedPattern: patternWandY.pattern!,
+                    preSelectedPattern: pattern,
                     preSelectedPairings : [ProjectPairingItem(patternWeightAndYardage: patternWandY, yarnWeightAndYardage: yarnWandY)]
                 ) { addedProject in
                     // Capture the newly added project
@@ -371,56 +492,26 @@ struct YarnInfo: View {
                     showAddProjectForm = false
                 }
             }
-            .sheet(item: $newProject) { project in
-                ProjectInfo(project: project, isNewProject : true, isPopover: true)
-            }
-            .confirmationDialog("", isPresented: $showChoosePatternDialog) {
-                ForEach(favoritedPatterns, id: \.id) {element in
-                    let wAndY = element.patternWeightAndYardage!
-                    
-                    let text = "\(wAndY.pattern!.name!) \(wAndY.pattern!.weightAndYardageArray.count > 1 ? "(Color \(PatternUtils.shared.getLetter(for: Int(wAndY.order))))" : "")"
-
-
-                    Button("\(text)") {
-                        patternWAndYForProject = wAndY
-                        showAddProjectForm = true
-                    }
-                }
-                Button("Cancel", role: .cancel) { }
-            } message: {
-                Text("You've favorited multiple patterns. Which pattern would you like to use this yarn for?")
-            }
-            .confirmationDialog("", isPresented: $showChooseSkeinDialog) {
-                ForEach(yarn.weightAndYardageArray, id: \.id) {element in
-                    let text = "\(element.order == 0 ? "Main Skein" : (element.order == 1 ? "Mini Skein" : "Mini #2"))"
-                    
-                    Button("\(text)") {
-                        projectPairing.append(
-                            ProjectPairingItem(
-                                patternWeightAndYardage: patternWAndYBrowsingFor!,
-                                yarnWeightAndYardage: element
-                            )
-                        )
-                        
-                        browseMode = false
-                    }
-                }
-                Button("Cancel", role: .cancel) { }
-            } message: {
-                Text("This yarn has multiple skeins. Which one would you like to use for the project?")
-            }
-            .sheet(item: $displayedProject) { project in
-                ProjectInfo(project: project, isPopover: true)
-            }
-        }
-        .background(Color(UIColor.systemGroupedBackground))
-        .onAppear {
-            getSuggestions()
         }
     }
     
+    private var dialogs: YarnInfoDialogs {
+        YarnInfoDialogs(
+            yarn: yarn,
+            favoritedPatterns: favoritedPatterns,
+            patternWAndYBrowsingFor: patternWAndYBrowsingFor,
+            showChoosePatternDialog: $showChoosePatternDialog,
+            showChooseSkeinDialog: $showChooseSkeinDialog,
+            patternWAndYForProject: $patternWAndYForProject,
+            showAddProjectForm: $showAddProjectForm,
+            projectPairing: $projectPairing,
+            browseMode: $browseMode
+        )
+    }
+    
     func getSuggestions() {
-        DispatchQueue.global(qos: .background).async {
+        // viewContext is main-queue bound; perform keeps the fetches on its queue without blocking appear
+        managedObjectContext.perform {
             var temp : [PatternSuggestion] = []
             
             for wAndY in yarn.weightAndYardageItems {
@@ -432,12 +523,8 @@ struct YarnInfo: View {
                 )
             }
             
-            let favorites = YarnUtils.shared.favoritedPatterns(for: yarn, in: managedObjectContext)
-            
-            DispatchQueue.main.async { // Ensure UI updates are performed on the main thread
-                self.patternSuggestions = temp
-                self.favoritedPatterns = favorites
-            }
+            self.patternSuggestions = temp
+            self.favoritedPatterns = YarnUtils.shared.favoritedPatterns(for: yarn, in: managedObjectContext)
         }
     }
 }
@@ -450,3 +537,69 @@ struct YarnDataRow: ViewModifier {
 }
 
 
+
+struct YarnInfoDialogs: ViewModifier {
+    var yarn : Yarn
+    var favoritedPatterns : [FavoritePairing]
+    var patternWAndYBrowsingFor : WeightAndYardage?
+    @Binding var showChoosePatternDialog : Bool
+    @Binding var showChooseSkeinDialog : Bool
+    @Binding var patternWAndYForProject : WeightAndYardage?
+    @Binding var showAddProjectForm : Bool
+    @Binding var projectPairing : [ProjectPairingItem]
+    @Binding var browseMode : Bool
+    
+    func body(content: Content) -> some View {
+        content
+            .confirmationDialog("", isPresented: $showChoosePatternDialog) {
+                ForEach(favoritedPatterns, id: \.id) { element in
+                    if let wAndY = element.patternWeightAndYardage {
+                        Button(patternLabel(for: wAndY)) {
+                            patternWAndYForProject = wAndY
+                            showAddProjectForm = true
+                        }
+                    }
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("You've favorited multiple patterns. Which pattern would you like to use this yarn for?")
+            }
+            .confirmationDialog("", isPresented: $showChooseSkeinDialog) {
+                ForEach(yarn.weightAndYardageArray, id: \.id) { element in
+                    Button(skeinLabel(for: element)) {
+                        if let patternWAndY = patternWAndYBrowsingFor {
+                            projectPairing.append(
+                                ProjectPairingItem(
+                                    patternWeightAndYardage: patternWAndY,
+                                    yarnWeightAndYardage: element
+                                )
+                            )
+                        }
+                        
+                        browseMode = false
+                    }
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("This yarn has multiple skeins. Which one would you like to use for the project?")
+            }
+    }
+    
+    private func patternLabel(for wAndY: WeightAndYardage) -> String {
+        let name = wAndY.pattern?.name ?? "Pattern"
+        
+        guard let pattern = wAndY.pattern, pattern.weightAndYardageArray.count > 1 else {
+            return name
+        }
+        
+        return "\(name) (Color \(PatternUtils.shared.getLetter(for: Int(wAndY.order))))"
+    }
+    
+    private func skeinLabel(for wAndY: WeightAndYardage) -> String {
+        switch wAndY.order {
+        case 0: return "Main Skein"
+        case 1: return "Mini Skein"
+        default: return "Mini #2"
+        }
+    }
+}
