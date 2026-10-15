@@ -111,6 +111,10 @@ struct ProjectInfo: View {
                             Text("Successfully created project")
                                 .font(.title2)
                                 .foregroundStyle(Color.primary)
+                            
+                            Text("Now get crafting!")
+                                .foregroundStyle(Color.secondary)
+                                .font(.subheadline)
                         }
                         .onAppear {
                             animateCheckmark.toggle()
@@ -119,7 +123,7 @@ struct ProjectInfo: View {
                     
                     ConditionalStack() {
                         if project.hasImages {
-                            ImageCarousel(images: .constant(project.uiImages))
+                            ImageCarousel(images: .constant(project.uiImages), allowsZoom: true)
                         }
                         
                         LazyVStack {
@@ -327,6 +331,8 @@ struct ProjectInfo: View {
                                         .frame(maxWidth: .infinity)
                                 }
                             }
+                            
+                            RecordDates(added: project.dateAdded, updated: project.dateUpdated)
                         }
                     }
                     .foregroundStyle(Color.primary)
@@ -434,8 +440,14 @@ struct ProjectInfo: View {
                     Button("Delete", role: .destructive) {
                         dismiss()
                         
-                        ProjectUtils.shared.removeProject(at: project, with: managedObjectContext)
-                        
+                        // Let the page finish popping so the row is on screen when it animates away
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [project, managedObjectContext] in
+                            guard !project.isDeleted else { return }
+                            
+                            withAnimation {
+                                ProjectUtils.shared.removeProject(at: project, with: managedObjectContext)
+                            }
+                        }
                     }
                     
                     Button("Cancel", role: .cancel) {}

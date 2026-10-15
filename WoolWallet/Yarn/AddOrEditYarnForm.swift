@@ -30,8 +30,38 @@ struct AddOrEditYarnForm: View {
     // Internal state trackers
     @State private var images                : [ImageData] = []
     @State private var processingColor       : Bool = false
-    @State private var maskImage             : UIImage? // This will hold the segmentation mask image
+    /// Colors found in the first photo, offered to the user rather than applied automatically
+    @State private var suggestedColors       : [Color]? = nil
+    @State private var selectedSuggestions   : Set<Int> = []
+    /// The photo colors were last detected from, so adding more photos doesn't detect again
+    @State private var analyzedImageID       : UUID? = nil
     @State private var imagesChanged         : Bool = false
+    @State private var showLabelScanner      : Bool = false
+    @State private var photoLabel            : PhotoLabel? = nil
+    @State private var showPhotoLabelReview  : Bool = false
+    /// The version of each photo last read for a label, so a rotated photo is read again
+    @State private var labelCheckedImages    : [UUID: UIImage] = [:]
+    /// Renewed after returning from the composition screen to clear the row's stuck highlight;
+    /// a new ID on every render would rebuild the row on each keystroke
+    @State private var compositionLinkID     = UUID()
+    @State private var photosOnScreen        : Bool = true
+    @State private var isSaving              : Bool = false
+    @State private var encodedPhotos         : [UUID: Data] = [:]
+    @State private var duplicateCheck        : DuplicateCheck? = nil
+    @State private var duplicateConfirmed    : Bool = false
+    @State private var showNewColorPicker    : Bool = false
+    
+    /// Presented as a sheet item so the sheet is built with the matches rather than an earlier, empty list
+    private struct DuplicateCheck: Identifiable {
+        let id = UUID()
+        let matches : [Yarn]
+    }
+    
+    private struct PhotoLabel {
+        var label : ScannedYarnLabel
+        var imageID : UUID
+        var image : UIImage
+    }
     
     // Form fields
     @State private var name              : String = ""
@@ -102,7 +132,9 @@ struct AddOrEditYarnForm: View {
             // Copies always start active, even when duplicating an archived yarn
             _archive           = State(initialValue : isCopy ? false : yarnToEdit.isArchived)
             // New photos for a copy; keep source images only when editing
-            _images            = State(initialValue : isCopy ? [] : yarnToEdit.uiImages)
+            let initialImages  = isCopy ? [] : yarnToEdit.uiImages
+            _images            = State(initialValue : initialImages)
+            _analyzedImageID   = State(initialValue : initialImages.first?.id)
             
             let existingWeightAndYardages = isCopy
                 ? yarnToEdit.weightAndYardageItemsForCopy
@@ -119,10 +151,7 @@ struct AddOrEditYarnForm: View {
                 _colorPickers      = State(initialValue : yarnToEdit.colorPickerItemsForCopy)
             } else {
                 _composition       = State(initialValue : yarnToEdit.compositionItems)
-                _colorPickers      = State(initialValue : !yarnToEdit.colorPickerItems.isEmpty
-                                           ? yarnToEdit.colorPickerItems
-                                           : [ColorPickerItem(color: Color.white, name: "White")]
-                )
+                _colorPickers      = State(initialValue : yarnToEdit.colorPickerItems)
             }
         }
     }
@@ -147,38 +176,29 @@ struct AddOrEditYarnForm: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text("Images")) {
-                    ImageCarousel(images : $images, editMode: true, editExistingImages : yarnToEdit != nil && !isCopy)
-                        .customFormSection()
+                Section {
+                    Button {
+                        showLabelScanner = true
+                    } label: {
+                        Label("Scan Yarn Label", systemImage: "text.viewfinder")
+                    }
+                } footer: {
+                    Text("Fill in the name, weight, yardage, and composition from the label.")
                 }
                 
-                if !images.isEmpty {
-                    if processingColor {
-                        Section {
-                            ProgressView("Analyzing Color...")
-                                .progressViewStyle(CircularProgressViewStyle())
-                                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                        }
-                    } else {
-                        ForEach($colorPickers.indices, id: \.self) { index in
-                            ColorPickerView(
-                                colorPickerItem: $colorPickers[index],
-                                removeAction: {removeColorPicker(colorPickers[index])},
-                                addAction: {addColorPicker()},
-                                displayAddButton : index == 0,
-                                canRemove: colorPickers.count > 1
-                            )
-                        }
-                        
-                        Section(header: Text("How would you describe the color?")) {
-                            Picker("", selection: $colorType) {
-                                ForEach(ColorType.allCases, id: \.id) { colorTypeEnum in
-                                    Text(colorTypeEnum.rawValue).tag(colorTypeEnum as ColorType?)
-                                }
-                            }
-                            .pickerStyle(SegmentedPickerStyle())
-                        }
-                    }
+                photoLabelPrompt
+                
+                Section(header: Text("Images")) {
+                    ImageCarousel(images : $images, editMode: true, editExistingImages : yarnToEdit != nil && !isCopy, allowsZoom: true)
+                        .customFormSection()
+                        .onAppear { photosOnScreen = true }
+                        .onDisappear { photosOnScreen = false }
+                }
+                
+                if !images.isEmpty && (processingColor || suggestedColors != nil) {
+                    colorSuggestion
+                } else if !images.isEmpty {
+                    colorSection
                 }
                 
                 Section(header: Text("General Information")) {
@@ -219,7 +239,7 @@ struct AddOrEditYarnForm: View {
                 
                 if !composition.isEmpty {
                     VStack {
-                        CompositionChart(composition: composition)
+                        CompositionChart(composition: composition, yarnColors: colorPickers.map(\.color))
                         CompositionText(composition: composition)
                     }
                     .customFormSection()
@@ -229,11 +249,12 @@ struct AddOrEditYarnForm: View {
                 
                 Section(header: Text("What is this yarn made of?")) {
                     NavigationLink {
-                        EditComposition(composition: $composition)
+                        EditComposition(composition: $composition, photos: images.map(\.image))
+                            .onDisappear { compositionLinkID = UUID() }
                     } label: {
                         Label("Composition", systemImage : "chart.pie")
                     }
-                    .id(UUID())
+                    .id(compositionLinkID)
                 }
                 
                 Section(header: Text("Additional Information")) {
@@ -247,39 +268,25 @@ struct AddOrEditYarnForm: View {
                         .frame(height: 100)
                 }
                 
-                Button(isCreatingNewYarn ? "Add" : "Save", action: {
-                    createOrUpdateYarn()
-                })
-                .disabled(name.isEmpty || images.isEmpty)
+                Button(isCreatingNewYarn ? "Add" : "Save", action: save)
+                    .disabled(name.isEmpty || images.isEmpty || isSaving)
             }
-            .onChange(of: maskImage) {
-                if maskImage != nil {
-                    DispatchQueue.global(qos: .background).async {
-                        var distinctColors : [Color] = []
-                        do {
-                            try distinctColors = AnalyzeColorUtils.shared.yarnColors(from: images.first!.image, with: maskImage!)
-                        } catch {
-                            print("Failed to parse yarn colors: \(error)")
-                            distinctColors = [Color.white]
-                        }
-                        
-                        if distinctColors.isEmpty {
-                            distinctColors = [Color.white]
-                        }
-                        
-                        DispatchQueue.main.async {
-                            self.colorPickers = distinctColors.map { color in
-                                ColorPickerItem(color: color, name: "")
-                            }
-                            self.processingColor = false
-                        }
-                    }
+            .overlay {
+                if !images.isEmpty {
+                    FloatingPhotoReference(images: images.map(\.image), isVisible: !photosOnScreen)
                 }
             }
             .onChange(of: images) {
-                // Auto-detect colors for brand-new yarns and copies (edit keeps manual colors)
-                if isCreatingNewYarn && !images.isEmpty {
-                    performSegmentation()
+                guard let firstImage = images.first else {
+                    analyzedImageID = nil
+                    processingColor = false
+                    suggestedColors = nil
+                    return
+                }
+                
+                if firstImage.id != analyzedImageID {
+                    analyzedImageID = firstImage.id
+                    detectColors(in: firstImage)
                 }
             }
             .onChange(of: colorPickers) {
@@ -296,19 +303,45 @@ struct AddOrEditYarnForm: View {
                     DiscardChangesButton(hasChanges: hasChanges) {
                         dismiss()
                     }
+                    .disabled(isSaving)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(action: {
-                        createOrUpdateYarn()
-                    }) {
-                        Text(isCreatingNewYarn ? "Add" : "Save")
+                    if isSaving {
+                        ProgressView()
+                    } else {
+                        Button(isCreatingNewYarn ? "Add" : "Save", action: save)
+                            .disabled(name.isEmpty || images.isEmpty)
                     }
-                    .disabled(name.isEmpty || images.isEmpty)
                 }
             }
             .onChange(of: images) {
                 imagesChanged = true
+                checkNewPhotosForLabel()
+            }
+            .fullScreenCover(isPresented: $showLabelScanner) {
+                LabelScannerSheet(knownDyers: uniqueDyers) { label, fields, photo in
+                    applyScannedLabel(label, fields: fields, photo: photo)
+                }
+            }
+            .sheet(isPresented: $showPhotoLabelReview) {
+                photoLabelReview
+            }
+            .sheet(item: $duplicateCheck, onDismiss: {
+                // Saved once the sheet is gone, since a new yarn swaps this form for its success screen
+                if duplicateConfirmed {
+                    duplicateConfirmed = false
+                    performSave()
+                }
+            }) { check in
+                DuplicateYarnSheet(
+                    name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+                    dyer: dyer.trimmingCharacters(in: .whitespacesAndNewlines),
+                    matches: check.matches,
+                    isEditing: !isCreatingNewYarn
+                ) {
+                    duplicateConfirmed = true
+                }
             }
             .onAppear {
                 if initialSnapshot == nil {
@@ -316,14 +349,64 @@ struct AddOrEditYarnForm: View {
                 }
             }
         }
-        .interactiveDismissDisabled(hasChanges)
+        .interactiveDismissDisabled(hasChanges || isSaving)
+    }
+    
+    private func save() {
+        guard !isSaving else { return }
+        
+        hideKeyboard()
+        
+        let matches = possibleDuplicates
+        if !matches.isEmpty {
+            duplicateCheck = DuplicateCheck(matches: matches)
+            return
+        }
+        
+        performSave()
+    }
+    
+    private func performSave() {
+        guard !isSaving else { return }
+        
+        isSaving = true
+        
+        Task {
+            encodedPhotos = await StoredImage.encodeNewPhotos(images)
+            createOrUpdateYarn()
+        }
+    }
+    
+    /// Other yarn with the same name and dyer, ignoring case, accents, and spacing. Copies are skipped since they're
+    /// duplicates on purpose, and so are edits that leave the name and dyer as they were.
+    private var possibleDuplicates : [Yarn] {
+        guard !isCopy else { return [] }
+        
+        let nameKey = Self.matchKey(name)
+        let dyerKey = Self.matchKey(dyer)
+        
+        if let yarnToEdit, Self.matchKey(yarnToEdit.name ?? "") == nameKey, Self.matchKey(yarnToEdit.dyer ?? "") == dyerKey {
+            return []
+        }
+        
+        return yarns.filter { yarn in
+            yarn != yarnToEdit
+                && !yarn.isDeleted
+                && Self.matchKey(yarn.name ?? "") == nameKey
+                && Self.matchKey(yarn.dyer ?? "") == dyerKey
+        }
+    }
+    
+    private static func matchKey(_ value: String) -> String {
+        value
+            .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
+            .split(whereSeparator: \.isWhitespace)
+            .joined(separator: " ")
     }
     
     private func createOrUpdateYarn() {
         let yarn = isCreatingNewYarn ? Yarn(context: managedObjectContext) : yarnToEdit!
         let newYarn = persistYarn(yarn: yarn)
-        
-        hideKeyboard()
         
         if let onAdd {
             onAdd(newYarn)
@@ -332,8 +415,205 @@ struct AddOrEditYarnForm: View {
         }
     }
     
-    private func addColorPicker() {
-        colorPickers.insert(ColorPickerItem(color: Color.white, name : "White"), at: 0)
+    private func applyScannedLabel(_ label: ScannedYarnLabel, fields: Set<LabelField>, photo: UIImage?) {
+        if fields.contains(.name), let scannedName = label.name {
+            name = scannedName
+        }
+        
+        if fields.contains(.dyer), let scannedDyer = label.dyer {
+            dyer = scannedDyer
+        }
+        
+        if fields.contains(.sockSet), label.isSockSet, !isSockSet {
+            // The toggle's onChange adds the mini skein, same as flipping it by hand
+            withAnimation {
+                isSockSet = true
+            }
+        }
+        
+        if fields.contains(.weight), let weight = label.weight {
+            weightAndYardages[0].weight = weight
+        }
+        
+        if fields.contains(.length), let length = label.length {
+            // Keep the form's unit; changing it would make the unit picker re-convert the new value
+            let labelUnit = label.unitOfMeasure ?? .yards
+            let yardsToMeters = 0.9144
+            
+            switch (labelUnit, weightAndYardages[0].unitOfMeasure) {
+            case (.meters, .yards): weightAndYardages[0].yardage = (length / yardsToMeters).rounded()
+            case (.yards, .meters): weightAndYardages[0].yardage = (length * yardsToMeters).rounded()
+            default:                weightAndYardages[0].yardage = length
+            }
+        }
+        
+        if fields.contains(.grams), let grams = label.grams {
+            weightAndYardages[0].grams = grams
+        }
+        
+        if fields.contains(.composition), !label.composition.isEmpty {
+            composition = label.composition
+        }
+        
+        var labelNotes : [String] = []
+        
+        if fields.contains(.colorway), let colorway = label.colorway {
+            labelNotes.append("Colorway: \(colorway)")
+        }
+        
+        if fields.contains(.dyeLot), let dyeLot = label.dyeLot {
+            labelNotes.append("Dye lot: \(dyeLot)")
+        }
+        
+        if fields.contains(.otherInfo), let otherInfo = label.otherInfo {
+            labelNotes.append(otherInfo)
+        }
+        
+        if !labelNotes.isEmpty {
+            notes = ([notes].filter { !$0.isEmpty } + labelNotes).joined(separator: "\n")
+        }
+        
+        if let photo {
+            let imageData = ImageData(image: photo)
+            // Already read, so don't offer the same label again
+            labelCheckedImages[imageData.id] = imageData.image
+            images.append(imageData)
+        }
+    }
+    
+    @ViewBuilder
+    private var photoLabelPrompt: some View {
+        if let photoLabel {
+            Section {
+                HStack(spacing: 12) {
+                    Image(systemName: "text.viewfinder")
+                        .font(.title2)
+                        .foregroundStyle(Color.accentColor)
+                        .accessibilityHidden(true)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Found label info in your photo")
+                            .font(.subheadline)
+                            .bold()
+                        
+                        Text(LabelField.found(in: photoLabel.label).map(\.shortTitle).joined(separator: ", "))
+                            .font(.caption)
+                            .foregroundStyle(Color.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Button("Review") {
+                        showPhotoLabelReview = true
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                    
+                    Button {
+                        withAnimation {
+                            self.photoLabel = nil
+                        }
+                    } label: {
+                        Image(systemName: "xmark")
+                            .foregroundStyle(Color.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Dismiss")
+                }
+            }
+            .transition(.opacity)
+        }
+    }
+    
+    @ViewBuilder
+    private var photoLabelReview: some View {
+        if let photoLabel {
+            // Shows any rotation made since the label was found
+            let image = images.first(where: { $0.id == photoLabel.imageID })?.image ?? photoLabel.image
+            
+            NavigationStack {
+                LabelScanReview(label: photoLabel.label, image: image, allowsAddingPhoto: false) { editedLabel, fields, _ in
+                    applyScannedLabel(editedLabel, fields: fields, photo: nil)
+                    showPhotoLabelReview = false
+                    self.photoLabel = nil
+                }
+                .navigationTitle("Label Info")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { showPhotoLabelReview = false }
+                    }
+                }
+            }
+        }
+    }
+    
+    private func checkNewPhotosForLabel() {
+        // Text reads poorly sideways, so a rotated photo is read again
+        let newImages = images.filter { $0.existingItem == nil && labelCheckedImages[$0.id] !== $0.image }
+        guard !newImages.isEmpty else { return }
+        
+        for imageData in newImages {
+            labelCheckedImages[imageData.id] = imageData.image
+        }
+        let knownDyers = uniqueDyers
+        
+        Task {
+            for imageData in newImages {
+                guard photoLabel == nil || photoLabel?.imageID == imageData.id,
+                      let label = try? await YarnLabelReader.read(imageData.image, knownDyers: knownDyers) else { continue }
+                
+                // Any text can look like a name, so wait for something only a yarn label would have
+                guard LabelField.found(in: label).filter({ $0 != .otherInfo }).count >= 2, label.labelDetailCount >= 1 else { continue }
+                
+                // The photo may have been removed or rotated again while it was being read
+                guard images.first(where: { $0.id == imageData.id })?.image === imageData.image else { continue }
+                
+                withAnimation {
+                    photoLabel = PhotoLabel(label: label, imageID: imageData.id, image: imageData.image)
+                }
+            }
+        }
+    }
+    
+    private var colorSection: some View {
+        Section(header: Text(colorPickers.count == 1 ? "Color" : "Colors")) {
+            ForEach($colorPickers) { $item in
+                ColorRow(item: $item, photos: images.map(\.image)) {
+                    withAnimation {
+                        removeColorPicker(item)
+                    }
+                }
+            }
+            .onDelete { offsets in
+                colorPickers.remove(atOffsets: offsets)
+            }
+            
+            // Picked first, so there's no placeholder color to replace
+            Button {
+                hideKeyboard()
+                showNewColorPicker = true
+            } label: {
+                Label("Add Color", systemImage: "plus.circle")
+            }
+            .sheet(isPresented: $showNewColorPicker) {
+                YarnColorPickerSheet(color: colorPickers.last?.color ?? Color.white, photos: images.map(\.image)) { color in
+                    withAnimation {
+                        colorPickers.append(ColorPickerItem(color: color, name: ColorNaming.closestName(to: UIColor(color)) ?? ""))
+                    }
+                }
+            }
+            
+            if !colorPickers.isEmpty {
+                Picker("Color Type", selection: $colorType) {
+                    ForEach(ColorType.allCases, id: \.id) { colorTypeEnum in
+                        Text(colorTypeEnum.rawValue).tag(colorTypeEnum as ColorType?)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+            }
+        }
     }
     
     private func addWeightAndYardage() {
@@ -348,21 +628,134 @@ struct AddOrEditYarnForm: View {
         weightAndYardages.removeAll { $0.id == item.id }
     }
     
-    func performSegmentation() {
-        guard let inputImage = self.images.first?.image else { return }
+    private func detectColors(in imageData: ImageData) {
+        let image = imageData.image
         processingColor = true
+        suggestedColors = nil
+        
         DispatchQueue.global(qos: .userInitiated).async {
-            AnalyzeColorUtils.shared.classifyImageWithModel(image: inputImage) { mask in
-                DispatchQueue.main.async {
-                    if let mask {
-                        self.maskImage = mask
-                    } else {
-                        // Keep whatever colors are already on the form
-                        self.processingColor = false
+            AnalyzeColorUtils.shared.classifyImageWithModel(image: image) { mask in
+                DispatchQueue.global(qos: .userInitiated).async {
+                    let colors = mask.flatMap { try? AnalyzeColorUtils.shared.yarnColors(from: image, with: $0) } ?? []
+                    
+                    DispatchQueue.main.async {
+                        // The first photo changed while this one was being read
+                        guard analyzedImageID == imageData.id else { return }
+                        
+                        withAnimation {
+                            processingColor = false
+                            suggestedColors = colors.isEmpty ? nil : colors
+                            selectedSuggestions = Set(colors.indices)
+                        }
                     }
                 }
             }
         }
+    }
+    
+    private func useSuggestedColors() {
+        guard let suggestedColors else { return }
+        
+        withAnimation {
+            colorPickers = suggestedColors.indices
+                .filter { selectedSuggestions.contains($0) }
+                .map { ColorPickerItem(color: suggestedColors[$0], name: "") }
+            self.suggestedColors = nil
+        }
+    }
+    
+    @ViewBuilder
+    private var colorSuggestion: some View {
+        if processingColor {
+            Section(header: Text("Color")) {
+                HStack(spacing: 12) {
+                    ProgressView()
+                    
+                    Text("Finding colors in your photo...")
+                        .foregroundStyle(Color.secondary)
+                }
+            }
+        } else if let suggestedColors {
+            Section(header: Text("Color")) {
+                VStack(alignment: .leading, spacing: 12) {
+                    Label(
+                        suggestedColors.count == 1 ? "Found a color in your photo" : "Found \(suggestedColors.count) colors in your photo",
+                        systemImage: "sparkles"
+                    )
+                    .font(.subheadline.bold())
+                    
+                    if suggestedColors.count > 1 {
+                        Text("Tap a color to leave it out.")
+                            .font(.caption)
+                            .foregroundStyle(Color.secondary)
+                    }
+                    
+                    HStack(spacing: 10) {
+                        ForEach(suggestedColors.indices, id: \.self) { index in
+                            suggestionSwatch(suggestedColors[index], index: index, isToggleable: suggestedColors.count > 1)
+                        }
+                    }
+                    
+                    HStack {
+                        Button(addSuggestionsTitle, action: useSuggestedColors)
+                            .buttonStyle(.borderedProminent)
+                            .disabled(selectedSuggestions.isEmpty)
+                        
+                        Button("No Thanks") {
+                            withAnimation {
+                                self.suggestedColors = nil
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    .controlSize(.small)
+                    
+                    if !colorPickers.isEmpty {
+                        Text("Replaces the yarn's current colors.")
+                            .font(.caption)
+                            .foregroundStyle(Color.secondary)
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+        }
+    }
+    
+    private var addSuggestionsTitle: String {
+        selectedSuggestions.count == 1 ? "Add Color" : "Add \(selectedSuggestions.count) Colors"
+    }
+    
+    private func suggestionSwatch(_ color: Color, index: Int, isToggleable: Bool) -> some View {
+        let isSelected = selectedSuggestions.contains(index)
+        
+        return Button {
+            withAnimation(.snappy) {
+                if isSelected {
+                    selectedSuggestions.remove(index)
+                } else {
+                    selectedSuggestions.insert(index)
+                }
+            }
+        } label: {
+            Circle()
+                .fill(color)
+                .frame(width: 36, height: 36)
+                .overlay(Circle().stroke(Color.primary.opacity(0.15)))
+                .overlay(alignment: .bottomTrailing) {
+                    if isToggleable {
+                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                            .font(.footnote.bold())
+                            .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+                            .background(Circle().fill(Color(UIColor.systemBackground)))
+                            .offset(x: 3, y: 3)
+                    }
+                }
+                .opacity(isSelected ? 1 : 0.35)
+        }
+        .buttonStyle(.borderless)
+        .disabled(!isToggleable)
+        .accessibilityLabel("Color \(index + 1)")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
     
     func persistYarn(yarn: Yarn) -> Yarn {
@@ -421,7 +814,8 @@ struct AddOrEditYarnForm: View {
         // Images
         if imagesChanged {
             original.uiImages.forEach { item in
-                if !images.contains(where: { $0.id == item.id }) {
+                // Rotated photos keep their ID but are saved as new, so match on the saved photo itself
+                if !images.contains(where: { $0.existingItem == item.existingItem }) {
                     managedObjectContext.delete(item.existingItem!)
                 }
             }
@@ -470,7 +864,7 @@ struct AddOrEditYarnForm: View {
     
     private func buildStoredImages() -> [StoredImage] {
         images.enumerated().map { (index, element) in
-            StoredImage.from(data: element, order: index, context: managedObjectContext)
+            StoredImage.from(data: element, order: index, context: managedObjectContext, encodedPhotos: encodedPhotos)
         }
     }
 }

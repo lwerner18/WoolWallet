@@ -25,12 +25,14 @@ struct CompositionItem : Identifiable, Hashable {
 //    var description : String = ""
 //}
 
+// Dark enough for the white percentage labels drawn on each slice
 let chartColors : [Color] = [
-    Color(hex : "#DAA520"),
-    Color(hex : "#A9C78A"),
-    Color(hex : "#76B2B8"),
-    Color(hex : "#B68BCE"),
-    Color(hex : "#C76A4D")
+    Color(hex : "#C47A85"), // dusty rose
+    Color(hex : "#7E9F78"), // sage
+    Color(hex : "#5B97A3"), // teal
+    Color(hex : "#9479B8"), // lavender
+    Color(hex : "#C9825A"), // terracotta
+    Color(hex : "#6A7FB0")  // slate blue
 ]
 
 struct CompositionText : View {
@@ -64,6 +66,8 @@ struct CompositionText : View {
 
 struct CompositionChart : View {
     var composition : [CompositionItem]
+    /// Slices take on the yarn's own colors when it has any
+    var yarnColors : [Color] = []
     var smallMode : Bool? = false
     
     // Computed property to calculate the remainingComposition
@@ -96,26 +100,82 @@ struct CompositionChart : View {
                 }
             }
             
+            let sliceColors = CompositionChart.sliceColors(from: yarnColors, count: composition.count)
+            
             ForEach(Array(zip(composition.indices, composition.reversed())), id: \.0) { index, compositionItem in
                 if compositionItem.percentage != 0 && YarnUtils.shared.getMaterial(item: compositionItem) != "" {
+                    let slice = sliceColors[index]
+                    
                     SectorMark(
                         angle: .value("Percentage", compositionItem.percentage),
                         //                        innerRadius: .ratio(0.65),
                         angularInset: 2
                     )
                     .cornerRadius(5)
-                    .foregroundStyle(index <= chartColors.count ? chartColors[index] :  Color.random())
+                    .foregroundStyle(slice.color)
                     //                    .foregroundStyle(by: .value("Material", compositionItem.material ?? "New Material"))
                     .annotation(position: .overlay) {
                         Text("\(compositionItem.percentage)%")
                             .font(smallMode! ? .caption2 : .body)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(slice.isLight ? Color.black.opacity(0.8) : Color.white)
                     }
                 }
             }
         }
         .padding()
         .frame(height: smallMode! ? 150 : 200)
+    }
+    
+    /// One color per slice. With fewer yarn colors than slices, the colors repeat a shade lighter or darker
+    /// so neighboring slices stay apart.
+    static func sliceColors(from yarnColors: [Color], count: Int) -> [(color: Color, isLight: Bool)] {
+        guard !yarnColors.isEmpty else {
+            return (0..<count).map { (chartColors[$0 % chartColors.count], false) }
+        }
+        
+        // Stored colors come back in no particular order, so sort them to keep each slice's color stable
+        let bases = yarnColors.map { HSB(UIColor($0)) }.sorted { ($0.hue, $0.brightness) < ($1.hue, $1.brightness) }
+        
+        return (0..<count).map { index in
+            var shade = bases[index % bases.count]
+            let step = CGFloat(index / bases.count)
+            
+            // Pulled in from the extremes so white and black slices still show against the card
+            shade.brightness = min(max(shade.brightness, 0.25), 0.9)
+            shade.brightness += (shade.brightness > 0.55 ? -0.2 : 0.2) * step
+            shade.brightness = min(max(shade.brightness, 0.15), 0.95)
+            
+            return (shade.color, shade.isLight)
+        }
+    }
+    
+    private struct HSB {
+        var hue : CGFloat = 0
+        var saturation : CGFloat = 0
+        var brightness : CGFloat = 0
+        
+        init(_ color: UIColor) {
+            var alpha : CGFloat = 0
+            color.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
+        }
+        
+        var uiColor : UIColor {
+            UIColor(hue: hue, saturation: saturation, brightness: brightness, alpha: 1)
+        }
+        
+        var color : Color { Color(uiColor: uiColor) }
+        
+        /// Light enough that white text on it would be hard to read
+        var isLight : Bool {
+            var red : CGFloat = 0, green : CGFloat = 0, blue : CGFloat = 0, alpha : CGFloat = 0
+            uiColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+            
+            func linear(_ c: CGFloat) -> CGFloat {
+                c <= 0.04045 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4)
+            }
+            
+            return 0.2126 * linear(red) + 0.7152 * linear(green) + 0.0722 * linear(blue) > 0.4
+        }
     }
 }
 
@@ -131,15 +191,20 @@ struct EditComposition: View {
     var compositions: FetchedResults<Composition>
     
     @Binding var composition : [CompositionItem]
+    var photos : [UIImage] = []
     
     @State var tempComposition : [CompositionItem] = []
     @State var showComposition : Bool = false
+    /// Renewed after returning from the material picker to clear the row's stuck highlight;
+    /// a new ID on every render would rebuild the rows on each keystroke
+    @State private var materialLinkID = UUID()
     
-    init(composition: Binding<[CompositionItem]>) {
+    init(composition: Binding<[CompositionItem]>, photos: [UIImage] = []) {
         self._composition = composition
+        self.photos = photos
         
         if composition.isEmpty {
-            _tempComposition = State(initialValue : [CompositionItem(percentage: 0, material: "")])
+            _tempComposition = State(initialValue : [CompositionItem(percentage: 100, material: "")])
         } else {
             _tempComposition = State(initialValue : composition.wrappedValue)
             _showComposition = State(initialValue : true)
@@ -160,15 +225,7 @@ struct EditComposition: View {
     
     // Computed property to calculate the remainingComposition
     var remainingComposition: Int {
-        var remaining = 100
-        
-        for compositionItem in tempComposition {
-            if compositionItem.percentage != 0 && compositionItem.material != "" {
-                remaining -= Int(compositionItem.percentage)
-            }
-        }
-        
-        return remaining
+        100 - tempComposition.reduce(0) { $0 + $1.percentage }
     }
     
     // Computed property to calculate if save should be disabled
@@ -227,6 +284,7 @@ struct EditComposition: View {
                     
                     NavigationLink {
                         MaterialPicker(material: $tempComposition[index].material)
+                            .onDisappear { materialLinkID = UUID() }
                     } label: {
                         HStack {
                             Text("Material")
@@ -238,7 +296,7 @@ struct EditComposition: View {
                        
                         }
                     }
-                    .id(UUID())
+                    .id(materialLinkID)
                     
                     if tempComposition[index].material == MaterialCategory.other.rawValue {
                         TextFieldTypeahead(
@@ -271,6 +329,11 @@ struct EditComposition: View {
             })
             .disabled(saveDisabled)
         }
+        .overlay {
+            if !photos.isEmpty {
+                FloatingPhotoReference(images: photos, isVisible: true)
+            }
+        }
         .navigationTitle("Composition")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -288,7 +351,7 @@ struct EditComposition: View {
     }
     
     private func addComposition() {
-        tempComposition.insert(CompositionItem(percentage: 0, material: ""), at: 0)
+        tempComposition.insert(CompositionItem(percentage: remainingComposition, material: ""), at: 0)
     }
     
     private func removeComposition(_ item: CompositionItem) {

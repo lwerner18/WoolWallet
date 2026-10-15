@@ -24,7 +24,7 @@ struct WeightAndYardageData: Equatable {
     var grams             : Int? = nil
     var hasBeenWeighed    : Int = 0
     var totalGrams        : Double? = nil
-    var skeins            : Double = 0
+    var skeins            : Double = 1
     var hasPartialSkein   : Bool = false
     var length            : Double? = nil
     var parent            : WeightAndYardageParent = WeightAndYardageParent.yarn

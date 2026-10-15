@@ -81,7 +81,7 @@ struct YarnPreviewForProject: View {
                 
                 Spacer()
                 
-                let unit = yarnWandY.unitOfMeasure!.lowercased()
+                let unit = yarnWandY.unitOfMeasure?.lowercased() ?? ""
                 
                 let length = project.complete ? projectPairing.lengthUsed : projectPairing.patternWeightAndYardage?.currentLength ?? 0
                 let verb = project.inProgress ? "Using" : project.complete ? "Used" : "Requires"

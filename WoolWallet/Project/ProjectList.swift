@@ -237,21 +237,21 @@ struct ProjectList: View {
                                 }
                                 .padding(.vertical, 4)
                                 .swipeActions(allowsFullSwipe: false) {
-                                    if !showConfirmationDialog {
-                                        Button {
-                                            projectToEdit = project
-                                        } label: {
-                                            Label("Edit", systemImage : "pencil")
-                                        }
-                                        .tint(Color.accentColor)
+                                    Button {
+                                        projectToEdit = project
+                                    } label: {
+                                        Label("Edit", systemImage : "pencil")
                                     }
+                                    .tint(Color.accentColor)
                                     
-                                    Button(role: .destructive) {
+                                    // A destructive role slides the row out before the user confirms
+                                    Button {
                                         projectToDelete = project
                                         showConfirmationDialog = true
                                     } label: {
                                         Label("Delete", systemImage : "trash")
                                     }
+                                    .tint(Color.red)
                                 }
                             }
                             .overlay(
@@ -298,15 +298,18 @@ struct ProjectList: View {
                     }
                 }
             }
-            .fullScreenCover(isPresented: $showAddProjectForm) {
-                AddOrEditProjectForm(projectToEdit: nil, preSelectedPattern: nil) { addedProject in
-                    // Capture the newly added project
-                    newProject = addedProject
-                    showAddProjectForm = false
+            .fullScreenCover(isPresented: $showAddProjectForm, onDismiss: { newProject = nil }) {
+                // Swap to the success screen in place so the list never flashes between the two
+                if let newProject {
+                    ProjectInfo(project: newProject, isNewProject : true, isPopover : true)
+                        .transition(.opacity)
+                } else {
+                    AddOrEditProjectForm(projectToEdit: nil, preSelectedPattern: nil) { addedProject in
+                        withAnimation {
+                            newProject = addedProject
+                        }
+                    }
                 }
-            }
-            .sheet(item: $newProject) { project in
-                ProjectInfo(project: project, isNewProject : true, isPopover : true)
             }
             .fullScreenCover(item: $projectToEdit, onDismiss: { projectToEdit = nil}) { project in
                 AddOrEditProjectForm(projectToEdit : project, preSelectedPattern: nil)
@@ -314,7 +317,10 @@ struct ProjectList: View {
             .alert("Are you sure you want to delete this project?", isPresented: $showConfirmationDialog) {
                 if let project = projectToDelete {
                     Button("Delete", role: .destructive) {
-                        ProjectUtils.shared.removeProject(at: project, with: managedObjectContext)
+                        // Give the alert a moment to fade so the row is visible as it goes
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            deleteProject(project)
+                        }
                     }
                 }
                 
@@ -324,6 +330,14 @@ struct ProjectList: View {
                 managedObjectContext.refreshAllObjects()
             }
     
+        }
+    }
+    
+    private func deleteProject(_ project: Project) {
+        guard !project.isDeleted else { return }
+        
+        withAnimation {
+            ProjectUtils.shared.removeProject(at: project, with: managedObjectContext)
         }
     }
 }

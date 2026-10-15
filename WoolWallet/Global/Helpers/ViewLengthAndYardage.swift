@@ -16,7 +16,7 @@ struct ViewLengthAndYardage:  View {
     }
     
     var body: some View {
-        let unit = weightAndYardage.unitOfMeasure!.lowercased()
+        let unit = weightAndYardage.unitOfMeasure?.lowercased() ?? ""
         
         
         if weightAndYardage.currentLength > 0 {

@@ -52,6 +52,25 @@ extension UIImage {
         }
     }
     
+    /// Turned to the right, drawn upright so it saves without relying on orientation metadata
+    func rotatedClockwise(quarterTurns: Int) -> UIImage {
+        let turns = ((quarterTurns % 4) + 4) % 4
+        guard turns != 0 else { return self }
+        
+        let originalSize = CGSize(width: size.width * scale, height: size.height * scale)
+        let rotatedSize = turns.isMultiple(of: 2) ? originalSize : CGSize(width: originalSize.height, height: originalSize.width)
+        
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = true
+        
+        return UIGraphicsImageRenderer(size: rotatedSize, format: format).image { context in
+            context.cgContext.translateBy(x: rotatedSize.width / 2, y: rotatedSize.height / 2)
+            context.cgContext.rotate(by: CGFloat(turns) * .pi / 2)
+            draw(in: CGRect(x: -originalSize.width / 2, y: -originalSize.height / 2, width: originalSize.width, height: originalSize.height))
+        }
+    }
+    
     func resize(to targetSize: CGSize) -> UIImage? {
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1

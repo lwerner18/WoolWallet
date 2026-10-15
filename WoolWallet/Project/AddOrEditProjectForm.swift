@@ -39,6 +39,7 @@ struct AddOrEditProjectForm: View {
     @State private var images                  : [ImageData] = []
     @State private var statusSelection         : Int = -1
     @State private var persisting              : Bool = false
+    @State private var encodedPhotos           : [UUID: Data] = [:]
     @State private var imagesChanged           : Bool = false
     
     @State private var initialSnapshot         : FormSnapshot? = nil
@@ -287,10 +288,8 @@ struct AddOrEditProjectForm: View {
                         .frame(height: 100)
                 }
                 
-                Button(projectToEdit == nil ? "Add" : "Save", action: {
-                    createOrUpdatePattern()
-                })
-                .disabled(pattern == nil)
+                Button(projectToEdit == nil ? "Add" : "Save", action: save)
+                    .disabled(pattern == nil || persisting)
             }
             .navigationTitle(projectToEdit == nil ? "New Project" : "Edit Project")
             .navigationBarTitleDisplayMode(.inline)
@@ -299,20 +298,16 @@ struct AddOrEditProjectForm: View {
                     DiscardChangesButton(hasChanges: hasChanges) {
                         dismiss()
                     }
+                    .disabled(persisting)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(action: {
-                        createOrUpdatePattern()
-                    }) {
-                        if persisting {
-                            ProgressView()
-                        } else {
-                            Text(projectToEdit == nil ? "Add" : "Save")
-                        }
-                      
+                    if persisting {
+                        ProgressView()
+                    } else {
+                        Button(projectToEdit == nil ? "Add" : "Save", action: save)
+                            .disabled(pattern == nil)
                     }
-                    .disabled(pattern == nil)
                 }
             }
             .navigationDestination(isPresented: $browsingPattern) {
@@ -335,14 +330,22 @@ struct AddOrEditProjectForm: View {
                 }
             }
         }
-        .interactiveDismissDisabled(hasChanges)
+        .interactiveDismissDisabled(hasChanges || persisting)
     }
     
-    private func createOrUpdatePattern() {
-        withAnimation {
-            persisting = true
-        }
+    private func save() {
+        guard !persisting else { return }
         
+        hideKeyboard()
+        persisting = true
+        
+        Task {
+            encodedPhotos = await StoredImage.encodeNewPhotos(images)
+            createOrUpdateProject()
+        }
+    }
+    
+    private func createOrUpdateProject() {
         let newProject = persistProject(project: projectToEdit == nil ? Project(context: managedObjectContext) : projectToEdit!)
         
         if onAdd != nil {
@@ -371,7 +374,8 @@ struct AddOrEditProjectForm: View {
             
             if imagesChanged {
                 projectToEdit?.uiImages.forEach { item in
-                    if !images.contains(where: {element in element.id == item.id}) {
+                    // Rotated photos keep their ID but are saved as new, so match on the saved photo itself
+                    if !images.contains(where: {element in element.existingItem == item.existingItem}) {
                         managedObjectContext.delete(item.existingItem!)
                     }
                 }
@@ -390,7 +394,7 @@ struct AddOrEditProjectForm: View {
         if imagesChanged {
             // images
             let storedImages: [StoredImage] = images.enumerated().map { (index, element) in
-                return StoredImage.from(data: element, order: index, context: managedObjectContext)
+                return StoredImage.from(data: element, order: index, context: managedObjectContext, encodedPhotos: encodedPhotos)
             }
             
             project.images = NSSet(array: storedImages)

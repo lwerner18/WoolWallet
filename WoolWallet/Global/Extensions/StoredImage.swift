@@ -28,7 +28,8 @@ extension StoredImage {
         self.id = UUID() // Set a unique ID
     }
     
-    static func from(data: ImageData, order: Int, context: NSManagedObjectContext) -> StoredImage {
+    /// `encodedPhotos` comes from `encodeNewPhotos`; anything missing is encoded here on the calling thread
+    static func from(data: ImageData, order: Int, context: NSManagedObjectContext, encodedPhotos: [UUID: Data] = [:]) -> StoredImage {
         // Existing photos never change content in the editors, so only their position needs updating
         if let existingItem = data.existingItem {
             existingItem.order = Int16(order)
@@ -36,12 +37,33 @@ extension StoredImage {
         }
         
         let storedImage = StoredImage(context: context)
-        storedImage.image = data.image
-            .scaledDown(toMaxPixelSize: storedMaxPixelSize)
-            .jpegData(compressionQuality: 0.8)
+        storedImage.image = encodedPhotos[data.id] ?? encodeForStorage(data.image)
         storedImage.order = Int16(order)
         
         return storedImage
+    }
+    
+    /// Resizes and compresses new photos in parallel off the main thread, since doing it while saving freezes the form
+    static func encodeNewPhotos(_ images: [ImageData]) async -> [UUID: Data] {
+        await withTaskGroup(of: (UUID, Data?).self) { group in
+            for item in images where item.existingItem == nil {
+                let id = item.id
+                let image = item.image
+                group.addTask { (id, encodeForStorage(image)) }
+            }
+            
+            var encoded : [UUID: Data] = [:]
+            for await (id, data) in group {
+                encoded[id] = data
+            }
+            return encoded
+        }
+    }
+    
+    private static func encodeForStorage(_ image: UIImage) -> Data? {
+        image
+            .scaledDown(toMaxPixelSize: storedMaxPixelSize)
+            .jpegData(compressionQuality: 0.8)
     }
     
     /// Decoded, downsampled, cached image for display.

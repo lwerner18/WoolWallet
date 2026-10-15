@@ -83,8 +83,8 @@ extension WeightAndYardage {
         }
         
         yarnPairingItems.forEach { pairing in
-            if pairing.project!.inProgress {
-                yardsUsed += pairing.patternWeightAndYardage!.currentLength
+            if pairing.project?.inProgress == true {
+                yardsUsed += pairing.patternWeightAndYardage?.currentLength ?? 0
             }
         }
         

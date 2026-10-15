@@ -35,6 +35,8 @@ struct YarnInfo: View {
     var patternWAndYBrowsingFor : WeightAndYardage?
     var isNewYarn : Bool
     var isPopover : Bool
+    /// When set, deleting closes this page and hands the deletion back so the list can animate it
+    var onDelete : (() -> Void)?
     
     init(
         yarn: Yarn,
@@ -43,8 +45,10 @@ struct YarnInfo: View {
         projectPairing : Binding<[ProjectPairingItem]> = .constant([]),
         patternWAndYBrowsingFor : WeightAndYardage? = nil,
         isNewYarn : Bool = false,
-        isPopover : Bool = false
+        isPopover : Bool = false,
+        onDelete : (() -> Void)? = nil
     ) {
+        self.onDelete = onDelete
         self.yarn = yarn
         self._selectedTab = selectedTab
         self._browseMode = browseMode
@@ -215,9 +219,14 @@ struct YarnInfo: View {
             .toolbar { toolbarContent }
             .alert("Are you sure you want to delete this yarn?", isPresented: $showDeleteConfirmation) {
                 Button("Delete", role: .destructive) {
-                    YarnUtils.shared.removeYarn(at: yarn, with: managedObjectContext)
-                    
-                    dismiss()
+                    if let onDelete {
+                        dismiss()
+                        onDelete()
+                    } else {
+                        YarnUtils.shared.removeYarn(at: yarn, with: managedObjectContext)
+                        
+                        dismiss()
+                    }
                 }
                 
                 Button("Cancel", role: .cancel) {}
@@ -228,11 +237,14 @@ struct YarnInfo: View {
             .fullScreenCover(isPresented: $showCopyYarnForm, onDismiss: { copiedYarn = nil }) {
                 copyYarnCover
             }
-            .sheet(isPresented: $showAddProjectForm) {
-                addProjectSheet
-            }
-            .sheet(item: $newProject) { project in
-                ProjectInfo(project: project, isNewProject : true, isPopover: true)
+            .sheet(isPresented: $showAddProjectForm, onDismiss: { newProject = nil }) {
+                // Swap to the success screen in place so this page never flashes between the two
+                if let newProject {
+                    ProjectInfo(project: newProject, isNewProject : true, isPopover: true)
+                        .transition(.opacity)
+                } else {
+                    addProjectSheet
+                }
             }
             .sheet(item: $displayedProject) { project in
                 ProjectInfo(project: project, isPopover: true)
@@ -249,7 +261,7 @@ struct YarnInfo: View {
             successHeader
             
             ConditionalStack() {
-                ImageCarousel(images : .constant(yarn.uiImages))
+                ImageCarousel(images : .constant(yarn.uiImages), allowsZoom: true)
                 
                 LazyVStack {
                     titleSection
@@ -263,6 +275,7 @@ struct YarnInfo: View {
                         projectsSection
                         colorSection
                         notesSection
+                        RecordDates(added: yarn.dateAdded, updated: yarn.dateUpdated)
                     }
                 }
             }
@@ -379,7 +392,7 @@ struct YarnInfo: View {
                 }
             ) {
                 VStack {
-                    CompositionChart(composition: yarn.compositionItems, smallMode: true)
+                    CompositionChart(composition: yarn.compositionItems, yarnColors: yarn.colorPickerItems.map(\.color), smallMode: true)
                     CompositionText(composition: yarn.compositionItems)
                 }
             }
@@ -405,38 +418,22 @@ struct YarnInfo: View {
         }
     }
     
+    @ViewBuilder
     private var colorSection: some View {
-        InfoCard(noPadding: true) {
-            ForEach(yarn.colorPickerItems, id: \.id) { colorPickerItem in
-                colorRow(for: colorPickerItem)
-            }
-        }
-    }
-    
-    private func colorRow(for colorPickerItem: ColorPickerItem) -> some View {
-        let colorName = colorPickerItem.description != "" ? colorPickerItem.description : colorPickerItem.name
+        let colors = yarn.colorPickerItems
         
-        return VStack {
-            colorPickerItem.color
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                .frame(height: 35)
-                .clipShape(
-                    .rect(
-                        topLeadingRadius: 10,
-                        bottomLeadingRadius: 0,
-                        bottomTrailingRadius: 0,
-                        topTrailingRadius: 10
-                    )
-                )
-            
-            HStack {
-                Text("Color").foregroundStyle(Color(UIColor.secondaryLabel))
-                Spacer()
-                Text(colorName).font(.headline).bold().foregroundStyle(Color.primary)
+        if !colors.isEmpty {
+            InfoCard(
+                header : {
+                    HStack {
+                        Spacer()
+                        Text(colors.count == 1 ? "Color" : "Colors")
+                        Spacer()
+                    }
+                }
+            ) {
+                ColorPalette(colors: colors, blends: yarn.colorType == ColorType.variegated.rawValue)
             }
-            .padding(.horizontal, 15)
-            .padding(.top, 8)
-            .padding(.bottom, 15)
         }
     }
     
@@ -487,9 +484,9 @@ struct YarnInfo: View {
                     preSelectedPattern: pattern,
                     preSelectedPairings : [ProjectPairingItem(patternWeightAndYardage: patternWandY, yarnWeightAndYardage: yarnWandY)]
                 ) { addedProject in
-                    // Capture the newly added project
-                    newProject = addedProject
-                    showAddProjectForm = false
+                    withAnimation {
+                        newProject = addedProject
+                    }
                 }
             }
         }
@@ -526,6 +523,192 @@ struct YarnInfo: View {
             self.patternSuggestions = temp
             self.favoritedPatterns = YarnUtils.shared.favoritedPatterns(for: yarn, in: managedObjectContext)
         }
+    }
+}
+
+/// A strip of the yarn's colors over named swatches
+private struct ColorPalette: View {
+    let colors : [ColorPickerItem]
+    /// Variegated yarn shifts from one color into the next, so its strip blends instead of breaking into blocks
+    var blends : Bool
+    
+    /// Saved colors have no order, so sort by hue for a palette that reads naturally and stays put;
+    /// grays and near-blacks have no meaningful hue and go last, light to dark
+    private var sortedColors : [ColorPickerItem] {
+        colors.sorted { first, second in
+            let a = HueKey(first.color), b = HueKey(second.color)
+            if a.isNeutral != b.isNeutral { return !a.isNeutral }
+            if a.isNeutral { return a.brightness > b.brightness }
+            return a.hue < b.hue
+        }
+    }
+    
+    var body: some View {
+        let colors = sortedColors
+        
+        if let only = colors.first, colors.count == 1 {
+            swatch(only)
+                .frame(maxWidth: .infinity)
+        } else {
+            VStack(spacing: 14) {
+                strip(colors.map(\.color))
+                    .frame(height: 44)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.primary.opacity(0.1), lineWidth: 1))
+                    .accessibilityHidden(true)
+                
+                // Centered rows look intended whatever the count, where a grid strands an odd one out
+                CenteredFlowLayout(spacing: 8) {
+                    ForEach(colors, id: \.id) { item in
+                        pill(item)
+                    }
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func strip(_ colors: [Color]) -> some View {
+        if blends && colors.count > 1 {
+            LinearGradient(colors: colors, startPoint: .leading, endPoint: .trailing)
+        } else {
+            HStack(spacing: 0) {
+                ForEach(colors.indices, id: \.self) { index in
+                    colors[index]
+                }
+            }
+        }
+    }
+    
+    private func hasCustomName(_ item: ColorPickerItem) -> Bool {
+        !item.description.isEmpty && item.description != item.name
+    }
+    
+    /// The only color, shown large
+    private func swatch(_ item: ColorPickerItem) -> some View {
+        HStack(spacing: 12) {
+            Circle()
+                .fill(item.color)
+                .frame(width: 44, height: 44)
+                .overlay(Circle().stroke(Color.primary.opacity(0.12), lineWidth: 1))
+            
+            VStack(alignment: .leading, spacing: 1) {
+                Text(hasCustomName(item) ? item.description : item.name)
+                    .font(.headline)
+                    .foregroundStyle(Color.primary)
+                
+                if hasCustomName(item) {
+                    Text(item.name)
+                        .font(.caption)
+                        .foregroundStyle(Color.secondary)
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+    
+    private func pill(_ item: ColorPickerItem) -> some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(item.color)
+                .frame(width: 16, height: 16)
+                .overlay(Circle().stroke(Color.primary.opacity(0.15), lineWidth: 1))
+            
+            Text(hasCustomName(item) ? item.description : item.name)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(Color.primary)
+            
+            if hasCustomName(item) {
+                Text(item.name)
+                    .font(.caption)
+                    .foregroundStyle(Color.secondary)
+            }
+        }
+        .lineLimit(1)
+        .padding(.leading, 6)
+        .padding(.trailing, 10)
+        .padding(.vertical, 6)
+        .background(Color(UIColor.tertiarySystemFill), in: Capsule())
+        .accessibilityElement(children: .combine)
+    }
+    
+    private struct HueKey {
+        var hue : CGFloat = 0
+        var saturation : CGFloat = 0
+        var brightness : CGFloat = 0
+        
+        var isNeutral : Bool { saturation < 0.12 || brightness < 0.12 }
+        
+        init(_ color: Color) {
+            UIColor(color).getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: nil)
+        }
+    }
+}
+
+/// Wraps its views onto as many rows as they need, each row centered
+private struct CenteredFlowLayout: Layout {
+    var spacing : CGFloat = 8
+    
+    private struct Row {
+        var indices : [Int] = []
+        var width : CGFloat = 0
+        var height : CGFloat = 0
+    }
+    
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let rows = rows(for: subviews, maxWidth: proposal.width ?? .infinity)
+        let height = rows.reduce(0) { $0 + $1.height } + spacing * CGFloat(max(rows.count - 1, 0))
+        return CGSize(width: proposal.width ?? rows.map(\.width).max() ?? 0, height: height)
+    }
+    
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var y = bounds.minY
+        
+        for row in rows(for: subviews, maxWidth: bounds.width) {
+            var x = bounds.minX + (bounds.width - row.width) / 2
+            
+            for index in row.indices {
+                let size = fittedSize(of: subviews[index], maxWidth: bounds.width)
+                subviews[index].place(
+                    at: CGPoint(x: x, y: y + (row.height - size.height) / 2),
+                    proposal: ProposedViewSize(width: size.width, height: size.height)
+                )
+                x += size.width + spacing
+            }
+            
+            y += row.height + spacing
+        }
+    }
+    
+    /// Anything wider than a whole row is narrowed to fit, truncating its text
+    private func fittedSize(of subview: LayoutSubview, maxWidth: CGFloat) -> CGSize {
+        let ideal = subview.sizeThatFits(.unspecified)
+        guard ideal.width > maxWidth else { return ideal }
+        return subview.sizeThatFits(ProposedViewSize(width: maxWidth, height: nil))
+    }
+    
+    private func rows(for subviews: Subviews, maxWidth: CGFloat) -> [Row] {
+        var rows : [Row] = []
+        var current = Row()
+        
+        for index in subviews.indices {
+            let size = fittedSize(of: subviews[index], maxWidth: maxWidth)
+            
+            if !current.indices.isEmpty && current.width + spacing + size.width > maxWidth {
+                rows.append(current)
+                current = Row()
+            }
+            
+            current.width += (current.indices.isEmpty ? 0 : spacing) + size.width
+            current.height = max(current.height, size.height)
+            current.indices.append(index)
+        }
+        
+        if !current.indices.isEmpty {
+            rows.append(current)
+        }
+        
+        return rows
     }
 }
 

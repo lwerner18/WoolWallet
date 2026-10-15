@@ -41,6 +41,11 @@ struct WoolWalletApp: App {
     @State private var selectedTab = MainTab.dashboard
     @State private var projectToShowAutomatically: Project? = nil
     
+    init() {
+        // SwiftUI has no clear button option; its text fields are UITextFields underneath
+        UITextField.appearance().clearButtonMode = .whileEditing
+    }
+    
     var body: some Scene {
         WindowGroup {
             TabView(selection: $selectedTab) {

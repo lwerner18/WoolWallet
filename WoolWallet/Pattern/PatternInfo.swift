@@ -148,11 +148,16 @@ struct PatternInfo: View {
             .toolbar { toolbarContent }
             .alert("Are you sure you want to delete this pattern?", isPresented: $showConfirmationDialog) {
                 Button("Delete", role: .destructive) {
-                    PatternUtils.shared.removePattern(at: pattern, with: managedObjectContext)
-                    
-                    selectedTab = PatternTab.all
-                    
                     dismiss()
+                    
+                    // Let the page finish popping so the row is on screen when it animates away
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [pattern, managedObjectContext] in
+                        guard !pattern.isDeleted else { return }
+                        
+                        withAnimation {
+                            PatternUtils.shared.removePattern(at: pattern, with: managedObjectContext)
+                        }
+                    }
                 }
                 
                 Button("Cancel", role: .cancel) {}
@@ -160,11 +165,14 @@ struct PatternInfo: View {
             .fullScreenCover(isPresented: $showEditPatternForm, onDismiss : getSuggestions) {
                 AddOrEditPatternForm(patternToEdit: pattern)
             }
-            .sheet(isPresented: $showAddProjectForm) {
-                addProjectSheet
-            }
-            .sheet(item: $newProject) { project in
-                ProjectInfo(project: project, isNewProject : true, isPopover : true)
+            .sheet(isPresented: $showAddProjectForm, onDismiss: { newProject = nil }) {
+                // Swap to the success screen in place so this page never flashes between the two
+                if let newProject {
+                    ProjectInfo(project: newProject, isNewProject : true, isPopover : true)
+                        .transition(.opacity)
+                } else {
+                    addProjectSheet
+                }
             }
             .sheet(item: $displayedProject) { project in
                 ProjectInfo(project: project, isPopover: true)
@@ -208,6 +216,7 @@ struct PatternInfo: View {
                     )
                     imagesSection
                     notesSection
+                    RecordDates(added: pattern.dateAdded, updated: pattern.dateUpdated)
                 }
             }
             .foregroundStyle(Color.primary)
@@ -398,7 +407,7 @@ struct PatternInfo: View {
             Text("Images")
                 .infoCardHeader()
             
-            ImageCarousel(images: .constant(pattern.uiImages))
+            ImageCarousel(images: .constant(pattern.uiImages), allowsZoom: true)
         }
     }
     
@@ -421,9 +430,10 @@ struct PatternInfo: View {
             yarnSuggestions: yarnSuggestions
         ) { addedProject in
             selectedTab = PatternTab.used
-            // Capture the newly added project
-            newProject = addedProject
-            showAddProjectForm = false
+            
+            withAnimation {
+                newProject = addedProject
+            }
         }
     }
     

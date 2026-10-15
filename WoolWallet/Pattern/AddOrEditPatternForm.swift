@@ -56,6 +56,11 @@ struct AddOrEditPatternForm: View {
     
     @State private var showExistingPatternAlert : Bool = false
     @State private var imagesChanged            : Bool = false
+    /// Renewed after returning from yarn specs to clear the row's stuck highlight;
+    /// a new ID on every render would rebuild the row on each keystroke
+    @State private var yarnSpecsLinkID          = UUID()
+    @State private var isSaving                 : Bool = false
+    @State private var encodedPhotos            : [UUID: Data] = [:]
     
     // Form fields
     @State private var patternType          : PatternType = PatternType.crochet
@@ -222,11 +227,12 @@ struct AddOrEditPatternForm: View {
                 Section(header: Text("What kind of yarn do you need?")) {
                     NavigationLink {
                         RecYarnForm(recWeightAndYardages: $recWeightAndYardages)
+                            .onDisappear { yarnSpecsLinkID = UUID() }
                     } label: {
                         Label("Yarn Specs", systemImage : "volleyball")
                           
                     }
-                    .id(UUID())
+                    .id(yarnSpecsLinkID)
                     .alignmentGuide(.listRowSeparatorLeading) { viewDimensions in
                         return 0
                     }
@@ -397,10 +403,8 @@ struct AddOrEditPatternForm: View {
                         .frame(height: 100)
                 }
                 
-                Button(patternToEdit == nil ? "Add" : "Save", action: {
-                    createOrUpdatePattern()
-                })
-                .disabled(name.isEmpty)
+                Button(patternToEdit == nil ? "Add" : "Save", action: save)
+                    .disabled(name.isEmpty || isSaving)
             }
             .navigationTitle(patternToEdit == nil ? "New Pattern" : "Edit Pattern")
             .navigationBarTitleDisplayMode(.inline)
@@ -409,15 +413,16 @@ struct AddOrEditPatternForm: View {
                     DiscardChangesButton(hasChanges: hasChanges) {
                         dismiss()
                     }
+                    .disabled(isSaving)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(action: {
-                        createOrUpdatePattern()
-                    }) {
-                        Text(patternToEdit == nil ? "Add" : "Save")
+                    if isSaving {
+                        ProgressView()
+                    } else {
+                        Button(patternToEdit == nil ? "Add" : "Save", action: save)
+                            .disabled(name.isEmpty)
                     }
-                    .disabled(name.isEmpty)
                 }
             }
             .onChange(of: images) {
@@ -429,7 +434,19 @@ struct AddOrEditPatternForm: View {
                 }
             }
         }
-        .interactiveDismissDisabled(hasChanges)
+        .interactiveDismissDisabled(hasChanges || isSaving)
+    }
+    
+    private func save() {
+        guard !isSaving else { return }
+        
+        hideKeyboard()
+        isSaving = true
+        
+        Task {
+            encodedPhotos = await StoredImage.encodeNewPhotos(images)
+            createOrUpdatePattern()
+        }
     }
     
     private func createOrUpdatePattern() {
@@ -506,7 +523,8 @@ struct AddOrEditPatternForm: View {
             
             if imagesChanged {
                 patternToEdit?.uiImages.forEach { item in
-                    if !images.contains(where: {element in element.id == item.id}) {
+                    // Rotated photos keep their ID but are saved as new, so match on the saved photo itself
+                    if !images.contains(where: {element in element.existingItem == item.existingItem}) {
                         managedObjectContext.delete(item.existingItem!)
                     }
                 }
@@ -570,7 +588,7 @@ struct AddOrEditPatternForm: View {
         if imagesChanged {
             // images
             let storedImages: [StoredImage] = images.enumerated().map { (index, element) in
-                return StoredImage.from(data: element, order: index, context: managedObjectContext)
+                return StoredImage.from(data: element, order: index, context: managedObjectContext, encodedPhotos: encodedPhotos)
             }
             
             pattern.images = NSSet(array: storedImages)

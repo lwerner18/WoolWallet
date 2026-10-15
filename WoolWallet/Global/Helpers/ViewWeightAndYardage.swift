@@ -36,10 +36,22 @@ struct ViewWeightAndYardage: View {
     }
     
     var showAvailableLength : Bool {
-        return weightAndYardage.yarnPairingItems.contains(where: {element in element.project!.inProgress})
+        return weightAndYardage.yarnPairingItems.contains(where: { $0.project?.inProgress == true })
+    }
+    
+    private var unit : String {
+        weightAndYardage.unitOfMeasure?.lowercased() ?? ""
     }
     
     var body: some View {
+        // Deleting the parent yarn or pattern re-renders this once more before the screen closes
+        if !weightAndYardage.isDeleted && weightAndYardage.managedObjectContext != nil {
+            content
+        }
+    }
+    
+    @ViewBuilder
+    private var content: some View {
         if totalCount > 1 && !hideName  {
             Divider().padding()
             
@@ -53,7 +65,7 @@ struct ViewWeightAndYardage: View {
             footer : {
                 showAvailableLength && weightAndYardage.yardsUsed > 0 ?
                 AnyView(HStack {
-                    Label("\(weightAndYardage.yardsUsed.formatted) \(weightAndYardage.unitOfMeasure!.lowercased()) of this yarn is currently being used in projects ", systemImage : "info.circle")
+                    Label("\(weightAndYardage.yardsUsed.formatted) \(unit) of this yarn is currently being used in projects ", systemImage : "info.circle")
                         .font(.caption2)
                         .foregroundStyle(Color(UIColor.secondaryLabel))
                     
@@ -78,7 +90,7 @@ struct ViewWeightAndYardage: View {
                     HStack {
                         Spacer()
                         
-                        Text("\(formattedYardage) \(weightAndYardage.unitOfMeasure!.lowercased()) / \(weightAndYardage.grams) grams")
+                        Text("\(formattedYardage) \(unit) / \(weightAndYardage.grams) grams")
                             .font(.headline).bold().foregroundStyle(Color.primary)
                         
                         Spacer()
@@ -104,7 +116,7 @@ struct ViewWeightAndYardage: View {
                 HStack {
                     Text("\(weightAndYardage.isExact ? "" : "Estimated ")Length\(isPattern ? " Needed" : "")").foregroundStyle(Color(UIColor.secondaryLabel))
                     Spacer()
-                    Text("\(weightAndYardage.isExact ? "" : "~")\(weightAndYardage.currentLength.formatted) \(weightAndYardage.unitOfMeasure!.lowercased())")
+                    Text("\(weightAndYardage.isExact ? "" : "~")\(weightAndYardage.currentLength.formatted) \(unit)")
                         .font(.headline).bold().foregroundStyle(Color.primary)
                 }
                 .yarnDataRow()
@@ -116,7 +128,7 @@ struct ViewWeightAndYardage: View {
                     HStack {
                         Text("Available Length").foregroundStyle(Color(UIColor.secondaryLabel))
                         Spacer()
-                        Text("\(weightAndYardage.isExact ? "" : "~")\(weightAndYardage.availableLength.formatted) \(weightAndYardage.unitOfMeasure!.lowercased())")
+                        Text("\(weightAndYardage.isExact ? "" : "~")\(weightAndYardage.availableLength.formatted) \(unit)")
                             .font(.headline).bold().foregroundStyle(Color.primary)
                     }
                     .yarnDataRow()

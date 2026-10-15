@@ -87,6 +87,10 @@
 		04B9771F2CE5C847003FD911 /* Technique.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B9771E2CE5C847003FD911 /* Technique.swift */; };
 		04BAC0C12BAE0D1D00C26CD8 /* GlobalSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04BAC0C02BAE0D1D00C26CD8 /* GlobalSettings.swift */; };
 		04BAC0C32BAE13E400C26CD8 /* YarnUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04BAC0C22BAE13E400C26CD8 /* YarnUtils.swift */; };
+		0A1B2C3D2EAE100000000002 /* YarnLabelParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B2C3D2EAE100000000001 /* YarnLabelParser.swift */; };
+		0A1B2C3D2EAE100000000006 /* ColorNaming.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B2C3D2EAE100000000005 /* ColorNaming.swift */; };
+		0A1B2C3D2EAE100000000004 /* LabelScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B2C3D2EAE100000000003 /* LabelScanner.swift */; };
+		0A1B2C3D2EAE10000000000A /* DuplicateYarnSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B2C3D2EAE100000000009 /* DuplicateYarnSheet.swift */; };
 		04CA29212CDC17D30073DB20 /* PatternItemDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04CA29202CDC17D30073DB20 /* PatternItemDisplay.swift */; };
 		04CA29232CDC17F70073DB20 /* ProjectDateDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04CA29222CDC17F70073DB20 /* ProjectDateDisplay.swift */; };
 		04D415122C9F61BD004E1AFD /* AddOrEditYarnForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D415112C9F61BD004E1AFD /* AddOrEditYarnForm.swift */; };
@@ -97,6 +101,7 @@
 		04F083E82CDB35DD002E40A0 /* FilterCapsule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F083E72CDB35DD002E40A0 /* FilterCapsule.swift */; };
 		04F083EA2CDBBF63002E40A0 /* ProjectPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F083E92CDBBF63002E40A0 /* ProjectPreview.swift */; };
 		04FB6FCA2CB39955008A0FE8 /* InfoCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FB6FC92CB39955008A0FE8 /* InfoCard.swift */; };
+		0A1B2C3D2EAE100000000008 /* RecordDates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B2C3D2EAE100000000007 /* RecordDates.swift */; };
 		974625F5C064D7615C374F39 /* Pods_WoolWalletTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CB342E0EDA72B2FE304CA5EF /* Pods_WoolWalletTests.framework */; };
 		D245718BC4A8FD5685EB8A47 /* Pods_WoolWallet_WoolWalletUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4405C73761C0C80F39C184FE /* Pods_WoolWallet_WoolWalletUITests.framework */; };
 		EAFBDCC3A5827221674ADABE /* Pods_WoolWallet.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1C7C36A3BFA48BBBF4CE9E3 /* Pods_WoolWallet.framework */; };
@@ -207,6 +212,10 @@
 		04B9771E2CE5C847003FD911 /* Technique.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Technique.swift; sourceTree = "<group>"; };
 		04BAC0C02BAE0D1D00C26CD8 /* GlobalSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalSettings.swift; sourceTree = "<group>"; };
 		04BAC0C22BAE13E400C26CD8 /* YarnUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnUtils.swift; sourceTree = "<group>"; };
+		0A1B2C3D2EAE100000000001 /* YarnLabelParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YarnLabelParser.swift; sourceTree = "<group>"; };
+		0A1B2C3D2EAE100000000005 /* ColorNaming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorNaming.swift; sourceTree = "<group>"; };
+		0A1B2C3D2EAE100000000003 /* LabelScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelScanner.swift; sourceTree = "<group>"; };
+		0A1B2C3D2EAE100000000009 /* DuplicateYarnSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateYarnSheet.swift; sourceTree = "<group>"; };
 		04BAC0C52BAE23C000C26CD8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		04CA29202CDC17D30073DB20 /* PatternItemDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternItemDisplay.swift; sourceTree = "<group>"; };
 		04CA29222CDC17F70073DB20 /* ProjectDateDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectDateDisplay.swift; sourceTree = "<group>"; };
@@ -218,6 +227,7 @@
 		04F083E72CDB35DD002E40A0 /* FilterCapsule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterCapsule.swift; sourceTree = "<group>"; };
 		04F083E92CDBBF63002E40A0 /* ProjectPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectPreview.swift; sourceTree = "<group>"; };
 		04FB6FC92CB39955008A0FE8 /* InfoCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoCard.swift; sourceTree = "<group>"; };
+		0A1B2C3D2EAE100000000007 /* RecordDates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordDates.swift; sourceTree = "<group>"; };
 		05E59D743EE22A611AB12A69 /* Pods-WoolWallet-WoolWalletUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WoolWallet-WoolWalletUITests.debug.xcconfig"; path = "Target Support Files/Pods-WoolWallet-WoolWalletUITests/Pods-WoolWallet-WoolWalletUITests.debug.xcconfig"; sourceTree = "<group>"; };
 		4405C73761C0C80F39C184FE /* Pods_WoolWallet_WoolWalletUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WoolWallet_WoolWalletUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7338B4F5185D3C1E765D3F2E /* Pods-WoolWalletTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WoolWalletTests.release.xcconfig"; path = "Target Support Files/Pods-WoolWalletTests/Pods-WoolWalletTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -467,6 +477,8 @@
 			children = (
 				04A5C3EC2C4C1E8F00CD5870 /* AnalyzeColorUtils.swift */,
 				04BAC0C22BAE13E400C26CD8 /* YarnUtils.swift */,
+				0A1B2C3D2EAE100000000001 /* YarnLabelParser.swift */,
+				0A1B2C3D2EAE100000000005 /* ColorNaming.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -478,6 +490,8 @@
 				04B15C612C77BAF100A03751 /* FilterYarn.swift */,
 				048D66042CA0E9890051D7A3 /* EditComposition.swift */,
 				04A5C3E42C4C1DE600CD5870 /* ColorPickerView.swift */,
+				0A1B2C3D2EAE100000000003 /* LabelScanner.swift */,
+				0A1B2C3D2EAE100000000009 /* DuplicateYarnSheet.swift */,
 				042530BC2CB24DF8008804C7 /* MaterialPicker.swift */,
 				0409BC3A2CDDE18B00BAC49C /* YarnPreview.swift */,
 				04187D582E9105A7008389A8 /* YarnListViewModel.swift */,
@@ -579,6 +593,7 @@
 				04A81CF42CA47C6100BF66CC /* ImageCarousel.swift */,
 				042BF1552CA61D9D008740FB /* TextFieldTypeahead.swift */,
 				04FB6FC92CB39955008A0FE8 /* InfoCard.swift */,
+				0A1B2C3D2EAE100000000007 /* RecordDates.swift */,
 				043E16EA2CB9AA1A005046B6 /* WeightAndYardageForm.swift */,
 				043E16EC2CBA0E52005046B6 /* ViewWeightAndYardage.swift */,
 				043E16EE2CBB6B6A005046B6 /* CollapsibleView.swift */,
@@ -879,6 +894,10 @@
 				04B15C5E2C74F6F900A03751 /* StoredColor.swift in Sources */,
 				04D5C44F2C87DFCD00DC9697 /* PatternList.swift in Sources */,
 				04BAC0C32BAE13E400C26CD8 /* YarnUtils.swift in Sources */,
+				0A1B2C3D2EAE100000000002 /* YarnLabelParser.swift in Sources */,
+				0A1B2C3D2EAE100000000006 /* ColorNaming.swift in Sources */,
+				0A1B2C3D2EAE100000000004 /* LabelScanner.swift in Sources */,
+				0A1B2C3D2EAE10000000000A /* DuplicateYarnSheet.swift in Sources */,
 				04943C4E2CDD93870022165C /* InfoCapsules.swift in Sources */,
 				042B0A712CAF008E003CDCF0 /* PatternInfo.swift in Sources */,
 				048E0EBB2CD17C43009DBA67 /* ProjectPairing.swift in Sources */,
@@ -888,6 +907,7 @@
 				04B15C622C77BAF100A03751 /* FilterYarn.swift in Sources */,
 				048E0EC32CD18BF3009DBA67 /* Tabs.swift in Sources */,
 				04FB6FCA2CB39955008A0FE8 /* InfoCard.swift in Sources */,
+				0A1B2C3D2EAE100000000008 /* RecordDates.swift in Sources */,
 				0458137B2CD9382700784519 /* FilterPattern.swift in Sources */,
 				04A81CF32CA4743D00BF66CC /* StoredImage.swift in Sources */,
 				04A5C3E72C4C1E1600CD5870 /* UIImage.swift in Sources */,

@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import CoreData
 
 struct TabCount<T: CaseIterable & Identifiable & Equatable & CustomStringConvertible> {
     var tab : T
@@ -57,6 +58,14 @@ struct YarnList: View {
     @State private var showConfirmationDialog : Bool = false
     @State private var yarnToEdit             : Yarn? = nil
     @State private var yarnToDelete           : Yarn? = nil
+    @State private var tabsFrame              : CGRect = .zero
+    @State private var cellFrames             = CellFrameStore()
+    @State private var archiveGhost           : ArchiveGhost? = nil
+    @State private var archiveLanded          : Bool = false
+    @State private var deletingYarnID         : NSManagedObjectID? = nil
+    @State private var yarnDeleted            : Bool = false
+    
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
 //    @FetchRequest(
 //        fetchRequest: Yarn.fetchPartialRequest()
@@ -82,7 +91,10 @@ struct YarnList: View {
     
     var filteredSuggestions: [String] {
         guard !searchText.isEmpty else { return [] }
-        return uniqueDyers.filter { $0.lowercased().contains(searchText.lowercased()) }
+        // Leave out an exact match so the list closes once a suggestion is picked
+        return uniqueDyers.filter {
+            $0.lowercased().contains(searchText.lowercased()) && $0.caseInsensitiveCompare(searchText) != .orderedSame
+        }
     }
     
 //    private var filteredFetchRequest = FetchRequest<Yarn>(
@@ -162,7 +174,7 @@ struct YarnList: View {
     var body: some View {
         NavigationStack {
             if !browseMode {
-                Tabs(selectedTab: $selectedTab, tabCounts: tabCounts)
+                Tabs(selectedTab: $selectedTab, tabCounts: tabCounts) { tabsFrame = $0 }
             }
             
             HStack {
@@ -270,50 +282,52 @@ struct YarnList: View {
                                         selectedTab : $selectedTab,
                                         browseMode : $browseMode,
                                         projectPairing: $projectPairing,
-                                        patternWAndYBrowsingFor : patternWAndYBrowsingFor
+                                        patternWAndYBrowsingFor : patternWAndYBrowsingFor,
+                                        onDelete: {
+                                            // Let the page finish popping so the card is on screen when it animates away
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                                                deleteYarn(yarn)
+                                            }
+                                        }
                                     )
                                 ) {
-                                    VStack {
-                                        StoredImageCarousel(images: yarn.images, size : Size.small)
-                                            .contextMenu {
-                                                if !browseMode {
-                                                    Button {
-                                                        yarnToEdit = yarn
-                                                    } label: {
-                                                        Label("Edit", systemImage : "pencil")
-                                                    }
-                                                    
-                                                    Button {
-                                                        YarnUtils.shared.toggleYarnArchived(at: yarn)
-                                                    } label: {
-                                                        Label(yarn.isArchived ? "Unarchive" : "Archive", systemImage : yarn.isArchived ? "tray.and.arrow.up" : "tray.and.arrow.down")
-                                                    }
-                                                    
-                                                    Button(role: .destructive) {
-                                                        yarnToDelete = yarn
-                                                        showConfirmationDialog = true
-                                                    } label: {
-                                                        Label("Delete", systemImage : "trash")
-                                                    }
-                                                }
+                                    YarnGridCell(yarn: yarn) {
+                                        if !browseMode {
+                                            Button {
+                                                yarnToEdit = yarn
+                                            } label: {
+                                                Label("Edit", systemImage : "pencil")
                                             }
-                                        
-                                        
-                                        Text(yarn.name ?? "No Name")
-                                            .multilineTextAlignment(.center)
-                                            .foregroundStyle(Color.primary)
-                                            .bold()
-                                        
-                                        Text(yarn.dyer ?? "N/A")
-                                            .foregroundStyle(Color(UIColor.secondaryLabel))
-                                            .font(.caption)
-                                            .bold()
+                                            
+                                            Button {
+                                                toggleArchived(yarn)
+                                            } label: {
+                                                Label(yarn.isArchived ? "Unarchive" : "Archive", systemImage : yarn.isArchived ? "tray.and.arrow.up" : "tray.and.arrow.down")
+                                            }
+                                            
+                                            Button(role: .destructive) {
+                                                yarnToDelete = yarn
+                                                showConfirmationDialog = true
+                                            } label: {
+                                                Label("Delete", systemImage : "trash")
+                                            }
+                                        }
                                     }
-                                    .padding(.horizontal, 7)
-                                    .padding(.top, 3)
-                                    
+                                    .background {
+                                        GeometryReader { proxy in
+                                            let frame = proxy.frame(in: .global)
+                                            
+                                            Color.clear
+                                                .onAppear { cellFrames.frames[yarn.objectID] = frame }
+                                                .onChange(of: frame) { _, newFrame in cellFrames.frames[yarn.objectID] = newFrame }
+                                        }
+                                    }
+                                    // The flying copy stands in for this cell while it animates into the other tab
+                                    .opacity(archiveGhost?.yarn == yarn ? 0 : 1)
+                                    .scaleEffect(deletingYarnID == yarn.objectID ? 0.4 : 1)
+                                    .blur(radius: deletingYarnID == yarn.objectID ? 8 : 0)
+                                    .opacity(deletingYarnID == yarn.objectID ? 0 : 1)
                                 }
-                                
                             }
                         }
                     }
@@ -328,7 +342,15 @@ struct YarnList: View {
                 prompt: "Search by Name or Dyer...",
                 suggestions: {
                     ForEach(filteredSuggestions, id: \.self) { suggestion in
-                        Text(suggestion).searchCompletion(suggestion).padding(.leading, 5)
+                        // A plain search completion fills the field but leaves the keyboard up
+                        Button {
+                            searchText = suggestion
+                            hideKeyboard()
+                        } label: {
+                            Text(suggestion)
+                                .foregroundStyle(Color.primary)
+                                .padding(.leading, 5)
+                        }
                     }
                 }
             )
@@ -355,7 +377,19 @@ struct YarnList: View {
                 }
             }
         }
-        .onAppear {
+        .overlay {
+            if let archiveGhost {
+                ArchiveGhostView(ghost: archiveGhost) { finishedID in
+                    if self.archiveGhost?.id == finishedID {
+                        self.archiveGhost = nil
+                    }
+                    archiveLanded.toggle()
+                }
+                .id(archiveGhost.id)
+            }
+        }
+        .sensoryFeedback(.impact(weight: .light), trigger: archiveLanded)
+        .sensoryFeedback(.impact(weight: .medium), trigger: yarnDeleted)        .onAppear {
             viewModel.start(context: managedObjectContext)
             
             // initial apply of current filters
@@ -430,7 +464,10 @@ struct YarnList: View {
         .alert("Are you sure you want to delete this yarn?", isPresented: $showConfirmationDialog) {
             if let yarnToDelete = yarnToDelete {
                 Button("Delete", role: .destructive) {
-                    YarnUtils.shared.removeYarn(at: yarnToDelete, with: managedObjectContext)
+                    // Give the alert a moment to fade so the card is visible as it goes
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        deleteYarn(yarnToDelete)
+                    }
                 }
             }
             
@@ -452,6 +489,138 @@ struct YarnList: View {
             colorType: colorType,
             selectedTab: selectedTab
         )
+    }
+    
+    private func deleteYarn(_ yarn: Yarn) {
+        guard !yarn.isDeleted else { return }
+        
+        guard !reduceMotion else {
+            withAnimation {
+                YarnUtils.shared.removeYarn(at: yarn, with: managedObjectContext)
+            }
+            return
+        }
+        
+        let shrinkDuration = 0.25
+        
+        withAnimation(.easeIn(duration: shrinkDuration)) {
+            deletingYarnID = yarn.objectID
+        } completion: {
+            withAnimation(.snappy) {
+                YarnUtils.shared.removeYarn(at: yarn, with: managedObjectContext)
+            }
+            deletingYarnID = nil
+            yarnDeleted.toggle()
+        }
+    }
+    
+    private func toggleArchived(_ yarn: Yarn) {
+        let destination : YarnTab = yarn.isArchived ? .active : .archived
+        
+        guard !reduceMotion else {
+            withAnimation {
+                YarnUtils.shared.toggleYarnArchived(at: yarn)
+            }
+            return
+        }
+        
+        // Wait for the context menu to settle back onto the cell before it flies away
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {            if let start = cellFrames.frames[yarn.objectID],
+               let target = Tabs<YarnTab>.segmentCenter(of: destination, in: tabsFrame) {
+                archiveGhost = ArchiveGhost(yarn: yarn, start: start, target: target)
+            }
+            
+            withAnimation(.snappy) {
+                YarnUtils.shared.toggleYarnArchived(at: yarn)
+            }
+        }
+    }
+}
+
+struct YarnGridCell<MenuItems: View>: View {
+    let yarn : Yarn
+    @ViewBuilder var menuItems: () -> MenuItems
+    
+    var body: some View {
+        VStack {
+            StoredImageCarousel(images: yarn.images, size : Size.small)
+                .contextMenu(menuItems: menuItems)
+            
+            Text(yarn.name ?? "No Name")
+                .multilineTextAlignment(.center)
+                .foregroundStyle(Color.primary)
+                .bold()
+            
+            Text(yarn.dyer ?? "N/A")
+                .foregroundStyle(Color(UIColor.secondaryLabel))
+                .font(.caption)
+                .bold()
+        }
+        .padding(.horizontal, 7)
+        .padding(.top, 3)
+    }
+}
+
+extension YarnGridCell where MenuItems == EmptyView {
+    init(yarn: Yarn) {
+        self.init(yarn: yarn) { EmptyView() }
+    }
+}
+
+/// Last known global frame of each grid cell, kept outside view state so scrolling doesn't re-render the list
+final class CellFrameStore {
+    var frames : [NSManagedObjectID: CGRect] = [:]
+}
+
+struct ArchiveGhost: Identifiable {
+    let id = UUID()
+    let yarn : Yarn
+    let start : CGRect
+    let target : CGPoint
+}
+
+/// A copy of a yarn cell that shrinks along an arc into the segment of the tab it is moving to
+private struct ArchiveGhostView: View {
+    let ghost : ArchiveGhost
+    let onFinish : (UUID) -> Void
+    
+    @State private var movedX = false
+    @State private var movedY = false
+    @State private var isShrunk = false
+    @State private var isFaded = false
+    
+    private let duration = 0.55
+    
+    var body: some View {
+        GeometryReader { proxy in
+            let origin = proxy.frame(in: .global).origin
+            
+            YarnGridCell(yarn: ghost.yarn)
+                .frame(width: ghost.start.width, height: ghost.start.height)
+                .scaleEffect(isShrunk ? 0.05 : 1)
+                .opacity(isFaded ? 0 : 1)
+                .offset(x: movedX ? ghost.target.x - ghost.start.midX : 0)
+                .offset(y: movedY ? ghost.target.y - ghost.start.midY : 0)
+                .position(x: ghost.start.midX - origin.x, y: ghost.start.midY - origin.y)
+        }
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+        .onAppear {
+            // Different curves per axis bend the path into an arc
+            withAnimation(.easeInOut(duration: duration)) {
+                movedX = true
+                isShrunk = true
+            }
+            withAnimation(.easeIn(duration: duration)) {
+                movedY = true
+            } completion: {
+                onFinish(ghost.id)
+            }
+            withAnimation(.easeIn(duration: 0.15).delay(duration - 0.15)) {
+                isFaded = true
+            }
+        }
     }
 }
 

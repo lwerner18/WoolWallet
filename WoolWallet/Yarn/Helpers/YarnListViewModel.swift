@@ -195,12 +195,27 @@ final class YarnListViewModel: NSObject, ObservableObject {
 
 // MARK: - NSFetchedResultsControllerDelegate
 extension YarnListViewModel: NSFetchedResultsControllerDelegate {
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+    nonisolated func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         guard let fetched = controller.fetchedObjects as? [Yarn] else { return }
-        // Update published value on main thread
-        Task { @MainActor in
-            self.yarns = fetched
-            self.refreshTabCounts()
+        
+        if Thread.isMainThread {
+            // Publish synchronously so saves made inside withAnimation animate the grid
+            MainActor.assumeIsolated {
+                self.publish(fetched)
+            }
+        } else {
+            Task { @MainActor in
+                self.publish(fetched)
+            }
+        }
+    }
+    
+    private func publish(_ fetched: [Yarn]) {
+        yarns = fetched
+        
+        // This can run mid-save, before the store is written; count once the save has finished
+        DispatchQueue.main.async { [weak self] in
+            self?.refreshTabCounts()
         }
     }
 

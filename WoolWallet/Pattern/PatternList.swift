@@ -338,12 +338,14 @@ struct PatternList: View {
                                         }
                                         .tint(Color.accentColor)
                                         
-                                        Button(role: .destructive) {
+                                        // A destructive role slides the row out before the user confirms
+                                        Button {
                                             patternToDelete = pattern
                                             showConfirmationDialog = true
                                         } label: {
                                             Label("Delete", systemImage : "trash")
                                         }
+                                        .tint(Color.red)
                                     }
                                 }
                             }
@@ -385,28 +387,35 @@ struct PatternList: View {
                     }
                 }
             }
-            .fullScreenCover(isPresented: $showAddPatternForm) {
-                AddOrEditPatternForm(patternToEdit : nil)  { addedPattern in
-                    if browseMode {
-                        browsePattern = addedPattern
-                        browseMode = false
-                    } else {
-                        newPattern = addedPattern
+            .fullScreenCover(isPresented: $showAddPatternForm, onDismiss: { newPattern = nil }) {
+                // Swap to the success screen in place so the list never flashes between the two
+                if let newPattern {
+                    PatternInfo(pattern: newPattern, isNewPattern : true)
+                        .transition(.opacity)
+                } else {
+                    AddOrEditPatternForm(patternToEdit : nil)  { addedPattern in
+                        if browseMode {
+                            browsePattern = addedPattern
+                            browseMode = false
+                            showAddPatternForm = false
+                        } else {
+                            withAnimation {
+                                newPattern = addedPattern
+                            }
+                        }
                     }
-                    
-                    showAddPatternForm = false
                 }
             }
             .fullScreenCover(item: $patternToEdit, onDismiss: { patternToEdit = nil}) { pattern in
                 AddOrEditPatternForm(patternToEdit : pattern)
             }
-            .sheet(item: $newPattern) { pattern in
-                PatternInfo(pattern: pattern, isNewPattern : true)
-            }
             .alert("Are you sure you want to delete this pattern?", isPresented: $showConfirmationDialog) {
                 if let pattern = patternToDelete {
                     Button("Delete", role: .destructive) {
-                        PatternUtils.shared.removePattern(at: pattern, with: managedObjectContext)
+                        // Give the alert a moment to fade so the row is visible as it goes
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            deletePattern(pattern)
+                        }
                     }
                 }
                 
@@ -425,6 +434,14 @@ struct PatternList: View {
                 dismiss()
             }
            
+        }
+    }
+    
+    private func deletePattern(_ pattern: Pattern) {
+        guard !pattern.isDeleted else { return }
+        
+        withAnimation {
+            PatternUtils.shared.removePattern(at: pattern, with: managedObjectContext)
         }
     }
 }

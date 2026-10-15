@@ -10,6 +10,7 @@ import SwiftUI
 
 
 struct accessCameraView: UIViewControllerRepresentable {
+    @Environment(\.dismiss) private var dismiss
     
     @Binding var selectedImage: UIImage?
     
@@ -41,11 +42,12 @@ struct accessCameraView: UIViewControllerRepresentable {
                 self.picker.selectedImage = image
             }
             
-            picker.dismiss(animated: true)
+            // Let SwiftUI close the cover; a UIKit dismiss here can also close the screen underneath it
+            self.picker.dismiss()
         }
         
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-            picker.dismiss(animated: true)
+            self.picker.dismiss()
         }
     }
 }
