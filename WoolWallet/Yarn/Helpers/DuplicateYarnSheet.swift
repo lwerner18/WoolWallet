@@ -16,9 +16,14 @@ struct DuplicateYarnSheet: View {
     let dyer : String
     let matches : [Yarn]
     let isEditing : Bool
+    /// How many skeins the form was set to, the starting amount when adding to a match instead
+    var newSkeins : Double = 1
     var onContinue : () -> Void
+    /// Offered only for new yarn, since an edited yarn is already its own entry
+    var onAddSkeins : ((_ yarn: Yarn, _ count: Double) -> Void)? = nil
     
     @State private var displayedYarn : Yarn? = nil
+    @State private var showAddSkeins = false
     
     private var message : String {
         let yarn = dyer.isEmpty ? "“\(name)”" : "“\(name)” by \(dyer)"
@@ -67,7 +72,15 @@ struct DuplicateYarnSheet: View {
                 }
                 
                 Section {
-                    Button(isEditing ? "Save Anyway" : "Add Anyway") {
+                    if onAddSkeins != nil && !isEditing {
+                        Button {
+                            showAddSkeins = true
+                        } label: {
+                            Label("Add Skeins to Existing Yarn", systemImage: "plus.square.on.square")
+                        }
+                    }
+                    
+                    Button(isEditing ? "Save Anyway" : "Add as New Yarn") {
                         onContinue()
                         dismiss()
                     }
@@ -75,10 +88,20 @@ struct DuplicateYarnSheet: View {
                     Button("Go Back") {
                         dismiss()
                     }
+                } footer: {
+                    if onAddSkeins != nil && !isEditing {
+                        Text("Bought more of a yarn you have? Add the skeins to it instead of entering it again.")
+                    }
                 }
             }
             .navigationTitle("Possible Duplicate")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(isPresented: $showAddSkeins) {
+                AddSkeinsView(candidates: matches, initialCount: newSkeins) { yarn, count in
+                    onAddSkeins?(yarn, count)
+                    dismiss()
+                }
+            }
         }
         .sheet(item: $displayedYarn) { yarn in
             YarnInfo(yarn: yarn, isPopover: true)
@@ -86,8 +109,12 @@ struct DuplicateYarnSheet: View {
     }
 }
 
-private struct MatchingYarnRow: View {
+/// A yarn already in the stash, with enough detail to tell whether it's the one in hand
+struct MatchingYarnRow: View {
     @ObservedObject var yarn : Yarn
+    /// Why it's worth a look, like a matching colorway
+    var badge : String? = nil
+    var showsChevron : Bool = true
     
     @State private var thumbnail : UIImage? = nil
     
@@ -98,6 +125,10 @@ private struct MatchingYarnRow: View {
             let weight = Weight.fromStored(skein.weight)
             if weight != .none {
                 parts.append(weight.getDisplay())
+            }
+            
+            if skein.currentSkeins > 0 {
+                parts.append(YarnUtils.shared.getSkeinsText(skeins: skein.currentSkeins))
             }
             
             if skein.currentLength > 0 {
@@ -157,18 +188,33 @@ private struct MatchingYarnRow: View {
                         .foregroundStyle(Color.secondary)
                 }
                 
+                // Not a Label, which a list lays out as a row icon
                 if yarn.isArchived {
-                    Label("Archived", systemImage: "tray.and.arrow.down")
-                        .font(.caption)
-                        .foregroundStyle(Color.secondary)
+                    HStack(spacing: 3) {
+                        Image(systemName: "tray.and.arrow.down")
+                        Text("Archived")
+                    }
+                    .font(.caption)
+                    .foregroundStyle(Color.secondary)
+                }
+                
+                if let badge {
+                    Text(badge)
+                        .font(.caption2.bold())
+                        .foregroundStyle(Color.accentColor)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.accentColor.opacity(0.12), in: Capsule())
                 }
             }
             
             Spacer()
             
-            Image(systemName: "chevron.right")
-                .font(.caption.bold())
-                .foregroundStyle(Color(UIColor.tertiaryLabel))
+            if showsChevron {
+                Image(systemName: "chevron.right")
+                    .font(.caption.bold())
+                    .foregroundStyle(Color(UIColor.tertiaryLabel))
+            }
         }
         .task {
             let objectIDs = StoredImage.objectIDs(from: yarn.images)

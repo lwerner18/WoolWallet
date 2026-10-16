@@ -63,11 +63,13 @@ enum LabelField: CaseIterable, Hashable {
     }
 }
 
-struct LabelScannerSheet: View {
+/// Captures a label with the live scanner, camera, or library, reads it, then hands it to the review screen
+struct LabelScannerSheet<Review: View>: View {
     @Environment(\.dismiss) private var dismiss
     
+    var title : String = "Scan Label"
     var knownDyers : [String]
-    var onApply : (ScannedYarnLabel, Set<LabelField>, UIImage?) -> Void
+    @ViewBuilder var review : (_ label: ScannedYarnLabel, _ image: UIImage, _ rescan: @escaping () -> Void) -> Review
     
     private enum Phase {
         case capturing
@@ -100,10 +102,7 @@ struct LabelScannerSheet: View {
                 case .processing:
                     ProgressView("Reading Label...")
                 case .review(let label, let image):
-                    LabelScanReview(label: label, image: image) { editedLabel, fields, includePhoto in
-                        onApply(editedLabel, fields, includePhoto ? image : nil)
-                        dismiss()
-                    } onRescan: {
+                    review(label, image) {
                         phase = .capturing
                     }
                 case .failed(let message):
@@ -116,7 +115,7 @@ struct LabelScannerSheet: View {
                     }
                 }
             }
-            .navigationTitle("Scan Label")
+            .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

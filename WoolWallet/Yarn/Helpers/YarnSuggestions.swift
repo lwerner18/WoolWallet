@@ -10,32 +10,125 @@ import SwiftUI
 import CoreData
 
 struct YarnSuggestions: View {
-    // @Environment variables
-    @Environment(\.managedObjectContext) var managedObjectContext
-    
     var yarnSuggestion : YarnSuggestion
     
-    init(
-        yarnSuggestion : YarnSuggestion
-    ) {
-        self.yarnSuggestion = yarnSuggestion
-    }
-    
     var body: some View {
-        if !yarnSuggestion.suggestedWAndY.isEmpty {
-            YarnSuggestionCollapsible(
+        let matches = yarnSuggestion.suggestedWAndY
+        
+        if !matches.isEmpty {
+            YarnSuggestionCarousel(
                 weightAndYardage: yarnSuggestion.patternWAndY,
-                matchingWeightAndYardage: yarnSuggestion.suggestedWAndY,
-                projectPairing : .constant([])
+                matchingWeightAndYardage: matches,
+                title: "Yarn Suggestions"
             )
         }
     }
 }
 
-struct YarnSuggestionCollapsible : View {
-    // @Environment variables
-    @Environment(\.managedObjectContext) var managedObjectContext
+struct YarnSuggestionCarousel: View {
+    @Environment(\.managedObjectContext) private var managedObjectContext
     
+    var weightAndYardage : WeightAndYardage
+    var matchingWeightAndYardage : [WeightAndYardage]
+    var forProject : Bool = false
+    var title : String? = "Yarn Suggestions"
+    @Binding var projectPairing : [ProjectPairingItem]
+    
+    var favoritesRequest : FetchRequest<FavoritePairing>
+    var favoriteYarns : FetchedResults<FavoritePairing> { favoritesRequest.wrappedValue }
+    
+    @State private var scrollTarget : MatchScrollTarget? = nil
+    
+    init(
+        weightAndYardage : WeightAndYardage,
+        matchingWeightAndYardage : [WeightAndYardage],
+        forProject : Bool = false,
+        title : String? = "Yarn Suggestions",
+        projectPairing : Binding<[ProjectPairingItem]> = .constant([])
+    ) {
+        self.weightAndYardage = weightAndYardage
+        self.matchingWeightAndYardage = matchingWeightAndYardage
+        self.forProject = forProject
+        self.title = title
+        self._projectPairing = projectPairing
+        
+        self.favoritesRequest = FetchRequest(
+            entity: FavoritePairing.entity(),
+            sortDescriptors: [],
+            predicate: NSPredicate(format: "patternWeightAndYardage.id == %@", weightAndYardage.id! as any CVarArg)
+        )
+    }
+    
+    private var sortedMatches: [WeightAndYardage] {
+        let ratio = weightAndYardage.grams == 0 ? 0 : weightAndYardage.yardage / Double(weightAndYardage.grams)
+        
+        return matchingWeightAndYardage.sorted {
+            let leftFavorite = favoriteIndex(for: $0.id) != nil ? 0 : 1
+            let rightFavorite = favoriteIndex(for: $1.id) != nil ? 0 : 1
+            let leftRatio = $0.grams == 0 ? 0 : abs(($0.yardage / Double($0.grams)) - ratio)
+            let rightRatio = $1.grams == 0 ? 0 : abs(($1.yardage / Double($1.grams)) - ratio)
+            return (leftFavorite, leftRatio) < (rightFavorite, rightRatio)
+        }
+    }
+    
+    var body: some View {
+        let matches = sortedMatches
+        
+        MatchCarousel(
+            title: title,
+            count: matchingWeightAndYardage.count,
+            scrollTarget: scrollTarget,
+            orderKey: matches.map(\.objectID)
+        ) {
+            ForEach(matches, id: \.objectID) { match in
+                YarnMatchCard(
+                    yarnWandY: match,
+                    isFavorite: favoriteIndex(for: match.id) != nil,
+                    onToggleFavorite: { toggleFavorite(match) },
+                    onAdd: forProject ? { addToProject(match) } : nil
+                )
+                .containerRelativeFrame(.horizontal) { length, _ in
+                    matchingWeightAndYardage.count > 1 ? length * 0.62 : min(length, 240)
+                }
+                .id(match.objectID)
+            }
+        }
+    }
+    
+    private func favoriteIndex(for id: UUID?) -> Int? {
+        guard let id else { return nil }
+        return favoriteYarns.firstIndex { $0.yarnWeightAndYardage?.id == id }
+    }
+    
+    private func toggleFavorite(_ match: WeightAndYardage) {
+        withAnimation(MatchCarouselMotion.reorder) {
+            if let index = favoriteIndex(for: match.id) {
+                managedObjectContext.delete(favoriteYarns[index])
+            } else {
+                let favorite = FavoritePairing(context: managedObjectContext)
+                favorite.yarnWeightAndYardage = match
+                favorite.patternWeightAndYardage = weightAndYardage
+            }
+            
+            guard PersistenceController.shared.save() else { return }
+            scrollTarget = MatchScrollTarget(match.objectID)
+        }
+    }
+    
+    private func addToProject(_ match: WeightAndYardage) {
+        withAnimation {
+            projectPairing.append(
+                ProjectPairingItem(
+                    patternWeightAndYardage: weightAndYardage,
+                    yarnWeightAndYardage: match
+                )
+            )
+        }
+    }
+}
+
+/// Collapsible wrapper used while picking yarn for a new project
+struct YarnSuggestionCollapsible : View {
     var weightAndYardage : WeightAndYardage
     var matchingWeightAndYardage : [WeightAndYardage]
     var allowEdits : Bool
@@ -43,9 +136,6 @@ struct YarnSuggestionCollapsible : View {
     var openByDefault : Bool
     var title : String
     @Binding var projectPairing: [ProjectPairingItem]
-    
-    var favoritesRequest : FetchRequest<FavoritePairing>
-    var favoriteYarns : FetchedResults<FavoritePairing>{favoritesRequest.wrappedValue}
     
     init(
         weightAndYardage : WeightAndYardage,
@@ -63,92 +153,25 @@ struct YarnSuggestionCollapsible : View {
         self.openByDefault = openByDefault
         self.title = title
         self._projectPairing = projectPairing
-        
-        self.favoritesRequest = FetchRequest(
-            entity: FavoritePairing.entity(),
-            sortDescriptors: [],
-            predicate: NSPredicate(format: "patternWeightAndYardage.id == %@", weightAndYardage.id! as any CVarArg)
-        )
-   
     }
     
     var body : some View {
         CollapsibleView(
             label : {
-                Text("\(title) (\(matchingWeightAndYardage.count))").foregroundStyle(Color.primary)
+                Text("\(title) (\(matchingWeightAndYardage.count))")
+                    .foregroundStyle(Color.primary)
             },
             showArrows : true,
             openByDefault : openByDefault,
             useInfoCard : true
         ) {
-            SimpleHorizontalScroll(count: matchingWeightAndYardage.count) {
-                let ratio = weightAndYardage.yardage / Double(weightAndYardage.grams)
-                
-                let sorted = matchingWeightAndYardage.sorted {
-                    (getFavoritesIndex(for: $0.id!) != nil ? 0 : 1, abs(($0.yardage / Double($0.grams)) - ratio)) <
-                        (getFavoritesIndex(for: $1.id!) != nil ? 0 : 1, abs(($1.yardage / Double($1.grams)) - ratio))
-                }
-                
-                ForEach(sorted, id : \.id) { wAndYMatch in
-                    let favoriteIndex = getFavoritesIndex(for: wAndYMatch.id!)
-                    
-                    InfoCard(backgroundColor: Color.accentColor.opacity(0.1)) {
-                        YarnPreview(yarnWandY : wAndYMatch)
-                        .overlay(
-                            Button(action: {
-                                if favoriteIndex != nil {
-                                    managedObjectContext.delete(favoriteYarns[favoriteIndex!])
-                                } else {
-                                    let newFavorite = FavoritePairing(context: managedObjectContext)
-                                    newFavorite.yarnWeightAndYardage = wAndYMatch
-                                    newFavorite.patternWeightAndYardage = weightAndYardage
-                                }
-                                
-                                PersistenceController.shared.save()
-                            }) {
-                                Label("", systemImage : favoriteIndex != nil ? "heart.fill" : "heart")
-                                    .font(.title3)
-                                    .foregroundStyle(Color(UIColor.systemPink))
-                                    .contentTransition(.symbolEffect(.replace))
-                            }
-                            .accessibilityLabel(favoriteIndex != nil ? "Remove from Favorites" : "Add to Favorites")
-                            .offset(x: 10, y: 0),
-                            alignment: .topTrailing
-                            
-                        )
-                        .overlay(
-                            HStack {
-                                if forProject {
-                                    Button {
-                                        withAnimation {
-                                            projectPairing.append(
-                                                ProjectPairingItem(
-                                                    patternWeightAndYardage: weightAndYardage,
-                                                    yarnWeightAndYardage: wAndYMatch
-                                                )
-                                            )
-                                        }
-                                    } label: {
-                                        Label("", systemImage : "plus.circle").font(.title3)
-                                    }
-                                    .accessibilityLabel("Add to Project")
-                                    .offset(x: 10, y: 0)
-                                }
-                            },
-                            alignment: .bottomTrailing
-                            
-                        )
-                    }
-                    .padding(.top, forProject ? 5 : 0)
-                }
-               
-            }
+            YarnSuggestionCarousel(
+                weightAndYardage: weightAndYardage,
+                matchingWeightAndYardage: matchingWeightAndYardage,
+                forProject: forProject,
+                title: nil,
+                projectPairing: $projectPairing
+            )
         }
-    }
-        
-    func getFavoritesIndex(for id: UUID) -> Optional<Int> {
-        return favoriteYarns.firstIndex(where: { element in
-            return element.yarnWeightAndYardage?.id == id
-        })
     }
 }

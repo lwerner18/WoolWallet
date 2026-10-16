@@ -25,19 +25,31 @@ class PatternUtils {
     private init() {}
     
     func removePattern(at pattern: Pattern, with context: NSManagedObjectContext) {
+        // Projects first, fully torn down — deleting only the project left pairings with a
+        // nil required `project`, so Core Data refused the save and everything came back on relaunch
+        let projects = (pattern.projects as? Set<Project>) ?? []
+        for project in projects {
+            ProjectUtils.shared.tearDown(project, in: context)
+            context.delete(project)
+        }
+        
         pattern.hooks?.forEach                { context.delete($0 as! NSManagedObject) }
         pattern.images?.forEach               { context.delete($0 as! NSManagedObject) }
         pattern.items?.forEach                { context.delete($0 as! NSManagedObject) }
         pattern.needles?.forEach              { context.delete($0 as! NSManagedObject) }
-        pattern.projects?.forEach             { context.delete($0 as! NSManagedObject) }
         pattern.recCompositions?.forEach      { context.delete($0 as! NSManagedObject) }
         pattern.techniques?.forEach           { context.delete($0 as! NSManagedObject) }
         pattern.notions?.forEach              { context.delete($0 as! NSManagedObject) }
         
+        if let document = pattern.document {
+            context.delete(document)
+        }
+        
         pattern.recWeightAndYardages?.forEach {
             let item = $0 as! WeightAndYardage
             
-            item.patternFavorites?.forEach{ context.delete($0 as! NSManagedObject) }
+            item.patternFavorites?.forEach { context.delete($0 as! NSManagedObject) }
+            item.patternPairings?.forEach { context.delete($0 as! NSManagedObject) }
             
             context.delete(item)
         }

@@ -21,13 +21,21 @@ extension Project {
     var projectPairingItems: [ProjectPairingItem] {
         let pairingItems = pairings?.allObjects as? [ProjectPairing] ?? []
         
-        let sortedPairings = pairingItems.sorted { $0.patternWeightAndYardage!.order < $1.patternWeightAndYardage!.order}
+        let sortedPairings = pairingItems.sorted {
+            ($0.patternWeightAndYardage?.order ?? 0) < ($1.patternWeightAndYardage?.order ?? 0)
+        }
         
-        return sortedPairings.map { pairing in
+        return sortedPairings.compactMap { pairing in
+            guard let id = pairing.id,
+                  let patternWeightAndYardage = pairing.patternWeightAndYardage,
+                  let yarnWeightAndYardage = pairing.yarnWeightAndYardage else {
+                return nil
+            }
+            
             return ProjectPairingItem(
-                id : pairing.id!,
-                patternWeightAndYardage : pairing.patternWeightAndYardage!,
-                yarnWeightAndYardage : pairing.yarnWeightAndYardage!,
+                id : id,
+                patternWeightAndYardage : patternWeightAndYardage,
+                yarnWeightAndYardage : yarnWeightAndYardage,
                 lengthUsed: pairing.lengthUsed,
                 existingItem: pairing
             )

@@ -17,6 +17,7 @@ final class YarnListViewModel: NSObject, ObservableObject {
     private var context: NSManagedObjectContext?
     private var isStarted = false
     private var hasFetched = false
+    private var currentSort: YarnSort = .name
     
     // MARK: - Start / Setup
     
@@ -24,19 +25,17 @@ final class YarnListViewModel: NSObject, ObservableObject {
     func start(context: NSManagedObjectContext) {
         guard !isStarted else { return }
         self.context = context
-        setupFetchedResultsController(predicate: nil)
+        setupFetchedResultsController(predicate: nil, sort: currentSort)
         refreshTabCounts()
         isStarted = true
     }
     
-    private func setupFetchedResultsController(predicate: NSPredicate?) {
+    private func setupFetchedResultsController(predicate: NSPredicate?, sort: YarnSort) {
         guard let context = context else { return }
         
         let request: NSFetchRequest<Yarn> = Yarn.fetchRequest()
         // Keep a stable sort descriptor (required by NSFetchedResultsController)
-        request.sortDescriptors = [
-            NSSortDescriptor(key: "name", ascending: true, selector: #selector(NSString.localizedStandardCompare))
-        ]
+        request.sortDescriptors = sort.sortDescriptors
         request.predicate = predicate
         
         // No cacheName for simplicity (avoids stale cache issues)
@@ -46,6 +45,7 @@ final class YarnListViewModel: NSObject, ObservableObject {
                                              cacheName: nil)
         frc.delegate = self
         self.fetchedResultsController = frc
+        self.currentSort = sort
     }
     
     private func performFetch() {
@@ -64,14 +64,15 @@ final class YarnListViewModel: NSObject, ObservableObject {
     
     // MARK: - Public: update filters
     
-    /// Update the fetch predicate based on filter inputs (call only when filters change)
+    /// Update the fetch predicate and sort based on filter inputs (call only when filters change)
     func updateFilters(
         searchText: String,
         selectedColors: [NamedColor],
         selectedWeights: [Weight],
         sockSet: Int,
         colorType: ColorType?,
-        selectedTab: YarnTab
+        selectedTab: YarnTab,
+        sort: YarnSort = .name
     ) {
         let predicate = buildPredicate(
             searchText: searchText,
@@ -84,9 +85,16 @@ final class YarnListViewModel: NSObject, ObservableObject {
         
         guard let fetchedResultsController else { return }
         
-        // The controller already tracks inserts, edits and deletes, so an unchanged predicate needs no refetch
-        if hasFetched && fetchedResultsController.fetchRequest.predicate == predicate {
+        let sortChanged = currentSort != sort
+        
+        // The controller already tracks inserts, edits and deletes, so an unchanged query needs no refetch
+        if hasFetched && !sortChanged && fetchedResultsController.fetchRequest.predicate == predicate {
             return
+        }
+        
+        if sortChanged {
+            fetchedResultsController.fetchRequest.sortDescriptors = sort.sortDescriptors
+            currentSort = sort
         }
         
         fetchedResultsController.fetchRequest.predicate = predicate

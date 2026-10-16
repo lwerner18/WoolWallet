@@ -34,7 +34,7 @@ struct PatternList: View {
     private var filteredPatterns: FetchedResults<Pattern> {
         
         // Apply sorting based on the selected option
-        filteredFetchRequest.wrappedValue.nsSortDescriptors = [NSSortDescriptor(keyPath: \Yarn.name, ascending: true)]
+        filteredFetchRequest.wrappedValue.nsSortDescriptors = sort.sortDescriptors
         
         var predicates: [NSPredicate] = []
         if searchText != "" {
@@ -135,6 +135,12 @@ struct PatternList: View {
     @State private var owned                  : Bool? = nil
     @State private var selectedTab            : PatternTab = PatternTab.all
     @State private var isRefreshing           : Bool = false
+    @State private var patternToRead          : Pattern? = nil
+    @State private var patternForProject      : Pattern? = nil
+    @State private var newProject             : Project? = nil
+    
+    @AppStorage("patternListSort") private var sort : PatternSort = .name
+    @AppStorage("patternListLayout") private var layout : PatternLayout = .grid
                      
     
     var body: some View {
@@ -272,83 +278,20 @@ struct PatternList: View {
                             }
                         }
                     }
+                } else if layout == .grid {
+                    ScrollView {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 16)], spacing: 20) {
+                            ForEach(filteredPatterns, id: \.objectID) { pattern in
+                                patternGridItem(for: pattern)
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 12)
+                    }
                 } else {
                     List {
                         ForEach(filteredPatterns, id: \.objectID) { pattern in
-                            NavigationLink(
-                                destination: PatternInfo(pattern: pattern, selectedTab: $selectedTab, browseMode: $browseMode, browsePattern : $browsePattern)
-                            ) {
-                                
-                                HStack {
-                                    
-                                    Text("").frame(maxWidth: 0)
-                                    
-                                    PatternItemDisplay(pattern: pattern)
-                                    
-                                    
-                                    VStack(alignment: .leading) {
-                                        Spacer()
-                                        
-                                        Text(pattern.name ?? "No Name")
-                                            .foregroundStyle(Color.primary)
-                                            .bold()
-                                        
-                                        if pattern.designer != nil {
-                                            Text(pattern.designer!)
-                                                .foregroundStyle(Color(UIColor.secondaryLabel))
-                                                .font(.footnote)
-                                                .bold()
-                                        }
-                                        
-                                        Spacer()
-                                    }
-                                    .padding(.leading, 4)
-                                    
-                                    Spacer()
-                                    
-                                    VStack(spacing: 3) {
-                                        Text(pattern.type ?? "")
-                                            .foregroundStyle(Color.primary)
-                                            .font(.caption)
-                                        
-                                        let projectsNum = pattern.projects?.count ?? 0
-                                        
-                                        if projectsNum != 0 {
-                                            Text("Used in \(projectsNum == 1 ? "1 project" : "\(projectsNum) projects")")
-                                                .foregroundStyle(Color(UIColor.secondaryLabel))
-                                                .font(.caption)
-                                        }
-                                        
-                                        if pattern.patternItems.first?.item == Item.other {
-                                            Text(
-                                                PatternUtils.shared.joinedItems(patternItems: pattern.patternItems)
-                                            )
-                                            .multilineTextAlignment(.center)
-                                            .foregroundStyle(Color(UIColor.secondaryLabel))
-                                            .font(.caption2)
-                                        }
-                                    }
-                                }
-                                .swipeActions(allowsFullSwipe: false) {
-                                    if !browseMode {
-                                        Button {
-                                            patternToEdit = pattern
-                                        } label: {
-                                            Label("Edit", systemImage : "pencil")
-                                        }
-                                        .tint(Color.accentColor)
-                                        
-                                        // A destructive role slides the row out before the user confirms
-                                        Button {
-                                            patternToDelete = pattern
-                                            showConfirmationDialog = true
-                                        } label: {
-                                            Label("Delete", systemImage : "trash")
-                                        }
-                                        .tint(Color.red)
-                                    }
-                                }
-                            }
+                            patternListItem(for: pattern)
                         }
                     }
                     .listStyle(.plain)
@@ -371,6 +314,26 @@ struct PatternList: View {
                 }
             }
             .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Picker("Layout", selection: $layout.animation()) {
+                            ForEach(PatternLayout.allCases) { option in
+                                Label(option.rawValue, systemImage: option.systemImage).tag(option)
+                            }
+                        }
+                        
+                        Section("Sort By") {
+                            Picker("Sort By", selection: $sort.animation()) {
+                                ForEach(PatternSort.allCases) { option in
+                                    Label(option.rawValue, systemImage: option.systemImage).tag(option)
+                                }
+                            }
+                        }
+                    } label: {
+                        Label("View Options", systemImage: "arrow.up.arrow.down.circle")
+                    }
+                }
+                
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: {
                         showFilterScreen = true
@@ -430,11 +393,141 @@ struct PatternList: View {
                     filteredPatternCount: filteredPatterns.count
                 )
             }
-            .onChange(of: browsePattern) {
-                dismiss()
+            .onChange(of: browsePattern) { _, selected in
+                // Parent presents this list with navigationDestination(isPresented: browseMode).
+                // dismiss() would close the project form; flipping browseMode pops instead.
+                if selected != nil {
+                    browseMode = false
+                }
             }
-           
+            .fullScreenCover(item: $patternToRead) { pattern in
+                if let document = pattern.document {
+                    SavedPatternReader(document: document, title: pattern.name ?? "Pattern")
+                }
+            }
+            .sheet(item: $patternForProject, onDismiss: { newProject = nil }) { pattern in
+                // Swap to the success screen in place so the list never flashes between the two
+                if let newProject {
+                    ProjectInfo(project: newProject, isNewProject : true, isPopover : true)
+                        .transition(.opacity)
+                } else {
+                    AddOrEditProjectForm(projectToEdit: nil, preSelectedPattern: pattern) { addedProject in
+                        withAnimation {
+                            newProject = addedProject
+                        }
+                    }
+                }
+            }
         }
+    }
+    
+    private func patternInfo(for pattern: Pattern) -> some View {
+        PatternInfo(pattern: pattern, selectedTab: $selectedTab, browseMode: $browseMode, browsePattern : $browsePattern)
+    }
+    
+    private func selectPattern(_ pattern: Pattern) {
+        browsePattern = pattern
+        browseMode = false
+    }
+    
+    @ViewBuilder
+    private func patternGridItem(for pattern: Pattern) -> some View {
+        if browseMode {
+            Button {
+                selectPattern(pattern)
+            } label: {
+                PatternCard(pattern: pattern)
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("Selects this pattern for the project")
+        } else {
+            NavigationLink(destination: patternInfo(for: pattern)) {
+                PatternCard(pattern: pattern)
+            }
+            .buttonStyle(.plain)
+            .contextMenu {
+                patternActions(for: pattern)
+            } preview: {
+                coverPreview(for: pattern)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func patternListItem(for pattern: Pattern) -> some View {
+        if browseMode {
+            Button {
+                selectPattern(pattern)
+            } label: {
+                PatternRow(pattern: pattern)
+            }
+            .accessibilityHint("Selects this pattern for the project")
+        } else {
+            NavigationLink(destination: patternInfo(for: pattern)) {
+                PatternRow(pattern: pattern)
+            }
+            .swipeActions(allowsFullSwipe: false) {
+                Button {
+                    patternToEdit = pattern
+                } label: {
+                    Label("Edit", systemImage : "pencil")
+                }
+                .tint(Color.accentColor)
+                
+                // A destructive role slides the row out before the user confirms
+                Button {
+                    patternToDelete = pattern
+                    showConfirmationDialog = true
+                } label: {
+                    Label("Delete", systemImage : "trash")
+                }
+                .tint(Color.red)
+            }
+            .contextMenu {
+                patternActions(for: pattern)
+            } preview: {
+                coverPreview(for: pattern)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func patternActions(for pattern: Pattern) -> some View {
+        if pattern.document != nil {
+            Button {
+                patternToRead = pattern
+            } label: {
+                Label("Read Pattern", systemImage: "book.pages")
+            }
+        }
+        
+        if !browseMode {
+            Button {
+                patternForProject = pattern
+            } label: {
+                Label("Start a Project", systemImage: "hammer")
+            }
+            
+            Button {
+                patternToEdit = pattern
+            } label: {
+                Label("Edit", systemImage: "pencil")
+            }
+            
+            Divider()
+            
+            Button(role: .destructive) {
+                patternToDelete = pattern
+                showConfirmationDialog = true
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+    }
+    
+    private func coverPreview(for pattern: Pattern) -> some View {
+        PatternCover(pattern: pattern, cornerRadius: 0)
+            .frame(width: 270, height: 360)
     }
     
     private func deletePattern(_ pattern: Pattern) {

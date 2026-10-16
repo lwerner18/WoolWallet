@@ -54,6 +54,22 @@ extension Yarn {
         StoredImage.imageData(from: images, maxPixelSize: StoredImage.displayMaxPixelSize)
     }
     
+    var hasImages: Bool {
+        (images?.count ?? 0) > 0
+    }
+    
+    /// Yarn colors sorted by name so list cards don't reshuffle swatches
+    var sortedYarnColors: [Color] {
+        colorPickerItems.sorted { $0.name < $1.name }.map(\.color)
+    }
+    
+    /// Short weight label for list cards, e.g. "DK"
+    var primaryWeightLabel: String? {
+        guard let weight = weightAndYardageArray.first.map({ Weight.fromStored($0.weight) }) else { return nil }
+        let label = weight.getDisplay()
+        return label.isEmpty ? nil : label
+    }
+    
     var weightAndYardageItems: [WeightAndYardageData] {
         return weightAndYardageArray.map { item in
             return WeightAndYardageData(
@@ -131,6 +147,43 @@ extension Yarn {
         let weightsAndYardages = weightAndYardages?.allObjects as? [WeightAndYardage] ?? []
         
         return weightsAndYardages.sorted { $0.order < $1.order}
+    }
+    
+    /// Adds newly bought skeins of this same yarn. A sock set gains whole sets, so each of its skeins goes up.
+    func addSkeins(_ count: Double) {
+        var items = weightAndYardageArray
+        
+        // Yarn saved without any amounts still needs somewhere to count its skeins
+        if items.isEmpty, let context = managedObjectContext {
+            let item = WeightAndYardage(context: context)
+            item.parent = WeightAndYardageParent.yarn.rawValue
+            item.weight = Weight.none.rawValue
+            item.unitOfMeasure = UnitOfMeasure.yards.rawValue
+            item.hasExactLength = -1
+            item.yarn = self
+            items = [item]
+        }
+        
+        for item in isSockSet ? items : Array(items.prefix(1)) {
+            item.currentSkeins += count
+            // An original of 0 was never recorded, and from() treats that as the current amount
+            item.originalSkeins = item.originalSkeins == 0 ? item.currentSkeins : item.originalSkeins + count
+            
+            if item.yardage > 0 {
+                let addedLength = item.yardage * count
+                item.currentLength += addedLength
+                item.originalLength = item.originalLength == 0 ? item.currentLength : item.originalLength + addedLength
+            }
+            
+            if item.hasBeenWeighed == 1 && item.grams > 0 {
+                item.totalGrams += Double(item.grams) * count
+            }
+        }
+        
+        // Yarn is archived automatically once it's used up
+        if isArchived {
+            isArchived = false
+        }
     }
     
     // Static function to create the fetch request with propertiesToFetch

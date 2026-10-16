@@ -50,11 +50,11 @@ struct PatternInfo: View {
     @State private var yarnSuggestions : [YarnSuggestion] = []
     @State private var newProject             : Project? = nil
     @State private var displayedProject       : Project? = nil
+    @State private var showReader             : Bool = false
+    @State private var showPhotoViewer        : Bool = false
     
     var patternProperties: [DetailProp] {
         var props : [DetailProp] = []
-        
-        props.append(DetailProp(text: pattern.type!, icon: pattern.type == PatternType.knit.rawValue ? "knit" : "crochet2", useImage: true))
         
         if pattern.oneSize {
             props.append(DetailProp(text: "One Size", icon: "hand.point.up"))
@@ -177,6 +177,14 @@ struct PatternInfo: View {
             .sheet(item: $displayedProject) { project in
                 ProjectInfo(project: project, isPopover: true)
             }
+            .fullScreenCover(isPresented: $showReader) {
+                if let document = pattern.document {
+                    SavedPatternReader(document: document, title: pattern.name ?? "Pattern")
+                }
+            }
+            .fullScreenCover(isPresented: $showPhotoViewer) {
+                PhotoViewer(images: pattern.uiImages.map(\.image), startIndex: 0)
+            }
             .background(Color(UIColor.systemGroupedBackground))
             .onAppear {
                 getSuggestions()
@@ -188,14 +196,17 @@ struct PatternInfo: View {
             successHeader
             
             LazyVStack {
-                PatternItemDisplay(pattern: pattern, size: Size.large)
+                coverHeader
                 
                 titleSection
                 
-                InfoCapsules(detailProps: patternProperties)
+                InfoCapsules(detailProps: patternProperties, alignment: .center)
                 
                 VStack {
-                    itemsCard
+                    if pattern.document != nil {
+                        ReadPatternButton { showReader = true }
+                    }
+                    
                     projectsSection
                     weightAndYardageSection
                     intendedSizeCard
@@ -214,7 +225,6 @@ struct PatternInfo: View {
                             $0.notion == PatternNotion.other ? $0.description : $0.notion.rawValue
                         }
                     )
-                    imagesSection
                     notesSection
                     RecordDates(added: pattern.dateAdded, updated: pattern.dateUpdated)
                 }
@@ -249,44 +259,89 @@ struct PatternInfo: View {
         }
     }
     
+    /// Cover card at the top — photos open the viewer; PDF-only covers open the reader
+    @ViewBuilder
+    private var coverHeader: some View {
+        let cover = PatternCover(pattern: pattern, cornerRadius: 14)
+            .aspectRatio(3 / 4, contentMode: .fit)
+            .frame(width: 210)
+            .patternCoverBadges(for: pattern, status: PatternStatus(pattern: pattern), padding: 8)
+            .shadow(color: Color.black.opacity(0.18), radius: 10, y: 5)
+            .padding(.vertical, 8)
+        
+        if pattern.hasImages {
+            Button {
+                showPhotoViewer = true
+            } label: {
+                cover
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Pattern Photos")
+            .accessibilityHint("Opens the photos full screen")
+        } else if pattern.document != nil {
+            Button {
+                showReader = true
+            } label: {
+                cover
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Read Pattern")
+        } else {
+            cover
+        }
+    }
+    
     private var titleSection: some View {
-        VStack {
-            Text(pattern.name ?? "N/A").font(.largeTitle).foregroundStyle(Color.primary)
+        VStack(spacing: 4) {
+            Text(pattern.name ?? "N/A")
+                .font(.title.bold())
+                .foregroundStyle(Color.primary)
                 .frame(maxWidth: .infinity)
                 .multilineTextAlignment(.center)
             
-            Text(pattern.designer ?? "N/A").foregroundStyle(Color(UIColor.secondaryLabel))
-        }
-        .bold()
-    }
-    
-    @ViewBuilder
-    private var itemsCard: some View {
-        if let firstItem = pattern.patternItems.first, firstItem.item != Item.none {
-            InfoCard() {
-                Text(
-                    PatternUtils.shared.joinedItems(patternItems: pattern.patternItems)
-                )
-                .multilineTextAlignment(.center)
-                .font(.headline)
-                .bold()
-                .foregroundStyle(Color.primary)
-                .frame(maxWidth: .infinity)
+            if let designer = pattern.designer, !designer.isEmpty {
+                Text(designer)
+                    .font(.headline)
+                    .foregroundStyle(Color(UIColor.secondaryLabel))
             }
+            
+            Text(pattern.typeAndItems)
+                .font(.subheadline)
+                .foregroundStyle(Color(UIColor.secondaryLabel))
+                .multilineTextAlignment(.center)
         }
+        .padding(.bottom, 4)
     }
     
     @ViewBuilder
     private var projectsSection: some View {
-        if pattern.hasProjects {
-            Text("Project\(pattern.projectsArray.count > 1 ? "s" : "")")
+        let projects = pattern.sortedProjects
+        
+        if !projects.isEmpty {
+            Text(projects.count == 1 ? "Project" : "Projects")
                 .infoCardHeader()
             
-            SimpleHorizontalScroll(count: pattern.projectsArray.count) {
-                ForEach(pattern.projectsArray, id : \.id) { project in
-                    ProjectPreview(project: project, displayedProject: $displayedProject, disableOnTap : isPopover)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(projects, id: \.objectID) { project in
+                        let compact = projects.count == 1 && !project.hasImages
+                        
+                        ProjectCard(
+                            project: project,
+                            compact: compact,
+                            isOpening: displayedProject?.objectID == project.objectID
+                        ) {
+                            guard !isPopover else { return }
+                            displayedProject = project
+                        }
+                        .containerRelativeFrame(.horizontal) { length, _ in
+                            compact || projects.count == 1 ? length : length * 0.62
+                        }
+                    }
                 }
             }
+            .scrollClipDisabled(false)
+            .scrollDisabled(projects.count <= 1)
         }
     }
     
@@ -398,16 +453,6 @@ struct PatternInfo: View {
                     Spacer()
                 }
             }
-        }
-    }
-    
-    @ViewBuilder
-    private var imagesSection: some View {
-        if pattern.hasImages {
-            Text("Images")
-                .infoCardHeader()
-            
-            ImageCarousel(images: .constant(pattern.uiImages), allowsZoom: true)
         }
     }
     

@@ -1,5 +1,5 @@
 //
-//  PatternFavorites.swift
+//  PossiblePatterns.swift
 //  WoolWallet
 //
 //  Created by Mac on 10/18/24.
@@ -10,129 +10,75 @@ import SwiftUI
 import CoreData
 
 struct PossiblePatterns: View {
-    // @Environment variables
-    @Environment(\.managedObjectContext) var managedObjectContext
+    @Environment(\.managedObjectContext) private var managedObjectContext
     
     var patternSuggestion : PatternSuggestion
     @Binding var favoritedPatterns : [FavoritePairing]
- 
-    init(
-        patternSuggestion : PatternSuggestion,
-        favoritedPatterns : Binding<[FavoritePairing]>
-    ) {
-        self.patternSuggestion = patternSuggestion
-        self._favoritedPatterns = favoritedPatterns
+    
+    @State private var scrollTarget : MatchScrollTarget? = nil
+    
+    private var sortedMatches: [WeightAndYardage] {
+        let yarn = patternSuggestion.yarnWAndY
+        let ratio = yarn.grams == 0 ? 0 : yarn.yardage / Double(yarn.grams)
+        
+        return patternSuggestion.suggestedWAndY.sorted {
+            let leftFavorite = favoriteIndex(for: $0.id) != nil ? 0 : 1
+            let rightFavorite = favoriteIndex(for: $1.id) != nil ? 0 : 1
+            let leftRatio = $0.grams == 0 ? 0 : abs(($0.yardage / Double($0.grams)) - ratio)
+            let rightRatio = $1.grams == 0 ? 0 : abs(($1.yardage / Double($1.grams)) - ratio)
+            return (leftFavorite, leftRatio) < (rightFavorite, rightRatio)
+        }
     }
     
     var body: some View {
-        if !patternSuggestion.suggestedWAndY.isEmpty {
-            VStack {
-                CollapsibleView(
-                    label : {
-                        Text("Possible Patterns (\(patternSuggestion.suggestedWAndY.count))").foregroundStyle(Color.primary)
-                    },
-                    showArrows : true,
-                    useInfoCard : true
-                ) {
-                    SimpleHorizontalScroll(count: patternSuggestion.suggestedWAndY.count) {
-                        let ratio = patternSuggestion.yarnWAndY.yardage / Double(patternSuggestion.yarnWAndY.grams)
-                        
-                        let sorted = patternSuggestion.suggestedWAndY.sorted {
-                            (getFavoritesIndex(for: $0.id!) != nil ? 0 : 1, abs(($0.yardage / Double($0.grams)) - ratio)) <
-                                (getFavoritesIndex(for: $1.id!) != nil ? 0 : 1, abs(($1.yardage / Double($1.grams)) - ratio))
+        let matches = patternSuggestion.suggestedWAndY
+        let ordered = sortedMatches
+        
+        if !matches.isEmpty {
+            MatchCarousel(
+                title: "Possible Patterns",
+                count: matches.count,
+                scrollTarget: scrollTarget,
+                orderKey: ordered.map(\.objectID)
+            ) {
+                ForEach(ordered, id: \.objectID) { match in
+                    if let pattern = match.pattern {
+                        PatternMatchCard(
+                            pattern: pattern,
+                            weightAndYardage: match,
+                            isFavorite: favoriteIndex(for: match.id) != nil,
+                            onToggleFavorite: { toggleFavorite(match) }
+                        )
+                        .containerRelativeFrame(.horizontal) { length, _ in
+                            matches.count > 1 ? length * 0.62 : min(length, 240)
                         }
-                        
-                        ForEach(sorted, id : \.id) { wAndYMatch in
-                            let favoriteIndex = getFavoritesIndex(for: wAndYMatch.id!)
-                            
-                            let pattern = wAndYMatch.pattern!
-                            
-                            InfoCard(backgroundColor: Color.accentColor.opacity(0.1)) {
-                                HStack {
-                                    
-                                    VStack {
-                                        PatternItemDisplay(pattern: pattern, size: Size.large)
-                                        
-                                        HStack {
-                                            Image(pattern.type == PatternType.knit.rawValue ? "knit" : "crochet2")
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 10, height: 10)
-                                            
-                                            Text(pattern.type!)
-                                        }
-                                        .infoCapsule(isSmall: true)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    
-                                    VStack(alignment: .center) {
-                                        Text(pattern.name!)
-                                            .multilineTextAlignment(.center)
-                                            .foregroundStyle(Color.primary)
-                                            .bold()
-                                        
-                                        Text(pattern.designer!)
-                                            .foregroundStyle(Color(UIColor.secondaryLabel))
-                                            .font(.caption)
-                                            .bold()
-                                        
-                                        Spacer()
-                                        
-                                        if pattern.patternItems.first?.item == Item.other {
-                                            Text(
-                                                PatternUtils.shared.joinedItems(patternItems: pattern.patternItems)
-                                            )
-                                            .multilineTextAlignment(.center)
-                                            .foregroundStyle(Color(UIColor.secondaryLabel))
-                                            
-                                            Spacer()
-                                        }
-                                        
-                                        ViewLengthAndYardage(weightAndYardage: wAndYMatch)
-                                    }
-                                    
-                                    Spacer()
-                                }
-                                .overlay(
-                                    Button(action: {
-                                        if favoriteIndex != nil {
-                                            managedObjectContext.delete(favoritedPatterns[favoriteIndex!])
-                                            
-                                            favoritedPatterns.remove(at: favoriteIndex!)
-                                        } else {
-                                            let newFavorite = FavoritePairing(context: managedObjectContext)
-                                            newFavorite.patternWeightAndYardage = wAndYMatch
-                                            newFavorite.yarnWeightAndYardage = patternSuggestion.yarnWAndY
-                                            
-                                            favoritedPatterns.append(newFavorite)
-                                        }
-                                        
-                                        PersistenceController.shared.save()
-                                        
-                                    }) {
-                                        Label("", systemImage : favoriteIndex != nil ? "heart.fill" : "heart")
-                                            .font(.title3)
-                                            .foregroundStyle(Color(UIColor.systemPink))
-                                            .contentTransition(.symbolEffect(.replace))
-                                    }
-                                    .accessibilityLabel(favoriteIndex != nil ? "Remove from Favorites" : "Add to Favorites")
-                                    .offset(x: 10, y: 0),
-                                    alignment: .topTrailing
-                                    
-                                )
-                            }
-                        }
+                        .id(match.objectID)
                     }
                 }
             }
         }
     }
     
-    func getFavoritesIndex(for id: UUID) -> Optional<Int> {
-        return favoritedPatterns.firstIndex(where: { element in
-            return element.patternWeightAndYardage?.id == id
-        })
+    private func favoriteIndex(for id: UUID?) -> Int? {
+        guard let id else { return nil }
+        return favoritedPatterns.firstIndex { $0.patternWeightAndYardage?.id == id }
+    }
+    
+    private func toggleFavorite(_ match: WeightAndYardage) {
+        withAnimation(MatchCarouselMotion.reorder) {
+            if let index = favoriteIndex(for: match.id) {
+                managedObjectContext.delete(favoritedPatterns[index])
+                guard PersistenceController.shared.save() else { return }
+                favoritedPatterns.remove(at: index)
+            } else {
+                let favorite = FavoritePairing(context: managedObjectContext)
+                favorite.patternWeightAndYardage = match
+                favorite.yarnWeightAndYardage = patternSuggestion.yarnWAndY
+                guard PersistenceController.shared.save() else { return }
+                favoritedPatterns.append(favorite)
+            }
+            
+            scrollTarget = MatchScrollTarget(match.objectID)
+        }
     }
 }

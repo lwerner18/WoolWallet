@@ -7,7 +7,6 @@
 
 import Foundation
 import SwiftUI
-import Charts
 
 struct CompositionItem : Identifiable, Hashable {
     var id = UUID()
@@ -17,15 +16,6 @@ struct CompositionItem : Identifiable, Hashable {
     var existingItem : Composition? = nil
 }
 
-//struct MaterialItem: Identifiable, Equatable {
-//    let id = UUID()
-//    
-//    var value: String
-//    var showDescription : Bool = false
-//    var description : String = ""
-//}
-
-// Dark enough for the white percentage labels drawn on each slice
 let chartColors : [Color] = [
     Color(hex : "#C47A85"), // dusty rose
     Color(hex : "#7E9F78"), // sage
@@ -38,40 +28,33 @@ let chartColors : [Color] = [
 struct CompositionText : View {
     var composition : [CompositionItem]
     
-    var body: some View {
-        HStack {
-            Spacer()
-            VStack {
-                let sortedCompositions = composition.sorted { $0.percentage > $1.percentage}
-                
-                ForEach(sortedCompositions, id: \.id) { compositionItem in
-                    let material = YarnUtils.shared.getMaterial(item: compositionItem)
-                    
-                    if compositionItem.percentage != 0 && material != "" {
-                        Text(
-                            "\(compositionItem.percentage)% \(material)\(sortedCompositions.last != compositionItem ? "," : "") "
-                        )
-                        .foregroundStyle(Color.primary)
-                        .lineLimit(nil) // Allow wrapping
-                    }
-                }
+    private var lines: [String] {
+        composition
+            .sorted { $0.percentage > $1.percentage }
+            .compactMap { item in
+                let material = YarnUtils.shared.getMaterial(item: item)
+                guard item.percentage != 0, !material.isEmpty else { return nil }
+                return "\(item.percentage)% \(material)"
             }
-            .multilineTextAlignment(.center) // Center the text
-            .frame(maxHeight: .infinity) // Vertically center in the parent
-            
-            Spacer()
-        }
+    }
+    
+    var body: some View {
+        Text(lines.joined(separator: " · "))
+            .font(.subheadline)
+            .foregroundStyle(Color.primary)
+            .multilineTextAlignment(.leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
+/// Stacked horizontal bar of fiber percentages
 struct CompositionChart : View {
     var composition : [CompositionItem]
-    /// Slices take on the yarn's own colors when it has any
+    /// Segments take on the yarn's own colors when it has any
     var yarnColors : [Color] = []
-    var smallMode : Bool? = false
+    var smallMode : Bool = false
     
-    // Computed property to calculate the remainingComposition
-    var remainingComposition: Int {
+    private var remainingComposition: Int {
         var remaining = 100
         
         for compositionItem in composition {
@@ -83,69 +66,93 @@ struct CompositionChart : View {
         return remaining
     }
     
-    var body: some View {
-        Chart {
-            if remainingComposition != 0 {
-                SectorMark(
-                    angle: .value("Percentage", remainingComposition),
-//                    innerRadius: .ratio(0.65),
-                    angularInset: 2
-                )
-                .cornerRadius(5)
-                .foregroundStyle(Color.gray.opacity(0.5))
-                .annotation(position: .overlay) {
-                    Text("\(remainingComposition)%")
-                        .font(smallMode! ? .caption2 : .body)
-                        .foregroundStyle(.white)
-                }
-            }
-            
-            let sliceColors = CompositionChart.sliceColors(from: yarnColors, count: composition.count)
-            
-            ForEach(Array(zip(composition.indices, composition.reversed())), id: \.0) { index, compositionItem in
-                if compositionItem.percentage != 0 && YarnUtils.shared.getMaterial(item: compositionItem) != "" {
-                    let slice = sliceColors[index]
-                    
-                    SectorMark(
-                        angle: .value("Percentage", compositionItem.percentage),
-                        //                        innerRadius: .ratio(0.65),
-                        angularInset: 2
-                    )
-                    .cornerRadius(5)
-                    .foregroundStyle(slice.color)
-                    //                    .foregroundStyle(by: .value("Material", compositionItem.material ?? "New Material"))
-                    .annotation(position: .overlay) {
-                        Text("\(compositionItem.percentage)%")
-                            .font(smallMode! ? .caption2 : .body)
-                            .foregroundStyle(slice.isLight ? Color.black.opacity(0.8) : Color.white)
-                    }
-                }
-            }
-        }
-        .padding()
-        .frame(height: smallMode! ? 150 : 200)
+    private var filledItems: [CompositionItem] {
+        composition
+            .filter { $0.percentage != 0 && YarnUtils.shared.getMaterial(item: $0) != "" }
+            .sorted { $0.percentage > $1.percentage }
     }
     
-    /// One color per slice. With fewer yarn colors than slices, the colors repeat a shade lighter or darker
-    /// so neighboring slices stay apart.
-    static func sliceColors(from yarnColors: [Color], count: Int) -> [(color: Color, isLight: Bool)] {
-        guard !yarnColors.isEmpty else {
-            return (0..<count).map { (chartColors[$0 % chartColors.count], false) }
+    private var segments: [(id: UUID, percentage: Int, color: Color)] {
+        let colors = CompositionChart.segmentColors(from: yarnColors, count: max(filledItems.count, 1))
+        var result = filledItems.enumerated().map { index, item in
+            (id: item.id, percentage: item.percentage, color: colors[index])
         }
         
-        // Stored colors come back in no particular order, so sort them to keep each slice's color stable
+        if remainingComposition > 0 {
+            result.append((
+                id: CompositionChart.remainingID,
+                percentage: remainingComposition,
+                color: Color.gray.opacity(0.35)
+            ))
+        }
+        
+        return result
+    }
+    
+    private static let remainingID = UUID()
+    
+    var body: some View {
+        let segments = segments
+        let spacing : CGFloat = smallMode ? 1.5 : 2
+        let barHeight : CGFloat = smallMode ? 12 : 16
+        
+        Group {
+            if segments.isEmpty {
+                Capsule()
+                    .fill(Color.gray.opacity(0.2))
+                    .frame(height: barHeight)
+            } else {
+                GeometryReader { proxy in
+                    let totalSpacing = spacing * CGFloat(max(segments.count - 1, 0))
+                    let usable = max(proxy.size.width - totalSpacing, 0)
+                    
+                    HStack(spacing: spacing) {
+                        ForEach(segments, id: \.id) { segment in
+                            Capsule()
+                                .fill(segment.color)
+                                .frame(width: usable * CGFloat(segment.percentage) / 100)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                }
+                .frame(height: barHeight)
+            }
+        }
+        .padding(.vertical, smallMode ? 2 : 4)
+        .accessibilityElement()
+        .accessibilityLabel(accessibilitySummary)
+    }
+    
+    private var accessibilitySummary: String {
+        let parts = filledItems.map {
+            "\($0.percentage)% \(YarnUtils.shared.getMaterial(item: $0))"
+        }
+        if remainingComposition > 0 {
+            return (parts + ["\(remainingComposition)% unassigned"]).joined(separator: ", ")
+        }
+        return parts.isEmpty ? "Composition" : parts.joined(separator: ", ")
+    }
+    
+    /// One color per segment. With fewer yarn colors than segments, the colors repeat a shade lighter or darker
+    /// so neighbors stay apart.
+    static func segmentColors(from yarnColors: [Color], count: Int) -> [Color] {
+        guard !yarnColors.isEmpty else {
+            return (0..<count).map { chartColors[$0 % chartColors.count] }
+        }
+        
+        // Stored colors come back in no particular order, so sort them to keep each segment's color stable
         let bases = yarnColors.map { HSB(UIColor($0)) }.sorted { ($0.hue, $0.brightness) < ($1.hue, $1.brightness) }
         
         return (0..<count).map { index in
             var shade = bases[index % bases.count]
             let step = CGFloat(index / bases.count)
             
-            // Pulled in from the extremes so white and black slices still show against the card
+            // Pulled in from the extremes so white and black segments still show against the card
             shade.brightness = min(max(shade.brightness, 0.25), 0.9)
             shade.brightness += (shade.brightness > 0.55 ? -0.2 : 0.2) * step
             shade.brightness = min(max(shade.brightness, 0.15), 0.95)
             
-            return (shade.color, shade.isLight)
+            return shade.color
         }
     }
     
@@ -159,22 +166,8 @@ struct CompositionChart : View {
             color.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
         }
         
-        var uiColor : UIColor {
-            UIColor(hue: hue, saturation: saturation, brightness: brightness, alpha: 1)
-        }
-        
-        var color : Color { Color(uiColor: uiColor) }
-        
-        /// Light enough that white text on it would be hard to read
-        var isLight : Bool {
-            var red : CGFloat = 0, green : CGFloat = 0, blue : CGFloat = 0, alpha : CGFloat = 0
-            uiColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-            
-            func linear(_ c: CGFloat) -> CGFloat {
-                c <= 0.04045 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4)
-            }
-            
-            return 0.2126 * linear(red) + 0.7152 * linear(green) + 0.0722 * linear(blue) > 0.4
+        var color : Color {
+            Color(uiColor: UIColor(hue: hue, saturation: saturation, brightness: brightness, alpha: 1))
         }
     }
 }
@@ -192,22 +185,27 @@ struct EditComposition: View {
     
     @Binding var composition : [CompositionItem]
     var photos : [UIImage] = []
+    /// When set, the preview chart uses the yarn's colors instead of the default palette
+    var yarnColors : [Color] = []
     
     @State var tempComposition : [CompositionItem] = []
-    @State var showComposition : Bool = false
     /// Renewed after returning from the material picker to clear the row's stuck highlight;
     /// a new ID on every render would rebuild the rows on each keystroke
     @State private var materialLinkID = UUID()
     
-    init(composition: Binding<[CompositionItem]>, photos: [UIImage] = []) {
+    init(
+        composition: Binding<[CompositionItem]>,
+        photos: [UIImage] = [],
+        yarnColors: [Color] = []
+    ) {
         self._composition = composition
         self.photos = photos
+        self.yarnColors = yarnColors
         
         if composition.isEmpty {
-            _tempComposition = State(initialValue : [CompositionItem(percentage: 100, material: "")])
+            _tempComposition = State(initialValue: [CompositionItem(percentage: 100, material: "")])
         } else {
-            _tempComposition = State(initialValue : composition.wrappedValue)
-            _showComposition = State(initialValue : true)
+            _tempComposition = State(initialValue: composition.wrappedValue)
         }
     }
     
@@ -216,118 +214,62 @@ struct EditComposition: View {
         
         for composition in compositions {
             if let material = composition.material {
-                compositionsSet.insert(material) // Use lowercased for case insensitivity
+                compositionsSet.insert(material)
             }
         }
         
-        return Array(compositionsSet) // Convert the set back to an array
+        return Array(compositionsSet)
     }
     
-    // Computed property to calculate the remainingComposition
     var remainingComposition: Int {
         100 - tempComposition.reduce(0) { $0 + $1.percentage }
     }
     
-    // Computed property to calculate if save should be disabled
-    var saveDisabled: Bool {
-        let incompleteComposition = tempComposition.first { compositionItem in
-            return compositionItem.percentage == 0 || YarnUtils.shared.getMaterial(item: compositionItem) == ""
+    private var hasCompleteFiber: Bool {
+        tempComposition.contains {
+            $0.percentage > 0 && YarnUtils.shared.getMaterial(item: $0) != ""
         }
-        
-        return incompleteComposition != nil
+    }
+    
+    var saveDisabled: Bool {
+        tempComposition.contains {
+            $0.percentage == 0 || YarnUtils.shared.getMaterial(item: $0) == ""
+        }
+    }
+    
+    private var saveHintText: String {
+        if saveDisabled {
+            return "Give each fiber a percentage and a material."
+        }
+        if remainingComposition > 0 {
+            return "\(remainingComposition)% left unassigned — you can still save, or add another fiber."
+        }
+        return ""
     }
     
     var body: some View {
         Form {
-            if showComposition {
-                CompositionText(composition: tempComposition)
-                    .transition(.slide)
-                    .customFormSection()
-              
+            if hasCompleteFiber {
+                previewSection
             }
             
             ForEach(tempComposition.indices, id: \.self) { index in
-                Section(
-                    header : HStack {
-                        Spacer()
-                        
-                        if remainingComposition != 0 && index == 0 {
-                            Button {
-                                withAnimation {
-                                    addComposition()
-                                }
-                            } label: {
-                                Label("", systemImage : "plus.circle").font(.title3)
-                            }
-                            .accessibilityLabel("Add Material")
-                        }
-                        
-                        if tempComposition.count > 1 {
-                            Button {
-                                withAnimation {
-                                    removeComposition(tempComposition[index])
-                                }
-                            } label: {
-                                Label("", systemImage : "xmark.circle")
-                                    .font(.title3)
-                                    .foregroundStyle(Color.red)
-                            }
-                            .accessibilityLabel("Remove Material")
-                        }
-                        
-                    }
-                ) {
-                    PercentagePicker(
-                        composition: $tempComposition,
-                        compositionItem: $tempComposition[index]
-                    )
-                    
-                    NavigationLink {
-                        MaterialPicker(material: $tempComposition[index].material)
-                            .onDisappear { materialLinkID = UUID() }
-                    } label: {
-                        HStack {
-                            Text("Material")
-                            
-                            Spacer()
-                            
-                            Text(tempComposition[index].material != "" ? tempComposition[index].material : "--")
-                                .foregroundStyle(Color.secondary)
-                       
-                        }
-                    }
-                    .id(materialLinkID)
-                    
-                    if tempComposition[index].material == MaterialCategory.other.rawValue {
-                        TextFieldTypeahead(
-                            field: $tempComposition[index].materialDescription,
-                            label: "Description",
-                            allResults: uniqueMaterials
-                        )
-                        
-                    }
-                }
-                .onChange(of: tempComposition) {
-                    if tempComposition.last?.percentage != 0 && tempComposition.last?.material != "" {
-                        withAnimation {
-                            showComposition = true
-                        }
-                    } else {
-                        withAnimation {
-                            showComposition = false
-                        }
-                    }
-                    
-                }
-                .transition(.slide)
+                fiberSection(at: index)
+                    .transition(.slide)
             }
             
-            Button("Save", action: {
-                composition = tempComposition
-                
-                dismiss()
-            })
-            .disabled(saveDisabled)
+            if remainingComposition > 0 {
+                addFiberSection
+            }
+            
+            if !saveHintText.isEmpty {
+                Section {
+                    Label(saveHintText, systemImage: "info.circle")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
         }
         .overlay {
             if !photos.isEmpty {
@@ -338,20 +280,105 @@ struct EditComposition: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
-                Button(action: {
-                    composition = tempComposition
-                    
-                    dismiss()
-                }) {
-                    Text("Done")
-                }
-                .disabled(saveDisabled)
+                Button("Done", action: save)
+                    .disabled(saveDisabled)
             }
         }
     }
     
+    private var previewSection: some View {
+        Section {
+            VStack(spacing: 10) {
+                CompositionChart(
+                    composition: tempComposition,
+                    yarnColors: yarnColors
+                )
+                
+                CompositionText(composition: tempComposition)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 4)
+            .customFormSection()
+        } header: {
+            Text("Preview")
+        } footer: {
+            if remainingComposition > 0 {
+                Text("Gray is the \(remainingComposition)% still unassigned.")
+            }
+        }
+    }
+    
+    private func fiberSection(at index: Int) -> some View {
+        Section {
+            PercentagePicker(
+                composition: $tempComposition,
+                compositionItem: $tempComposition[index]
+            )
+            
+            NavigationLink {
+                MaterialPicker(material: $tempComposition[index].material)
+                    .onDisappear { materialLinkID = UUID() }
+            } label: {
+                HStack {
+                    Text("Material")
+                    
+                    Spacer()
+                    
+                    Text(tempComposition[index].material.isEmpty ? "Choose…" : tempComposition[index].material)
+                        .foregroundStyle(Color.secondary)
+                }
+            }
+            .id(materialLinkID)
+            
+            if tempComposition[index].material == MaterialCategory.other.rawValue {
+                TextFieldTypeahead(
+                    field: $tempComposition[index].materialDescription,
+                    label: "Description",
+                    allResults: uniqueMaterials
+                )
+            }
+        } header: {
+            HStack {
+                Text(tempComposition.count > 1 ? "Fiber \(index + 1)" : "Fiber")
+                
+                Spacer()
+                
+                if tempComposition.count > 1 {
+                    Button(role: .destructive) {
+                        withAnimation {
+                            removeComposition(tempComposition[index])
+                        }
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(Color(UIColor.tertiaryLabel))
+                    }
+                    .accessibilityLabel("Remove Fiber \(index + 1)")
+                }
+            }
+        }
+    }
+    
+    private var addFiberSection: some View {
+        Section {
+            Button {
+                withAnimation {
+                    addComposition()
+                }
+            } label: {
+                Label("Add Fiber", systemImage: "plus.circle")
+            }
+        } footer: {
+            Text("\(remainingComposition)% left to assign.")
+        }
+    }
+    
+    private func save() {
+        composition = tempComposition
+        dismiss()
+    }
+    
     private func addComposition() {
-        tempComposition.insert(CompositionItem(percentage: remainingComposition, material: ""), at: 0)
+        tempComposition.append(CompositionItem(percentage: remainingComposition, material: ""))
     }
     
     private func removeComposition(_ item: CompositionItem) {

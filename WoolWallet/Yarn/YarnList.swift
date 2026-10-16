@@ -46,10 +46,15 @@ struct YarnList: View {
     // Internal state trackers
     @State var searchText                     : String = ""
     @State private var showAddYarnForm        : Bool = false
+    @State private var showStashCheck         : Bool = false
+    /// Added from a stash check, shown once the scanner has closed
+    @State private var yarnAddedFromCheck     : Yarn? = nil
     @State private var showFilterScreen       : Bool = false
     @State private var showNewYarnDetail      : Bool = false
     @State private var newYarn                : Yarn? = nil
     @State private var toast                  : Toast? = nil
+    /// Shown once the add form has closed, so it isn't hidden behind it
+    @State private var toastAfterAdding       : Toast? = nil
     @State private var selectedColors         : [NamedColor] = []
     @State private var selectedWeights        : [Weight] = []
     @State private var selectedTab            : YarnTab = YarnTab.active
@@ -58,12 +63,15 @@ struct YarnList: View {
     @State private var showConfirmationDialog : Bool = false
     @State private var yarnToEdit             : Yarn? = nil
     @State private var yarnToDelete           : Yarn? = nil
+    /// Browse mode: yarn with multiple skeins waiting for the user to pick one
+    @State private var yarnPendingSkeinPick   : Yarn? = nil
     @State private var tabsFrame              : CGRect = .zero
     @State private var cellFrames             = CellFrameStore()
     @State private var archiveGhost           : ArchiveGhost? = nil
     @State private var archiveLanded          : Bool = false
     @State private var deletingYarnID         : NSManagedObjectID? = nil
     @State private var yarnDeleted            : Bool = false
+    @AppStorage("yarnListSort") private var sort : YarnSort = .name
     
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
@@ -274,23 +282,9 @@ struct YarnList: View {
                     }
                 } else {
                     ScrollView {
-                        LazyVGrid(columns: [.init(.adaptive(minimum: UIDevice.current.userInterfaceIdiom == .pad ? 300 : 150))], spacing: 5) {
+                        LazyVGrid(columns: [.init(.adaptive(minimum: UIDevice.current.userInterfaceIdiom == .pad ? 280 : 160), spacing: 12)], spacing: 14) {
                             ForEach(viewModel.yarns, id: \.objectID) { yarn in
-                                NavigationLink(
-                                    destination: YarnInfo(
-                                        yarn: yarn,
-                                        selectedTab : $selectedTab,
-                                        browseMode : $browseMode,
-                                        projectPairing: $projectPairing,
-                                        patternWAndYBrowsingFor : patternWAndYBrowsingFor,
-                                        onDelete: {
-                                            // Let the page finish popping so the card is on screen when it animates away
-                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                                                deleteYarn(yarn)
-                                            }
-                                        }
-                                    )
-                                ) {
+                                yarnGridItem(for: yarn) {
                                     YarnGridCell(yarn: yarn) {
                                         if !browseMode {
                                             Button {
@@ -331,8 +325,8 @@ struct YarnList: View {
                             }
                         }
                     }
-                    .padding(.vertical, 13)
-                    .padding(.horizontal, 5)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 12)
                 }
             }
             .navigationTitle(browseMode ? "Browse Yarn" : "My Stash")
@@ -360,6 +354,28 @@ struct YarnList: View {
                 }
             }
             .toolbar {
+                if !browseMode {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            showStashCheck = true
+                        } label: {
+                            Label("Check Stash for a Label", systemImage: "text.viewfinder")
+                        }
+                    }
+                }
+                
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Picker("Sort By", selection: $sort) {
+                            ForEach(YarnSort.allCases) { option in
+                                Label(option.rawValue, systemImage: option.systemImage).tag(option)
+                            }
+                        }
+                    } label: {
+                        Label("View Options", systemImage: "arrow.up.arrow.down.circle")
+                    }
+                }
+                
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: {
                         showFilterScreen = true
@@ -389,18 +405,12 @@ struct YarnList: View {
             }
         }
         .sensoryFeedback(.impact(weight: .light), trigger: archiveLanded)
-        .sensoryFeedback(.impact(weight: .medium), trigger: yarnDeleted)        .onAppear {
+        .sensoryFeedback(.impact(weight: .medium), trigger: yarnDeleted)
+        .onAppear {
             viewModel.start(context: managedObjectContext)
             
             // initial apply of current filters
-            viewModel.updateFilters(
-                searchText: searchText,
-                selectedColors: selectedColors,
-                selectedWeights: selectedWeights,
-                sockSet: sockSet,
-                colorType: colorType,
-                selectedTab: selectedTab
-            )
+            applyFilters()
         }
         // apply filters whenever relevant pieces change (no re-evaluation inside body)
         .onChange(of: selectedColors) { applyFilters() }
@@ -408,18 +418,20 @@ struct YarnList: View {
         .onChange(of: sockSet) { applyFilters() }
         .onChange(of: colorType) { applyFilters() }
         .onChange(of: selectedTab) { applyFilters() }
+        .onChange(of: sort) { applyFilters() }
         
         // debounce searchText so we don't re-run fetch on each keystroke
         .onChange(of: searchText) {
             searchDebounceWorkItem?.cancel()
-            let workItem = DispatchWorkItem { [weak viewModel, searchText, selectedColors, selectedWeights, sockSet, colorType, selectedTab] in
+            let workItem = DispatchWorkItem { [weak viewModel, searchText, selectedColors, selectedWeights, sockSet, colorType, selectedTab, sort] in
                 viewModel?.updateFilters(
                     searchText: searchText,
                     selectedColors: selectedColors,
                     selectedWeights: selectedWeights,
                     sockSet: sockSet,
                     colorType: colorType,
-                    selectedTab: selectedTab
+                    selectedTab: selectedTab,
+                    sort: sort
                 )
             }
             searchDebounceWorkItem = workItem
@@ -434,21 +446,32 @@ struct YarnList: View {
                 filteredYarnCount: viewModel.yarns.count
             )
         }
-        .fullScreenCover(isPresented: $showAddYarnForm, onDismiss: { newYarn = nil }) {
+        .fullScreenCover(isPresented: $showAddYarnForm, onDismiss: {
+            newYarn = nil
+            
+            if let toastAfterAdding {
+                self.toastAfterAdding = nil
+                toast = toastAfterAdding
+            }
+        }) {
             // Swap to the success screen in place so the list never flashes between the two
             if let newYarn {
                 YarnInfo(yarn: newYarn, selectedTab : $selectedTab, isNewYarn : true)
                     .transition(.opacity)
             } else {
-                AddOrEditYarnForm(yarnToEdit : nil)  { addedYarn in
-                    if browseMode {
-                        projectPairing.append(
-                            ProjectPairingItem(
-                                patternWeightAndYardage: patternWAndYBrowsingFor!,
-                                yarnWeightAndYardage: addedYarn.weightAndYardageArray.first!
-                            )
-                        )
-                        browseMode = false
+                AddOrEditYarnForm(yarnToEdit : nil, onAddSkeins: { yarn, count in
+                    if browseMode, let skein = yarn.weightAndYardageArray.first {
+                        selectSkein(skein)
+                    }
+                    
+                    toastAfterAdding = Toast(
+                        style: .success,
+                        message: "Added \(AddSkeinsView.amountText(count, isSockSet: yarn.isSockSet)) to \(yarn.name ?? "your yarn")"
+                    )
+                    showAddYarnForm = false
+                }) { addedYarn in
+                    if browseMode, let skein = addedYarn.weightAndYardageArray.first {
+                        selectSkein(skein)
                         showAddYarnForm = false
                     } else {
                         withAnimation {
@@ -456,6 +479,18 @@ struct YarnList: View {
                         }
                     }
                 }
+            }
+        }
+        .fullScreenCover(isPresented: $showStashCheck, onDismiss: {
+            if let yarnAddedFromCheck {
+                self.yarnAddedFromCheck = nil
+                newYarn = yarnAddedFromCheck
+                showAddYarnForm = true
+            }
+        }) {
+            StashCheckSheet { addedYarn in
+                yarnAddedFromCheck = addedYarn
+                showStashCheck = false
             }
         }
         .fullScreenCover(item: $yarnToEdit, onDismiss: { yarnToEdit = nil}) { yarn in
@@ -473,11 +508,99 @@ struct YarnList: View {
             
             Button("Cancel", role: .cancel) {}
         }
-        .onChange(of: projectPairing) {
-            dismiss()
+        .confirmationDialog("", isPresented: Binding(
+            get: { yarnPendingSkeinPick != nil },
+            set: { if !$0 { yarnPendingSkeinPick = nil } }
+        )) {
+            if let yarn = yarnPendingSkeinPick {
+                ForEach(yarn.weightAndYardageArray, id: \.objectID) { skein in
+                    Button(skeinBrowseLabel(for: skein)) {
+                        selectSkein(skein)
+                        yarnPendingSkeinPick = nil
+                    }
+                }
+            }
+            
+            Button("Cancel", role: .cancel) {
+                yarnPendingSkeinPick = nil
+            }
+        } message: {
+            Text("This yarn has multiple skeins. Which one would you like to use for the project?")
+        }
+        .onChange(of: projectPairing) { _, pairings in
+            // Parent presents this list with navigationDestination(isPresented: browseMode).
+            // dismiss() would close the project form; flipping browseMode pops instead.
+            if browseMode, !pairings.isEmpty {
+                browseMode = false
+            }
         }
         .toastView(toast: $toast)
         .scrollBounceBehavior(.basedOnSize)
+    }
+    
+    @ViewBuilder
+    private func yarnGridItem<Cell: View>(for yarn: Yarn, @ViewBuilder cell: () -> Cell) -> some View {
+        if browseMode {
+            Button {
+                selectYarnFromBrowse(yarn)
+            } label: {
+                cell()
+            }
+            .buttonStyle(.plain)
+            .disabled(yarn.weightAndYardageArray.isEmpty)
+            .accessibilityHint("Selects this yarn for the project")
+        } else {
+            NavigationLink(
+                destination: YarnInfo(
+                    yarn: yarn,
+                    selectedTab : $selectedTab,
+                    browseMode : $browseMode,
+                    projectPairing: $projectPairing,
+                    patternWAndYBrowsingFor : patternWAndYBrowsingFor,
+                    onDelete: {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                            deleteYarn(yarn)
+                        }
+                    }
+                )
+            ) {
+                cell()
+            }
+            .buttonStyle(.plain)
+        }
+    }
+    
+    private func selectYarnFromBrowse(_ yarn: Yarn) {
+        guard patternWAndYBrowsingFor != nil, !yarn.weightAndYardageArray.isEmpty else { return }
+        
+        if yarn.weightAndYardageArray.count > 1 {
+            yarnPendingSkeinPick = yarn
+        } else if let skein = yarn.weightAndYardageArray.first {
+            selectSkein(skein)
+        }
+    }
+    
+    private func selectSkein(_ skein: WeightAndYardage) {
+        guard let patternWAndY = patternWAndYBrowsingFor else { return }
+        
+        // Replace any yarn already chosen for this colorway
+        projectPairing.removeAll { $0.patternWeightAndYardage.id == patternWAndY.id }
+        projectPairing.append(
+            ProjectPairingItem(
+                patternWeightAndYardage: patternWAndY,
+                yarnWeightAndYardage: skein
+            )
+        )
+        browseMode = false
+    }
+    
+    private func skeinBrowseLabel(for wAndY: WeightAndYardage) -> String {
+        switch wAndY.order {
+        case 0: return wAndY.yarn?.isSockSet == true ? "Main Skein" : "Skein 1"
+        case 1: return "Mini Skein"
+        case 2: return "Mini #2"
+        default: return "Skein \(Int(wAndY.order) + 1)"
+        }
     }
     
     private func applyFilters() {
@@ -487,7 +610,8 @@ struct YarnList: View {
             selectedWeights: selectedWeights,
             sockSet: sockSet,
             colorType: colorType,
-            selectedTab: selectedTab
+            selectedTab: selectedTab,
+            sort: sort
         )
     }
     
@@ -537,27 +661,93 @@ struct YarnList: View {
     }
 }
 
+/// A photo-forward stash card: the yarn photo fills the tile, with name and dyer overlaid
 struct YarnGridCell<MenuItems: View>: View {
-    let yarn : Yarn
+    @ObservedObject var yarn : Yarn
     @ViewBuilder var menuItems: () -> MenuItems
     
+    @State private var photoPage : Int = 0
+    
+    private var colors : [Color] { yarn.sortedYarnColors }
+    private var photoCount : Int { yarn.images?.count ?? 0 }
+    
     var body: some View {
-        VStack {
-            StoredImageCarousel(images: yarn.images, size : Size.small)
-                .contextMenu(menuItems: menuItems)
-            
-            Text(yarn.name ?? "No Name")
-                .multilineTextAlignment(.center)
-                .foregroundStyle(Color.primary)
-                .bold()
-            
-            Text(yarn.dyer ?? "N/A")
-                .foregroundStyle(Color(UIColor.secondaryLabel))
-                .font(.caption)
-                .bold()
+        Color.clear
+            .aspectRatio(0.85, contentMode: .fit)
+            .overlay {
+                photo
+            }
+            .overlay(alignment: .bottom) {
+                LinearGradient(
+                    colors: [Color.clear, Color.black.opacity(0.72)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 88)
+                .allowsHitTesting(false)
+            }
+            .overlay(alignment: .bottomLeading) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(yarn.name ?? "No Name")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(Color.white)
+                        .lineLimit(2)
+                    
+                    if !subtitle.isEmpty {
+                        Text(subtitle)
+                            .font(.caption)
+                            .foregroundStyle(Color.white.opacity(0.85))
+                            .lineLimit(1)
+                    }
+                }
+                .padding(10)
+                .shadow(color: .black.opacity(0.35), radius: 2, y: 1)
+            }
+            .overlay(alignment: .topTrailing) {
+                if photoCount > 1 {
+                    PatternCoverBadge(text: "\(photoPage + 1)/\(photoCount)", systemImage: "photo.on.rectangle")
+                        .padding(8)
+                        .allowsHitTesting(false)
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .shadow(color: Color.black.opacity(0.1), radius: 5, y: 2)
+            .contentShape(RoundedRectangle(cornerRadius: 16))
+            .contextMenu(menuItems: menuItems)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel([yarn.name, yarn.dyer, yarn.primaryWeightLabel].compactMap { $0 }.joined(separator: ", "))
+            .accessibilityHint(photoCount > 1 ? "Swipe to view \(photoCount) photos" : "")
+    }
+    
+    private var subtitle: String {
+        [yarn.dyer, yarn.primaryWeightLabel].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
+    }
+    
+    @ViewBuilder
+    private var photo: some View {
+        if yarn.hasImages {
+            StoredPhotoPager(images: yarn.images, maxPixelSize: 700, page: $photoPage) {
+                colorWash
+            }
+        } else {
+            colorWash
         }
-        .padding(.horizontal, 7)
-        .padding(.top, 3)
+    }
+    
+    private var colorWash: some View {
+        let wash = colors.isEmpty
+            ? [Color(UIColor.tertiarySystemFill), Color(UIColor.secondarySystemFill)]
+            : (colors.count == 1 ? [colors[0], colors[0].opacity(0.55)] : Array(colors.prefix(4)))
+        
+        return LinearGradient(colors: wash, startPoint: .topLeading, endPoint: .bottomTrailing)
+            .overlay {
+                if colors.isEmpty {
+                    Image(systemName: "volleyball")
+                        .font(.largeTitle)
+                        .foregroundStyle(Color(UIColor.tertiaryLabel))
+                        .accessibilityHidden(true)
+                }
+            }
     }
 }
 

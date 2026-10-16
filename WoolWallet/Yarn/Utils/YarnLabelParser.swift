@@ -194,7 +194,7 @@ enum YarnLabelParser {
         "0": .zero, "1": .one, "2": .two, "3": .three, "4": .four, "5": .five, "6": .six, "7": .seven
     ]
     
-    private static func weight(in text: String) -> Weight? {
+    static func weight(in text: String) -> Weight? {
         for (pattern, weight) in weightKeywords where matches(text, pattern) {
             return weight
         }

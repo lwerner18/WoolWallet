@@ -61,63 +61,52 @@ struct WeightAndYardageForm: View {
         return weightAndYardage.parent == WeightAndYardageParent.pattern
     }
     
-    // Computed property to get unique dyers
-    var prefix: String {
+    private var canRemove: Bool {
+        isPattern || (isYarn && order == 2)
+    }
+    
+    /// Short section titles that match the yarn details page
+    private var sectionTitle: String {
         if isYarn {
             if isSockSet {
                 switch order {
-                case 0: return "Main Skein Weight and Yardage"
-                case 1: return totalCount > 2 ? "Mini #1 Yardage" : "Mini Skein Yardage"
-                case 2: return "Mini #2 Yardage"
-                default: return ""
+                case 0: return "Main Skein"
+                case 1: return totalCount > 2 ? "Mini #1" : "Mini Skein"
+                case 2: return "Mini #2"
+                default: return "Skein"
                 }
-            } else {
-                return "Weight and Yardage"
             }
-        } else {
-            if totalCount > 1 {
-                return "Color \(order + 1) Weight and Yardage"
-            } else {
-                return "Recommended Weight and Yardage"
-            }
+            return "Amount"
+        }
+        
+        if totalCount > 1 {
+            return "Color \(PatternUtils.shared.getLetter(for: order))"
+        }
+        
+        return "Recommended Yarn"
+    }
+    
+    private var skeinNoun: String {
+        guard isYarn, isSockSet else { return "this yarn" }
+        
+        switch order {
+        case 0: return "the main skein"
+        case 1: return totalCount > 2 ? "the first mini" : "the mini"
+        default: return "the second mini"
         }
     }
     
+    private var yardageSummary: String? {
+        guard let yardage = weightAndYardage.yardage, let grams = weightAndYardage.grams else { return nil }
+        return "\(String(format: "%g", yardage)) \(weightAndYardage.unitOfMeasure.rawValue.lowercased()) / \(grams) grams"
+    }
+    
     var body: some View {
-        if totalCount > 1  {
-            VStack {
-                Divider()
-                
-                HStack {
-                    Text(getName()).bold().font(.title)
-                    
-                    Spacer()
-                    
-                    // can remove any for pattern and only second mini for yarn
-                    if isPattern || (isYarn && order == 2) {
-                        Button {
-                            withAnimation {
-                                removeAction()
-                            }
-                        } label: {
-                            Label("", systemImage : "xmark.circle")
-                                .font(.title2)
-                                .foregroundStyle(Color.red)
-                        }
-                        .accessibilityLabel("Remove")
-                    }
-                }
-            }
-            .transition(.slide)
-            .customFormSection()
+        if totalCount > 1 && isPattern {
+            patternColorHeader
         }
         
-        Section(
-            header: Text(prefix),
-            footer : weightAndYardage.yardage != nil && weightAndYardage.grams != nil
-            ? Text("\(String(format: "%g", weightAndYardage.yardage!)) \(weightAndYardage.unitOfMeasure.rawValue.lowercased()) / \(weightAndYardage.grams!) grams")
-            : Text("")
-        ) {
+        Section {
             if (order == 0 && isYarn) || isPattern {
                 Picker("Weight", selection: $weightAndYardage.weight) {
                     ForEach(Weight.allCases, id: \.id) { weight in
@@ -127,7 +116,7 @@ struct WeightAndYardageForm: View {
                 .pickerStyle(.navigationLink)
             }
             
-            Picker("Unit of Measure", selection: $weightAndYardage.unitOfMeasure) {
+            Picker("Units", selection: $weightAndYardage.unitOfMeasure) {
                 ForEach(UnitOfMeasure.allCases, id: \.id) { unitOfMeasure in
                     Text(unitOfMeasure.rawValue).tag(unitOfMeasure)
                 }
@@ -135,7 +124,7 @@ struct WeightAndYardageForm: View {
             .onChange(of: weightAndYardage.unitOfMeasure) {
                 let yardsToMeters = 0.9144
                 
-                if (weightAndYardage.unitOfMeasure == UnitOfMeasure.meters) {
+                if weightAndYardage.unitOfMeasure == UnitOfMeasure.meters {
                     if weightAndYardage.yardage != nil {
                         weightAndYardage.yardage = Double(String(format : "%.2f", yardsToMeters * weightAndYardage.yardage!))!
                     }
@@ -153,10 +142,11 @@ struct WeightAndYardageForm: View {
                     }
                 }
             }
-            .pickerStyle(SegmentedPickerStyle())
+            .pickerStyle(.segmented)
+            .padding(.vertical, 2)
             
             TextField(
-                weightAndYardage.unitOfMeasure == UnitOfMeasure.yards ? "Yards" : "Meters",
+                weightAndYardage.unitOfMeasure == UnitOfMeasure.yards ? "Yards per skein" : "Meters per skein",
                 value: $weightAndYardage.yardage,
                 format: .number
             )
@@ -167,79 +157,235 @@ struct WeightAndYardageForm: View {
                 }
             }
             
-            TextField("Grams", value: $weightAndYardage.grams, format: .number)
+            TextField("Grams per skein", value: $weightAndYardage.grams, format: .number)
                 .keyboardType(.numberPad)
                 .onChange(of: weightAndYardage.grams) {
                     if weightAndYardage.grams != nil && weightAndYardage.totalGrams != nil {
                         weightAndYardage.skeins = Double(weightAndYardage.totalGrams!)/Double(weightAndYardage.grams!)
                     }
                 }
+        } header: {
+            sectionHeader
+        } footer: {
+            if let yardageSummary {
+                Text(yardageSummary)
+            } else if isYarn && order == 0 {
+                Text("From the ball band — weight, put-up, and fiber weight.")
+            }
         }
         
         if isPattern {
-            Section(
-                header: Text("Do you know how many \(weightAndYardage.unitOfMeasure.rawValue.lowercased()) you need?"),
-                footer : order == totalCount - 1
-                ? AnyView(HStack {
-                    if weightAndYardage.length != nil {
-                        Text("\(String(format: "%g", weightAndYardage.length!)) \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
+            patternLengthSection
+        }
+        
+        if isYarn {
+            yarnAmountSection
+        }
+    }
+    
+    private var sectionHeader: some View {
+        HStack {
+            Text(sectionTitle)
+            
+            Spacer()
+            
+            if canRemove && isYarn {
+                Button(role: .destructive) {
+                    withAnimation {
+                        removeAction()
+                    }
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(Color(UIColor.tertiaryLabel))
+                }
+                .accessibilityLabel("Remove \(sectionTitle)")
+            }
+        }
+    }
+    
+    private var patternColorHeader: some View {
+        VStack(spacing: 8) {
+            Divider()
+            
+            HStack {
+                Text(sectionTitle)
+                    .font(.title3.bold())
+                
+                Spacer()
+                
+                if canRemove {
+                    Button {
+                        withAnimation {
+                            removeAction()
+                        }
+                    } label: {
+                        Label("Remove", systemImage: "xmark.circle.fill")
+                            .labelStyle(.iconOnly)
+                            .font(.title3)
+                            .foregroundStyle(Color.red)
+                    }
+                    .accessibilityLabel("Remove")
+                }
+            }
+        }
+        .transition(.slide)
+        .customFormSection()
+    }
+    
+    private var patternLengthSection: some View {
+        Section {
+            Picker("Know the length needed?", selection: $weightAndYardage.hasExactLength.animation()) {
+                Text("Yes").tag(1)
+                Text("No").tag(0)
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .onChange(of: weightAndYardage.hasExactLength) {
+                weightAndYardage.skeins = 1
+                weightAndYardage.length = nil
+            }
+            .padding(.vertical, 2)
+            
+            if weightAndYardage.hasExactLength == 1 {
+                TextField(
+                    "Length needed (\(weightAndYardage.unitOfMeasure.rawValue.lowercased()))",
+                    value: $weightAndYardage.length,
+                    format: .number
+                )
+                .keyboardType(.decimalPad)
+                .transition(.slide)
+            } else if weightAndYardage.hasExactLength == 0 {
+                Stepper(
+                    "Skeins: \(String(format: "%g", weightAndYardage.skeins))",
+                    value: $weightAndYardage.skeins,
+                    in: 1...50
+                )
+                .onChange(of: weightAndYardage.skeins) {
+                    if weightAndYardage.yardage != nil {
+                        weightAndYardage.length = weightAndYardage.yardage! * weightAndYardage.skeins
+                    }
+                }
+                
+                if weightAndYardage.length != nil {
+                    HStack {
+                        Text("Estimated length")
+                            .foregroundStyle(Color.secondary)
+                        Spacer()
+                        Text("~\(weightAndYardage.length!.formatted) \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
+                    }
+                }
+            }
+        } header: {
+            Text("Length Needed")
+        } footer: {
+            if order == totalCount - 1 {
+                HStack {
+                    if let length = weightAndYardage.length {
+                        Text("\(String(format: "%g", length)) \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
                     }
                     
                     Spacer()
+                    
                     Button {
                         withAnimation {
                             addAction()
                         }
                     } label: {
-                        Text("Need more yarn?")
+                        Text("Need another color?")
                     }
-                    
-                }.transition(.moveAndFade))
-                : AnyView(Text(""))
-            ) {
-                Picker("", selection: $weightAndYardage.hasExactLength.animation()) {
-                    Text("Yes").tag(1)
-                    Text("No").tag(0)
                 }
-                .pickerStyle(SegmentedPickerStyle())
-                .onChange(of: weightAndYardage.hasExactLength) {
-                    weightAndYardage.skeins = 1
+                .transition(.moveAndFade)
+            }
+        }
+    }
+    
+    private var yarnAmountSection: some View {
+        Section {
+            Picker("", selection: $weightAndYardage.hasBeenWeighed.animation()) {
+                Text("Yes").tag(1)
+                Text("No").tag(0)
+            }
+            .pickerStyle(.segmented)
+            .onChange(of: weightAndYardage.hasBeenWeighed) {
+                weightAndYardage.skeins = 1
+                weightAndYardage.hasPartialSkein = false
+                weightAndYardage.totalGrams = nil
+                
+                if weightAndYardage.yardage != nil {
+                    weightAndYardage.length = weightAndYardage.yardage! * weightAndYardage.skeins
+                } else {
                     weightAndYardage.length = nil
                 }
-                
-                if weightAndYardage.hasExactLength == 1 {
-                    TextField(
-                        "Length Needed (in \(weightAndYardage.unitOfMeasure.rawValue.lowercased()))",
-                        value: $weightAndYardage.length,
-                        format: .number
-                    )
+            }
+            .padding(.vertical, 2)
+            
+            if weightAndYardage.hasBeenWeighed == 1 {
+                TextField("Total Grams", value: $weightAndYardage.totalGrams, format: .number)
                     .keyboardType(.decimalPad)
-                    .transition(.slide)
-                } else if weightAndYardage.hasExactLength == 0 {
-                    Stepper("Skeins: \(String(format: "%g", weightAndYardage.skeins))", value: $weightAndYardage.skeins, in: 1...50)
-                        .onChange(of: weightAndYardage.skeins) {
+                    .onChange(of: weightAndYardage.totalGrams) {
+                        if weightAndYardage.totalGrams != nil && weightAndYardage.grams != nil {
+                            withAnimation {
+                                weightAndYardage.skeins = Double(weightAndYardage.totalGrams!)/Double(weightAndYardage.grams!)
+                            }
+                            
                             if weightAndYardage.yardage != nil {
-                                weightAndYardage.length = weightAndYardage.yardage! * weightAndYardage.skeins
+                                withAnimation {
+                                    weightAndYardage.length = (weightAndYardage.yardage! * Double(weightAndYardage.totalGrams!)) / Double(weightAndYardage.grams!)
+                                }
                             }
                         }
-                    
-                    if weightAndYardage.length != nil {
-                        HStack {
-                            Text("Estimated Length Needed")
-                            Spacer()
-                            Text("~\(weightAndYardage.length!.formatted) \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
-                        }
+                    }
+                    .transition(.slide)
+                
+                if weightAndYardage.length != nil && weightAndYardage.totalGrams != nil {
+                    HStack {
+                        Text("Length")
+                        Spacer()
+                        Text("\(weightAndYardage.length!.formatted) \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
+                    }
+                    .transition(.slide)
+                }
+                
+                if weightAndYardage.skeins != 0 {
+                    HStack {
+                        Text("Skeins")
+                        Spacer()
+                        Text(weightAndYardage.skeins.formatted)
+                    }
+                    .transition(.slide)
+                }
+            } else if weightAndYardage.hasBeenWeighed == 0 {
+                Stepper(
+                    "Skeins: \(String(format: "%g", weightAndYardage.skeins))",
+                    value: $weightAndYardage.skeins,
+                    in: 0...50
+                )
+                .onChange(of: weightAndYardage.skeins) {
+                    if weightAndYardage.yardage != nil {
+                        weightAndYardage.length = weightAndYardage.yardage! * weightAndYardage.skeins
+                    }
+                }
+                .onAppear {
+                    if weightAndYardage.yardage != nil {
+                        weightAndYardage.length = weightAndYardage.yardage! * weightAndYardage.skeins
+                    }
+                }
+                
+                Toggle("Partial Skein", isOn: $weightAndYardage.hasPartialSkein)
+                
+                if weightAndYardage.length != nil {
+                    HStack {
+                        Text("Length Estimate")
+                        Spacer()
+                        Text("~\(weightAndYardage.length!.formatted) \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
                     }
                 }
             }
-        }
-        
-        if isYarn {
-            Section(
-                header :
-                    Text("Have you weighed \(isSockSet ? (order == 0 ? "the main skein" : (order == 1 ? (totalCount > 2 ? "the first mini" : "the mini") : "the second mini")) : "this yarn")?"),
-                footer : isSockSet && order == 1 && totalCount < 3
-                ? AnyView(HStack {
+        } header: {
+            Text("Have you weighed \(skeinNoun)?")
+        } footer: {
+            if isSockSet && order == 1 && totalCount < 3 {
+                HStack {
                     Spacer()
                     Button {
                         withAnimation {
@@ -248,105 +394,9 @@ struct WeightAndYardageForm: View {
                     } label: {
                         Text("Have another mini?")
                     }
-                    
-                }.transition(.moveAndFade))
-                : AnyView(Text(""))
-            ) {
-                Picker("", selection: $weightAndYardage.hasBeenWeighed.animation()) {
-                    Text("Yes").tag(1)
-                    Text("No").tag(0)
                 }
-                .pickerStyle(SegmentedPickerStyle())
-                .onChange(of: weightAndYardage.hasBeenWeighed) {
-                    weightAndYardage.skeins = 1
-                    weightAndYardage.hasPartialSkein = false
-                    weightAndYardage.totalGrams = nil
-                    
-                    if weightAndYardage.yardage != nil {
-                        weightAndYardage.length = weightAndYardage.yardage! * weightAndYardage.skeins
-                    } else {
-                        weightAndYardage.length = nil
-                    }
-                }
-                
-                if weightAndYardage.hasBeenWeighed == 1 {
-                    TextField("Total Grams", value: $weightAndYardage.totalGrams, format: .number)
-                        .keyboardType(.decimalPad)
-                        .onChange(of: weightAndYardage.totalGrams) {
-                            if weightAndYardage.totalGrams != nil && weightAndYardage.grams != nil {
-                                withAnimation {
-                                    weightAndYardage.skeins = Double(weightAndYardage.totalGrams!)/Double(weightAndYardage.grams!)
-                                }
-                                
-                                if weightAndYardage.yardage != nil {
-                                    withAnimation {
-                                        weightAndYardage.length = (weightAndYardage.yardage! * Double(weightAndYardage.totalGrams!)) / Double(weightAndYardage.grams!)
-                                    }
-                                }
-                            }
-                        }
-                        .transition(.slide)
-                    
-                    if weightAndYardage.length != nil && weightAndYardage.totalGrams != nil {
-                        HStack {
-                            Text("Length")
-                            
-                            Spacer()
-                            
-                            Text("\(weightAndYardage.length!.formatted) \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
-                        }
-                        .transition(.slide)
-                    }
-                    
-                    if weightAndYardage.skeins != 0 {
-                        HStack {
-                            Text("Skeins")
-                            Spacer()
-                            Text(weightAndYardage.skeins.formatted)
-                        }
-                        .transition(.slide)
-                    }
-                } else if weightAndYardage.hasBeenWeighed == 0 {
-                    Stepper("Skeins: \(String(format: "%g", weightAndYardage.skeins))", value: $weightAndYardage.skeins, in: 0...50)
-                        .onChange(of: weightAndYardage.skeins) {
-                            if weightAndYardage.yardage != nil {
-                                weightAndYardage.length = weightAndYardage.yardage! * weightAndYardage.skeins
-                            }
-                        }
-                        .onAppear {
-                            if weightAndYardage.yardage != nil {
-                                weightAndYardage.length = weightAndYardage.yardage! * weightAndYardage.skeins
-                            }
-                        }
-                    
-                    Toggle("Partial Skein", isOn: $weightAndYardage.hasPartialSkein)
-                    
-                    if weightAndYardage.length != nil {
-                        HStack {
-                            Text("Length Estimate")
-                            Spacer()
-                            Text("~\(weightAndYardage.length!.formatted) \(weightAndYardage.unitOfMeasure.rawValue.lowercased())")
-                        }
-                    }
-                }
+                .transition(.moveAndFade)
             }
         }
-    }
-    
-    private func getName() -> String {
-        if isYarn {
-            if isSockSet {
-                switch order {
-                case 0: return "Main Skein"
-                case 1: return totalCount > 2 ? "Mini #1" : "Mini"
-                case 2: return "Mini #2"
-                default: return ""
-                }
-            }
-        } else if totalCount > 1 {
-            return "Color \(PatternUtils.shared.getLetter(for: order))"
-        }
-        
-        return ""
     }
 }

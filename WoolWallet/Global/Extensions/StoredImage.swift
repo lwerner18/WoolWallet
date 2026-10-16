@@ -102,13 +102,13 @@ extension StoredImage {
         return directory
     }()
     
-    /// Object IDs of a to-many `images` relationship, without loading any photo data.
+    /// Object IDs of a to-many `images` relationship, in display order, without loading any photo data.
     static func objectIDs(from images: NSSet?) -> [NSManagedObjectID] {
-        let objects = images?.allObjects as? [NSManagedObject] ?? []
+        let objects = images?.allObjects as? [StoredImage] ?? []
         return objects
+            .sorted { $0.order < $1.order }
             .map(\.objectID)
             .filter { !$0.isTemporaryID }
-            .sorted { $0.uriRepresentation().absoluteString < $1.uriRepresentation().absoluteString }
     }
     
     private static func thumbnailSetKey(for objectIDs: [NSManagedObjectID], maxPixelSize: CGFloat) -> NSString {
@@ -126,12 +126,15 @@ extension StoredImage {
     /// Loads ordered thumbnails off the main thread, using an on-disk cache so full-size photos are read only once.
     @MainActor
     static func loadThumbnails(for objectIDs: [NSManagedObjectID], maxPixelSize: CGFloat = thumbnailMaxPixelSize) async -> [ImageData] {
+        if objectIDs.isEmpty { return [] }
+        
         if let cached = cachedThumbnails(for: objectIDs, maxPixelSize: maxPixelSize) {
             return cached
         }
         
         let container = PersistenceController.shared.container
         let backgroundContext = container.newBackgroundContext()
+        backgroundContext.automaticallyMergesChangesFromParent = true
         
         let loaded: [(objectID: NSManagedObjectID, id: UUID, image: UIImage)] = await backgroundContext.perform {
             let objectIDDescription = NSExpressionDescription()
@@ -165,11 +168,19 @@ extension StoredImage {
             )
         }
         
+        // Empty or partial results are usually a post-save race; caching them poisons covers until relaunch
+        guard items.count == objectIDs.count else { return items }
+        
         let cost = items.reduce(0) { total, item in
             total + (item.image.cgImage.map { $0.bytesPerRow * $0.height } ?? 0)
         }
         thumbnailSetCache.setObject(ImageDataBox(items), forKey: thumbnailSetKey(for: objectIDs, maxPixelSize: maxPixelSize), cost: cost)
         return items
+    }
+    
+    /// Drops in-memory thumbnails so list cards reload after photos are added or replaced
+    static func invalidateThumbnailCache() {
+        thumbnailSetCache.removeAllObjects()
     }
     
     /// Must be called on `context`'s queue.

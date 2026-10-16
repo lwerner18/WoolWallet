@@ -12,6 +12,7 @@ struct ProjectList: View {
     // @Environment variables
     @Environment(\.managedObjectContext) var managedObjectContext
     @Environment(\.projectToShowAutomatically) var projectToShowAutomatically : Binding<Project?>
+    @Environment(\.projectTabToShowAutomatically) var projectTabToShowAutomatically : Binding<ProjectTab?>
     
     @State private var showAddProjectForm     : Bool = false
     @State private var newProject             : Project? = nil
@@ -20,6 +21,8 @@ struct ProjectList: View {
     @State private var projectToEdit          : Project? = nil
     @State private var showConfirmationDialog : Bool = false
     @State private var selectedTab            : ProjectTab = ProjectTab.inProgress
+    @State private var selectedProject        : Project? = nil
+    @State private var projectToRead          : Project? = nil
     
     @FetchRequest(
         fetchRequest: Project.fetchPartialRequest()
@@ -35,7 +38,15 @@ struct ProjectList: View {
     private var filteredProjects: FetchedResults<Project> {
         
         // Apply sorting based on the selected option
-        filteredFetchRequest.wrappedValue.nsSortDescriptors = [NSSortDescriptor(keyPath: \Project.startDate, ascending: true)]
+        switch selectedTab {
+        case .inProgress:
+            filteredFetchRequest.wrappedValue.nsSortDescriptors = [NSSortDescriptor(keyPath: \Project.startDate, ascending: true)]
+        case .completed:
+            filteredFetchRequest.wrappedValue.nsSortDescriptors = [NSSortDescriptor(keyPath: \Project.endDate, ascending: false)]
+        case .notStarted:
+            // Oldest first, like a queue
+            filteredFetchRequest.wrappedValue.nsSortDescriptors = [NSSortDescriptor(keyPath: \Project.dateAdded, ascending: true)]
+        }
         
         var predicates: [NSPredicate] = []
         if searchText != "" {
@@ -194,87 +205,14 @@ struct ProjectList: View {
                         }
                     }
                 } else {
-                    List {
-                        ForEach(filteredProjects, id : \.id) { project in
-                            NavigationLink(
-                                destination: ProjectInfo(project: project, selectedTab : $selectedTab)
-//                                isActive :  Binding(
-//                                    get: { projectToShowAutomatically.wrappedValue == project },
-//                                    set: { isActive in
-//                                        if isActive {
-//                                            projectToShowAutomatically.wrappedValue = project
-//                                        } else if projectToShowAutomatically.wrappedValue == project {
-//                                            projectToShowAutomatically.wrappedValue = nil
-//                                        }
-//                                    }
-//                                )
-                            ) {
-                                HStack {
-                                    
-                                    Text("").frame(maxWidth: 0)
-                                    
-                                    if !project.hasImages {
-                                        PatternItemDisplay(pattern: project.pattern!, size: Size.medium)
-                                    } else {
-                                        StoredImageCarousel(images: project.images, size: Size.extraSmall)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    VStack {
-                                        Text(project.pattern!.name ?? "No Name")
-                                            .foregroundStyle(Color.primary)
-                                            .bold()
-                                            .multilineTextAlignment(.center)
-                                        
-                                        Spacer()
-                                        
-                                        ProjectDateDisplay(project: project)
-                                    }
-                                    
-                                    
-                                    Spacer()
-                                }
-                                .padding(.vertical, 4)
-                                .swipeActions(allowsFullSwipe: false) {
-                                    Button {
-                                        projectToEdit = project
-                                    } label: {
-                                        Label("Edit", systemImage : "pencil")
-                                    }
-                                    .tint(Color.accentColor)
-                                    
-                                    // A destructive role slides the row out before the user confirms
-                                    Button {
-                                        projectToDelete = project
-                                        showConfirmationDialog = true
-                                    } label: {
-                                        Label("Delete", systemImage : "trash")
-                                    }
-                                    .tint(Color.red)
-                                }
-                            }
-                            .overlay(
-                                !project.inProgress && !project.complete
-                                ? AnyView(
-                                    HStack {
-                                        Image("butterball") // Replace with your image's name
-                                            .resizable() // If you want to adjust the size
-                                            .scaledToFit() // Adjust the image's aspect ratio
-                                            .frame(width: 50, height: 40) // Set desired frame size
-                                            .shadow(radius: 2)
-                                        
-                                        Text("What are you waiting for?")
-                                            .font(.caption2)
-                                    }
-                                    .offset(x: 20, y: 3)
-                                )
-                                : AnyView(EmptyView()),
-                                alignment: .bottom
-                            )
-                        }
+                    switch selectedTab {
+                    case .inProgress:
+                        workbench
+                    case .notStarted:
+                        queue
+                    case .completed:
+                        gallery
                     }
-                    .listStyle(.plain)
                 }
                
             }
@@ -328,8 +266,237 @@ struct ProjectList: View {
             }
             .onAppear {
                 managedObjectContext.refreshAllObjects()
+                consumeDashboardNavigation()
             }
+            .onChange(of: projectToShowAutomatically.wrappedValue?.objectID) {
+                consumeDashboardNavigation()
+            }
+            .onChange(of: projectTabToShowAutomatically.wrappedValue) {
+                consumeDashboardNavigation()
+            }
+            .navigationDestination(item: $selectedProject) { project in
+                ProjectInfo(project: project, selectedTab : $selectedTab)
+            }
+            .fullScreenCover(item: $projectToRead) { project in
+                if let pattern = project.pattern, let document = pattern.document {
+                    SavedPatternReader(document: document, title: pattern.name ?? "Pattern", project: project)
+                }
+            }
+        }
+    }
     
+    /// Opens a project (or just the right sub-tab) when arriving from the dashboard.
+    private func consumeDashboardNavigation() {
+        if let project = projectToShowAutomatically.wrappedValue {
+            switch ProjectStatus(project: project) {
+            case .completed:  selectedTab = .completed
+            case .inProgress: selectedTab = .inProgress
+            case .notStarted: selectedTab = .notStarted
+            }
+            
+            projectTabToShowAutomatically.wrappedValue = nil
+            projectToShowAutomatically.wrappedValue = nil
+            
+            // Let the tab filter settle before pushing, and re-push if we were already on a project
+            selectedProject = nil
+            DispatchQueue.main.async {
+                selectedProject = project
+            }
+            return
+        }
+        
+        if let tab = projectTabToShowAutomatically.wrappedValue {
+            selectedTab = tab
+            projectTabToShowAutomatically.wrappedValue = nil
+        }
+    }
+    
+    // MARK: - In progress
+    
+    /// Cards with each project's colorway, first counter, and pattern, so work can continue without opening it
+    private var workbench: some View {
+        ScrollView {
+            LazyVStack(spacing: 16) {
+                ForEach(filteredProjects, id : \.id) { project in
+                    ProjectWorkCard(project: project) {
+                        projectToRead = project
+                    }
+                    .onTapGesture {
+                        selectedProject = project
+                    }
+                    .accessibilityElement(children: .contain)
+                    .accessibilityAction(named: "Open Project") {
+                        selectedProject = project
+                    }
+                    .contextMenu {
+                        projectActions(for: project)
+                    }
+                }
+            }
+            .padding()
+        }
+        .background(Color(UIColor.systemGroupedBackground))
+    }
+    
+    // MARK: - Not started
+    
+    private var queue: some View {
+        List {
+            Section {
+                ForEach(filteredProjects, id : \.id) { project in
+                    NavigationLink(destination: ProjectInfo(project: project, selectedTab : $selectedTab)) {
+                        ProjectQueueRow(project: project) {
+                            startProject(project)
+                        }
+                    }
+                    .swipeActions(edge: .leading) {
+                        Button {
+                            startProject(project)
+                        } label: {
+                            Label("Start", systemImage: "play.fill")
+                        }
+                        .tint(ProjectStatus.inProgress.color)
+                    }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button {
+                            projectToEdit = project
+                        } label: {
+                            Label("Edit", systemImage : "pencil")
+                        }
+                        .tint(Color.accentColor)
+                        
+                        // A destructive role slides the row out before the user confirms
+                        Button {
+                            projectToDelete = project
+                            showConfirmationDialog = true
+                        } label: {
+                            Label("Delete", systemImage : "trash")
+                        }
+                        .tint(Color.red)
+                    }
+                    .contextMenu {
+                        projectActions(for: project)
+                    }
+                }
+            } header: {
+                HStack(spacing: 8) {
+                    Image("butterball")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 44, height: 34)
+                        .shadow(radius: 2)
+                        .accessibilityHidden(true)
+                    
+                    Text("What are you waiting for?")
+                        .font(.subheadline)
+                        .foregroundStyle(Color(UIColor.secondaryLabel))
+                        .textCase(nil)
+                }
+            }
+        }
+        .listStyle(.plain)
+    }
+    
+    private func startProject(_ project: Project) {
+        withAnimation {
+            project.inProgress = true
+            project.startDate = Date.now
+            
+            PersistenceController.shared.save()
+        }
+    }
+    
+    // MARK: - Completed
+    
+    private struct MonthGroup: Identifiable {
+        let month : Date?
+        let projects : [Project]
+        var id : Date { month ?? Date.distantPast }
+    }
+    
+    private var completedByMonth: [MonthGroup] {
+        let calendar = Calendar.current
+        let grouped = Dictionary(grouping: filteredProjects) { project in
+            project.endDate.flatMap { calendar.dateInterval(of: .month, for: $0)?.start }
+        }
+        
+        return grouped
+            .map { MonthGroup(month: $0.key, projects: $0.value) }
+            .sorted { ($0.month ?? Date.distantPast) > ($1.month ?? Date.distantPast) }
+    }
+    
+    /// Finished pieces by the month they were completed
+    private var gallery: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 24) {
+                ForEach(completedByMonth) { group in
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(alignment: .firstTextBaseline) {
+                            Text(group.month?.formatted(.dateTime.month(.wide).year()) ?? "No Finish Date")
+                                .font(.title3.bold())
+                                .foregroundStyle(Color.primary)
+                            
+                            Text("\(group.projects.count) finished")
+                                .font(.subheadline)
+                                .foregroundStyle(Color(UIColor.secondaryLabel))
+                        }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityAddTraits(.isHeader)
+                        
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 16)], spacing: 18) {
+                            ForEach(group.projects, id : \.id) { project in
+                                ProjectGalleryTile(project: project)
+                                    .onTapGesture {
+                                        selectedProject = project
+                                    }
+                                    .accessibilityAction {
+                                        selectedProject = project
+                                    }
+                                    .contextMenu {
+                                        projectActions(for: project)
+                                    }
+                            }
+                        }
+                    }
+                }
+            }
+            .padding()
+        }
+    }
+    
+    // MARK: - Actions
+    
+    @ViewBuilder
+    private func projectActions(for project: Project) -> some View {
+        if project.pattern?.document != nil {
+            Button {
+                projectToRead = project
+            } label: {
+                Label("Read Pattern", systemImage: "book.pages")
+            }
+        }
+        
+        if !project.inProgress && !project.complete {
+            Button {
+                startProject(project)
+            } label: {
+                Label("Start", systemImage: "play.circle")
+            }
+        }
+        
+        Button {
+            projectToEdit = project
+        } label: {
+            Label("Edit", systemImage: "pencil")
+        }
+        
+        Divider()
+        
+        Button(role: .destructive) {
+            projectToDelete = project
+            showConfirmationDialog = true
+        } label: {
+            Label("Delete", systemImage: "trash")
         }
     }
     

@@ -121,6 +121,11 @@ extension Pattern {
         return projects?.allObjects as? [Project] ?? []
     }
     
+    /// In progress first, then the queue, then finished (newest finish date first)
+    var sortedProjects: [Project] {
+        projectsArray.sortedForDisplay
+    }
+    
     var hasProjects: Bool {
         return !projectsArray.isEmpty
     }

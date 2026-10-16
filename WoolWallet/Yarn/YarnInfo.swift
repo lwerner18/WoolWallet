@@ -14,8 +14,9 @@ struct PatternSuggestion {
     var suggestedWAndY : [WeightAndYardage] = []
 }
 
-struct DetailProp : Hashable {
-    var id : String { UUID().uuidString }
+struct DetailProp : Hashable, Identifiable {
+    /// Stable across redraws so capsule layouts don't reshuffle
+    var id : String { "\(icon)|\(text)" }
     
     var text : String
     var icon : String
@@ -78,9 +79,13 @@ struct YarnInfo: View {
     @State private var patternWAndYForProject  : WeightAndYardage? = nil
     @State private var newProject              : Project? = nil
     @State private var displayedProject        : Project? = nil
+    @State private var showPhotoViewer         : Bool = false
+    @State private var photoPage               : Int = 0
+    @State private var showSummaryExport       : Bool = false
     
     @FetchRequest private var projects: FetchedResults<Project>
     
+    /// Status flags only — project usage lives in its own section
     var yarnProperties: [DetailProp] {
         var props : [DetailProp] = []
         
@@ -105,10 +110,15 @@ struct YarnInfo: View {
         } else if yarn.colorType == ColorType.tonal.rawValue {
             props.append(DetailProp(text: "Tonal", icon: "circle.fill"))
         }
-                         
-        props.append(DetailProp(text: "\(projects.count == 1 ? "1 project" : "\(projects.count) projects")", icon: "hammer"))
                       
         return props
+    }
+    
+    private var heroSubtitle: String {
+        [yarn.dyer, yarn.primaryWeightLabel]
+            .compactMap { $0 }
+            .filter { !$0.isEmpty }
+            .joined(separator: " · ")
     }
     
     var body: some View {
@@ -156,6 +166,7 @@ struct YarnInfo: View {
             showChooseSkeinDialog = true
         } else if let skein = yarn.weightAndYardageArray.first,
                   let patternWAndY = patternWAndYBrowsingFor {
+            projectPairing.removeAll { $0.patternWeightAndYardage.id == patternWAndY.id }
             projectPairing.append(
                 ProjectPairingItem(
                     patternWeightAndYardage: patternWAndY,
@@ -200,6 +211,12 @@ struct YarnInfo: View {
                 Label("Copy", systemImage : "doc.on.doc")
             }
             
+            Button {
+                showSummaryExport = true
+            } label: {
+                Label("Export Summary", systemImage: "square.and.arrow.up")
+            }
+            
             Divider()
             
             Button(role: .destructive) {
@@ -214,7 +231,7 @@ struct YarnInfo: View {
     
     private var content: some View {
         scrollContent
-            .navigationTitle(yarn.name ?? "N/A")
+            .navigationTitle(yarn.name ?? "Yarn")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
             .alert("Are you sure you want to delete this yarn?", isPresented: $showDeleteConfirmation) {
@@ -251,6 +268,9 @@ struct YarnInfo: View {
             }
             .modifier(dialogs)
             .background(Color(UIColor.systemGroupedBackground))
+            .sheet(isPresented: $showSummaryExport) {
+                SummaryExportPreview(subject: .yarn(yarn))
+            }
             .onAppear {
                 getSuggestions()
             }
@@ -260,83 +280,255 @@ struct YarnInfo: View {
         ScrollView {
             successHeader
             
-            ConditionalStack() {
-                ImageCarousel(images : .constant(yarn.uiImages), allowsZoom: true)
-                
-                LazyVStack {
-                    titleSection
-                    
-                    InfoCapsules(detailProps: yarnProperties)
-                    
-                    VStack {
-                        weightCard
-                        skeinSections
-                        compositionSection
-                        projectsSection
-                        colorSection
-                        notesSection
-                        RecordDates(added: yarn.dateAdded, updated: yarn.dateUpdated)
-                    }
+            VStack(spacing: 0) {
+                if yarn.hasImages {
+                    photoCard
                 }
+                
+                VStack(spacing: 0) {
+                    hero
+                    
+                    amountSections
+                    compositionSection
+                    projectsSection
+                    notesSection
+                    RecordDates(added: yarn.dateAdded, updated: yarn.dateUpdated)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+                .padding(.bottom)
+                .padding(.top, yarn.hasImages ? 8 : 12)
             }
             .foregroundStyle(Color.primary)
-            .padding()
         }
         .toastView(toast: $yarnInfoToast)
         .scrollBounceBehavior(.basedOnSize)
+        .fullScreenCover(isPresented: $showPhotoViewer) {
+            PhotoViewer(images: yarn.uiImages.map(\.image), startIndex: photoPage)
+        }
+    }
+    
+    /// Rounded photo card over a wash of the yarn's colors
+    @ViewBuilder
+    private var photoCard: some View {
+        let count = yarn.images?.count ?? 0
+        let colors = Array(yarn.sortedYarnColors.prefix(5))
+        let wash = colors.isEmpty
+            ? [Color(UIColor.tertiarySystemFill), Color(UIColor.secondarySystemFill)]
+            : (colors.count == 1 ? [colors[0], colors[0].opacity(0.55)] : colors)
+        
+        ZStack {
+            LinearGradient(colors: wash, startPoint: .topLeading, endPoint: .bottomTrailing)
+            
+            StoredPhotoPager(images: yarn.images, maxPixelSize: 1600, page: $photoPage) {
+                Color(UIColor.tertiarySystemFill)
+            }
+            .aspectRatio(1, contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(alignment: .bottom) {
+                if count > 1 {
+                    ScrollDots(
+                        currentIndex: photoPage,
+                        numberOfDots: count,
+                        size: .small,
+                        hasBottomPadding: true
+                    )
+                    .allowsHitTesting(false)
+                }
+            }
+            .shadow(color: Color.black.opacity(0.18), radius: 10, y: 5)
+            .padding(.horizontal, 28)
+            .padding(.vertical, 20)
+            .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .onTapGesture {
+                showPhotoViewer = true
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(count > 1 ? "Yarn photos, \(photoPage + 1) of \(count)" : "Yarn photo")
+            .accessibilityHint(count > 1 ? "Swipe to browse photos. Double tap to open full screen." : "Opens the photo full screen")
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction {
+                showPhotoViewer = true
+            }
+        }
+        .frame(maxWidth: .infinity)
     }
     
     @ViewBuilder
     private var successHeader: some View {
         if isNewYarn {
-            VStack {
+            VStack(spacing: 6) {
                 Label("", systemImage: "checkmark.circle")
-                    .font(.system(size: 60))
+                    .font(.system(size: 56))
                     .foregroundStyle(Color.green)
                     .symbolEffect(.bounce, value: animateCheckmark)
-                    .padding()
+                    .padding(.bottom, 4)
                     .accessibilityHidden(true)
                 
-                Text("Successfully created yarn")
-                    .font(.title2)
+                Text("Yarn added")
+                    .font(.title2.bold())
                 
                 Text("Now get crafting!")
                     .foregroundStyle(Color.secondary)
                     .font(.subheadline)
             }
+            .padding(.bottom, 8)
+            .padding(.horizontal)
             .onAppear {
                 animateCheckmark.toggle()
             }
         }
     }
     
-    private var titleSection: some View {
-        VStack {
-            Text(yarn.name ?? "N/A").bold().font(.largeTitle).foregroundStyle(Color.primary).multilineTextAlignment(.center)
+    /// Compact title block — dyer/weight, then status + color capsules together
+    private var hero: some View {
+        let colors = yarn.colorPickerItems.sorted { $0.name < $1.name }
+        let hasChips = !yarnProperties.isEmpty || !colors.isEmpty
+        
+        return VStack(alignment: .leading, spacing: 6) {
+            Text(yarn.name ?? "Untitled")
+                .font(.title.bold())
+                .foregroundStyle(Color.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityAddTraits(.isHeader)
             
-            Text(yarn.dyer ?? "N/A").bold().foregroundStyle(Color(UIColor.secondaryLabel))
+            if !heroSubtitle.isEmpty {
+                Text(heroSubtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(Color(UIColor.secondaryLabel))
+            }
+            
+            if hasChips {
+                HeroChipFlow(spacing: 6) {
+                    ForEach(yarnProperties) { prop in
+                        Label(prop.text, systemImage: prop.icon)
+                            .infoCapsule(isSmall: true)
+                    }
+                    
+                    ForEach(colors, id: \.id) { item in
+                        colorCapsule(item)
+                    }
+                }
+                .padding(.top, 2)
+            }
+        }
+        .padding(.bottom, 4)
+    }
+    
+    private func colorCapsuleLabel(_ item: ColorPickerItem) -> String {
+        !item.description.isEmpty && item.description != item.name ? item.description : item.name
+    }
+    
+    private func colorCapsule(_ item: ColorPickerItem) -> some View {
+        HStack(spacing: 5) {
+            Circle()
+                .fill(item.color)
+                .frame(width: 12, height: 12)
+                .overlay(Circle().stroke(Color.primary.opacity(0.15), lineWidth: 1))
+            
+            Text(colorCapsuleLabel(item))
+        }
+        .infoCapsule(isSmall: true)
+        .accessibilityLabel(colorCapsuleLabel(item))
+    }
+    
+    @ViewBuilder
+    private var amountSections: some View {
+        if yarn.isSockSet {
+            sockSetAmountSections
+        } else {
+            regularAmountSections
         }
     }
     
-    private var weightCard: some View {
-        InfoCard() {
-            HStack {
-                Text("Weight").foregroundStyle(Color(UIColor.secondaryLabel))
-                Spacer()
-                Text(yarn.weightAndYardageItems.first?.weight.rawValue ?? "N/A")
-                    .font(.headline).bold().foregroundStyle(Color.primary)
+    /// Sock sets keep one "Skeins" block with a shared weight card, then each skein named underneath
+    @ViewBuilder
+    private var sockSetAmountSections: some View {
+        let skeins = yarn.weightAndYardageArray
+        
+        if !skeins.isEmpty {
+            Text("Skeins")
+                .infoCardHeader()
+            
+            weightCard
+            
+            ForEach(skeins, id: \.objectID) { wAndY in
+                skeinCards(for: wAndY)
+                
+                if let suggestion = patternSuggestions.first(where: { $0.yarnWAndY.id == wAndY.id }) {
+                    PossiblePatterns(
+                        patternSuggestion: suggestion,
+                        favoritedPatterns: $favoritedPatterns
+                    )
+                }
             }
         }
     }
     
-    private var skeinSections: some View {
-        ForEach(yarn.weightAndYardageArray, id: \.id) { wAndY in
-            skeinSection(for: wAndY)
+    /// Regular yarn splits weight, amount, original, and possible patterns into their own sections
+    @ViewBuilder
+    private var regularAmountSections: some View {
+        let skeins = yarn.weightAndYardageArray
+        let hasWeight = yarn.weightAndYardageItems.first.map { $0.weight != .none } ?? false
+        let originals = skeins.filter { $0.originalLength != $0.currentLength }
+        
+        if hasWeight {
+            Text("Weight")
+                .infoCardHeader()
+            
+            weightCard
+        }
+        
+        if !skeins.isEmpty {
+            Text("Amount")
+                .infoCardHeader()
+            
+            ForEach(skeins, id: \.objectID) { wAndY in
+                ViewWeightAndYardage(
+                    weightAndYardage: wAndY,
+                    isSockSet: false,
+                    totalCount: skeins.count
+                )
+            }
+        }
+        
+        if !originals.isEmpty {
+            Text(originals.count == 1 ? "Original Amount" : "Original Amounts")
+                .infoCardHeader()
+            
+            ForEach(originals, id: \.objectID) { wAndY in
+                originalAmountsCard(for: wAndY)
+            }
+        }
+        
+        ForEach(skeins, id: \.objectID) { wAndY in
+            if let suggestion = patternSuggestions.first(where: { $0.yarnWAndY.id == wAndY.id }) {
+                PossiblePatterns(
+                    patternSuggestion: suggestion,
+                    favoritedPatterns: $favoritedPatterns
+                )
+            }
         }
     }
     
     @ViewBuilder
-    private func skeinSection(for wAndY: WeightAndYardage) -> some View {
+    private var weightCard: some View {
+        if let weight = yarn.weightAndYardageItems.first?.weight, weight != .none {
+            InfoCard() {
+                HStack {
+                    Text("Weight")
+                        .foregroundStyle(Color(UIColor.secondaryLabel))
+                    Spacer()
+                    Text(weight.rawValue)
+                        .font(.headline.bold())
+                        .foregroundStyle(Color.primary)
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func skeinCards(for wAndY: WeightAndYardage) -> some View {
         if wAndY.originalLength != wAndY.currentLength {
             originalAmountsCard(for: wAndY)
         }
@@ -346,33 +538,30 @@ struct YarnInfo: View {
             isSockSet: yarn.isSockSet,
             totalCount: yarn.weightAndYardageArray.count
         )
-        
-        if let suggestion : PatternSuggestion = patternSuggestions.first(where: {$0.yarnWAndY.id == wAndY.id}) {
-            PossiblePatterns(
-                patternSuggestion : suggestion,
-                favoritedPatterns : $favoritedPatterns
-            )
-        }
     }
     
     private func originalAmountsCard(for wAndY: WeightAndYardage) -> some View {
         InfoCard() {
             VStack {
                 HStack {
-                    Text("Original Length").foregroundStyle(Color(UIColor.secondaryLabel))
+                    Text("Original Length")
+                        .foregroundStyle(Color(UIColor.secondaryLabel))
                     Spacer()
                     Text("\(wAndY.isExact ? "" : "~")\(wAndY.originalLength.formatted) \(wAndY.unitOfMeasure?.lowercased() ?? "")")
-                        .font(.headline).bold().foregroundStyle(Color.primary)
+                        .font(.headline.bold())
+                        .foregroundStyle(Color.primary)
                 }
                 .yarnDataRow()
                 
                 Divider()
                 
                 HStack {
-                    Text("Original Skeins").foregroundStyle(Color(UIColor.secondaryLabel))
+                    Text("Original Skeins")
+                        .foregroundStyle(Color(UIColor.secondaryLabel))
                     Spacer()
                     Text(wAndY.originalSkeins.formatted)
-                        .font(.headline).bold().foregroundStyle(Color.primary)
+                        .font(.headline.bold())
+                        .foregroundStyle(Color.primary)
                 }
                 .yarnDataRow()
             }
@@ -382,17 +571,16 @@ struct YarnInfo: View {
     @ViewBuilder
     private var compositionSection: some View {
         if !yarn.compositionItems.isEmpty {
-            InfoCard(
-                header : {
-                    HStack {
-                        Spacer()
-                        Text("Composition")
-                        Spacer()
-                    }
-                }
-            ) {
-                VStack {
-                    CompositionChart(composition: yarn.compositionItems, yarnColors: yarn.colorPickerItems.map(\.color), smallMode: true)
+            Text("Composition")
+                .infoCardHeader()
+            
+            InfoCard() {
+                VStack(spacing: 10) {
+                    CompositionChart(
+                        composition: yarn.compositionItems,
+                        yarnColors: yarn.colorPickerItems.map(\.color),
+                        smallMode: true
+                    )
                     CompositionText(composition: yarn.compositionItems)
                 }
             }
@@ -401,49 +589,45 @@ struct YarnInfo: View {
     
     @ViewBuilder
     private var projectsSection: some View {
-        if projects.count > 0 {
-            Text("Project\(projects.count > 1 ? "s" : "")")
+        let listed = Array(projects).sortedForDisplay
+        
+        if !listed.isEmpty {
+            Text(listed.count == 1 ? "Project" : "Projects")
                 .infoCardHeader()
             
-            SimpleHorizontalScroll(count: projects.count) {
-                ForEach(projects, id : \.id) { project in
-                    ProjectPreview(
-                        project: project,
-                        displayedProject: $displayedProject,
-                        yarnId : yarn.id,
-                        disableOnTap : isPopover
-                    )
-                }
-            }
-        }
-    }
-    
-    @ViewBuilder
-    private var colorSection: some View {
-        let colors = yarn.colorPickerItems
-        
-        if !colors.isEmpty {
-            InfoCard(
-                header : {
-                    HStack {
-                        Spacer()
-                        Text(colors.count == 1 ? "Color" : "Colors")
-                        Spacer()
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(listed, id: \.objectID) { project in
+                        let compact = listed.count == 1 && !project.hasImages
+                        
+                        ProjectPreview(
+                            project: project,
+                            displayedProject: $displayedProject,
+                            yarnId: yarn.id,
+                            disableOnTap: isPopover,
+                            compact: compact
+                        )
+                        .containerRelativeFrame(.horizontal) { length, _ in
+                            compact || listed.count == 1 ? length : length * 0.62
+                        }
                     }
                 }
-            ) {
-                ColorPalette(colors: colors, blends: yarn.colorType == ColorType.variegated.rawValue)
             }
+            .scrollClipDisabled(false)
+            .scrollDisabled(listed.count <= 1)
         }
     }
     
     @ViewBuilder
     private var notesSection: some View {
-        if let notes = yarn.notes, notes != "" {
+        if let notes = yarn.notes, !notes.isEmpty {
+            Text("Notes")
+                .infoCardHeader()
+            
             InfoCard() {
                 Text(notes)
                     .foregroundStyle(Color.primary)
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
     }
@@ -526,128 +710,9 @@ struct YarnInfo: View {
     }
 }
 
-/// A strip of the yarn's colors over named swatches
-private struct ColorPalette: View {
-    let colors : [ColorPickerItem]
-    /// Variegated yarn shifts from one color into the next, so its strip blends instead of breaking into blocks
-    var blends : Bool
-    
-    /// Saved colors have no order, so sort by hue for a palette that reads naturally and stays put;
-    /// grays and near-blacks have no meaningful hue and go last, light to dark
-    private var sortedColors : [ColorPickerItem] {
-        colors.sorted { first, second in
-            let a = HueKey(first.color), b = HueKey(second.color)
-            if a.isNeutral != b.isNeutral { return !a.isNeutral }
-            if a.isNeutral { return a.brightness > b.brightness }
-            return a.hue < b.hue
-        }
-    }
-    
-    var body: some View {
-        let colors = sortedColors
-        
-        if let only = colors.first, colors.count == 1 {
-            swatch(only)
-                .frame(maxWidth: .infinity)
-        } else {
-            VStack(spacing: 14) {
-                strip(colors.map(\.color))
-                    .frame(height: 44)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.primary.opacity(0.1), lineWidth: 1))
-                    .accessibilityHidden(true)
-                
-                // Centered rows look intended whatever the count, where a grid strands an odd one out
-                CenteredFlowLayout(spacing: 8) {
-                    ForEach(colors, id: \.id) { item in
-                        pill(item)
-                    }
-                }
-            }
-        }
-    }
-    
-    @ViewBuilder
-    private func strip(_ colors: [Color]) -> some View {
-        if blends && colors.count > 1 {
-            LinearGradient(colors: colors, startPoint: .leading, endPoint: .trailing)
-        } else {
-            HStack(spacing: 0) {
-                ForEach(colors.indices, id: \.self) { index in
-                    colors[index]
-                }
-            }
-        }
-    }
-    
-    private func hasCustomName(_ item: ColorPickerItem) -> Bool {
-        !item.description.isEmpty && item.description != item.name
-    }
-    
-    /// The only color, shown large
-    private func swatch(_ item: ColorPickerItem) -> some View {
-        HStack(spacing: 12) {
-            Circle()
-                .fill(item.color)
-                .frame(width: 44, height: 44)
-                .overlay(Circle().stroke(Color.primary.opacity(0.12), lineWidth: 1))
-            
-            VStack(alignment: .leading, spacing: 1) {
-                Text(hasCustomName(item) ? item.description : item.name)
-                    .font(.headline)
-                    .foregroundStyle(Color.primary)
-                
-                if hasCustomName(item) {
-                    Text(item.name)
-                        .font(.caption)
-                        .foregroundStyle(Color.secondary)
-                }
-            }
-        }
-        .accessibilityElement(children: .combine)
-    }
-    
-    private func pill(_ item: ColorPickerItem) -> some View {
-        HStack(spacing: 6) {
-            Circle()
-                .fill(item.color)
-                .frame(width: 16, height: 16)
-                .overlay(Circle().stroke(Color.primary.opacity(0.15), lineWidth: 1))
-            
-            Text(hasCustomName(item) ? item.description : item.name)
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(Color.primary)
-            
-            if hasCustomName(item) {
-                Text(item.name)
-                    .font(.caption)
-                    .foregroundStyle(Color.secondary)
-            }
-        }
-        .lineLimit(1)
-        .padding(.leading, 6)
-        .padding(.trailing, 10)
-        .padding(.vertical, 6)
-        .background(Color(UIColor.tertiarySystemFill), in: Capsule())
-        .accessibilityElement(children: .combine)
-    }
-    
-    private struct HueKey {
-        var hue : CGFloat = 0
-        var saturation : CGFloat = 0
-        var brightness : CGFloat = 0
-        
-        var isNeutral : Bool { saturation < 0.12 || brightness < 0.12 }
-        
-        init(_ color: Color) {
-            UIColor(color).getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: nil)
-        }
-    }
-}
-
-/// Wraps its views onto as many rows as they need, each row centered
-private struct CenteredFlowLayout: Layout {
-    var spacing : CGFloat = 8
+/// Wraps status and color capsules onto as many leading-aligned rows as needed
+private struct HeroChipFlow: Layout {
+    var spacing : CGFloat = 6
     
     private struct Row {
         var indices : [Int] = []
@@ -665,7 +730,7 @@ private struct CenteredFlowLayout: Layout {
         var y = bounds.minY
         
         for row in rows(for: subviews, maxWidth: bounds.width) {
-            var x = bounds.minX + (bounds.width - row.width) / 2
+            var x = bounds.minX
             
             for index in row.indices {
                 let size = fittedSize(of: subviews[index], maxWidth: bounds.width)
@@ -680,7 +745,6 @@ private struct CenteredFlowLayout: Layout {
         }
     }
     
-    /// Anything wider than a whole row is narrowed to fit, truncating its text
     private func fittedSize(of subview: LayoutSubview, maxWidth: CGFloat) -> CGSize {
         let ideal = subview.sizeThatFits(.unspecified)
         guard ideal.width > maxWidth else { return ideal }
@@ -751,6 +815,7 @@ struct YarnInfoDialogs: ViewModifier {
                 ForEach(yarn.weightAndYardageArray, id: \.id) { element in
                     Button(skeinLabel(for: element)) {
                         if let patternWAndY = patternWAndYBrowsingFor {
+                            projectPairing.removeAll { $0.patternWeightAndYardage.id == patternWAndY.id }
                             projectPairing.append(
                                 ProjectPairingItem(
                                     patternWeightAndYardage: patternWAndY,

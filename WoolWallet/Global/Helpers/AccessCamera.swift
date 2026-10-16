@@ -16,7 +16,12 @@ struct accessCameraView: UIViewControllerRepresentable {
     
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let imagePicker = UIImagePickerController()
-        imagePicker.sourceType = .camera
+        // Setting .camera when unavailable crashes (simulators, some iPods)
+        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+            imagePicker.sourceType = .camera
+        } else {
+            imagePicker.sourceType = .photoLibrary
+        }
         imagePicker.delegate = context.coordinator
         return imagePicker
     }

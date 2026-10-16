@@ -11,11 +11,12 @@ import SwiftUI
 struct FlexView<Data: Collection, Content: View>: View where Data.Element: Hashable {
     let data: Data
     let spacing: CGFloat
+    var alignment: HorizontalAlignment = .leading
     let content: (Data.Element) -> Content
     @State private var availableWidth: CGFloat = 0
     
     var body: some View {
-        ZStack(alignment: Alignment(horizontal: .leading, vertical: .center)) {
+        ZStack(alignment: Alignment(horizontal: alignment, vertical: .center)) {
             Color.clear
                 .frame(height: 1)
                 .readSize { size in
@@ -26,6 +27,7 @@ struct FlexView<Data: Collection, Content: View>: View where Data.Element: Hasha
                 availableWidth: availableWidth,
                 data: data,
                 spacing: spacing,
+                alignment: alignment,
                 content: content
             )
         }
@@ -36,11 +38,12 @@ struct _FlexView<Data: Collection, Content: View>: View where Data.Element: Hash
     let availableWidth: CGFloat
     let data: Data
     let spacing: CGFloat
+    let alignment: HorizontalAlignment
     let content: (Data.Element) -> Content
     @State var elementsSize: [Data.Element: CGSize] = [:]
     
     var body : some View {
-        VStack(alignment: .leading, spacing: spacing) {
+        VStack(alignment: alignment, spacing: spacing) {
             ForEach(computeRows(), id: \.self) { rowElements in
                 HStack(spacing: spacing) {
                     ForEach(rowElements, id: \.self) { element in

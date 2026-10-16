@@ -25,7 +25,12 @@ struct AddOrEditYarnForm: View {
     // Binding variables
     var yarnToEdit: Yarn?
     var isCopy: Bool
+    /// A label scanned before the form opened, filled in once it appears
+    var scannedLabel: ScannedYarnLabel?
+    var labelPhoto: UIImage?
     var onAdd: ((Yarn) -> Void)? // Closure to return the newly added yarn
+    /// Called instead of onAdd when the skeins went to a matching yarn rather than a new entry
+    var onAddSkeins: ((_ yarn: Yarn, _ count: Double) -> Void)?
     
     // Internal state trackers
     @State private var images                : [ImageData] = []
@@ -46,15 +51,24 @@ struct AddOrEditYarnForm: View {
     @State private var compositionLinkID     = UUID()
     @State private var photosOnScreen        : Bool = true
     @State private var isSaving              : Bool = false
+    @State private var saveFailed            : Bool = false
     @State private var encodedPhotos         : [UUID: Data] = [:]
     @State private var duplicateCheck        : DuplicateCheck? = nil
     @State private var duplicateConfirmed    : Bool = false
+    @State private var skeinsAdded           : SkeinsAdded? = nil
     @State private var showNewColorPicker    : Bool = false
+    /// Mini / caked / archive — tucked away so the main path stays short
+    @State private var showMoreDetails       : Bool = false
     
     /// Presented as a sheet item so the sheet is built with the matches rather than an earlier, empty list
     private struct DuplicateCheck: Identifiable {
         let id = UUID()
         let matches : [Yarn]
+    }
+    
+    private struct SkeinsAdded {
+        let yarn : Yarn
+        let count : Double
     }
     
     private struct PhotoLabel {
@@ -115,9 +129,19 @@ struct AddOrEditYarnForm: View {
     }
     
     // init function
-    init(yarnToEdit : Yarn?, isCopy : Bool = false, onAdd: ((Yarn) -> Void)? = nil) {
+    init(
+        yarnToEdit : Yarn?,
+        isCopy : Bool = false,
+        scannedLabel : ScannedYarnLabel? = nil,
+        labelPhoto : UIImage? = nil,
+        onAddSkeins: ((_ yarn: Yarn, _ count: Double) -> Void)? = nil,
+        onAdd: ((Yarn) -> Void)? = nil
+    ) {
         self.yarnToEdit = yarnToEdit
         self.isCopy = isCopy
+        self.scannedLabel = scannedLabel
+        self.labelPhoto = labelPhoto
+        self.onAddSkeins = onAddSkeins
         self.onAdd = onAdd
         
         // Pre-populate the form if editing or copying an existing Yarn
@@ -153,6 +177,9 @@ struct AddOrEditYarnForm: View {
                 _composition       = State(initialValue : yarnToEdit.compositionItems)
                 _colorPickers      = State(initialValue : yarnToEdit.colorPickerItems)
             }
+            
+            let hasExtraDetails = yarnToEdit.isMini || yarnToEdit.isCaked || (!isCopy && yarnToEdit.isArchived)
+            _showMoreDetails = State(initialValue: hasExtraDetails)
         }
     }
     
@@ -173,27 +200,35 @@ struct AddOrEditYarnForm: View {
         return Array(dyersSet) // Convert the set back to an array
     }
     
+    private var hasName: Bool {
+        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    
+    private var hasPhoto: Bool {
+        !images.isEmpty
+    }
+    
+    private var canSave: Bool {
+        hasName && hasPhoto && !isSaving
+    }
+    
+    private var saveHintText: String {
+        switch (hasPhoto, hasName) {
+        case (false, false): return "Add a photo and a name to save."
+        case (false, true):  return "Add a photo to save."
+        case (true, false):  return "Add a name to save."
+        case (true, true):   return ""
+        }
+    }
+    
     var body: some View {
         NavigationStack {
             Form {
-                Section {
-                    Button {
-                        showLabelScanner = true
-                    } label: {
-                        Label("Scan Yarn Label", systemImage: "text.viewfinder")
-                    }
-                } footer: {
-                    Text("Fill in the name, weight, yardage, and composition from the label.")
-                }
+                photosSection
                 
                 photoLabelPrompt
                 
-                Section(header: Text("Images")) {
-                    ImageCarousel(images : $images, editMode: true, editExistingImages : yarnToEdit != nil && !isCopy, allowsZoom: true)
-                        .customFormSection()
-                        .onAppear { photosOnScreen = true }
-                        .onDisappear { photosOnScreen = false }
-                }
+                scanSection
                 
                 if !images.isEmpty && (processingColor || suggestedColors != nil) {
                     colorSuggestion
@@ -201,30 +236,7 @@ struct AddOrEditYarnForm: View {
                     colorSection
                 }
                 
-                Section(header: Text("General Information")) {
-                    TextField("Name", text: $name).autocorrectionDisabled()
-                    
-                    TextFieldTypeahead(field: $dyer, label: "Dyer", allResults: uniqueDyers)
-                    
-                    Toggle("Sock Set", isOn: $isSockSet.animation())
-                        .onChange(of: isSockSet) {
-                            if weightAndYardages.isEmpty {
-                                addWeightAndYardage()
-                            }
-                            
-                            if isSockSet && weightAndYardages[0].weight == Weight.none {
-                                weightAndYardages[0].weight = Weight.one
-                            } else if !isSockSet && weightAndYardages[0].weight == Weight.one {
-                                weightAndYardages[0].weight = Weight.none
-                            }
-                            
-                            if isSockSet && weightAndYardages.count == 1 {
-                                addWeightAndYardage()
-                            } else if !isSockSet && weightAndYardages.count > 1 {
-                                weightAndYardages = [weightAndYardages[0]]
-                            }
-                        }
-                }
+                identitySection
                 
                 ForEach($weightAndYardages.indices, id: \.self) { index in
                     WeightAndYardageForm(
@@ -232,44 +244,20 @@ struct AddOrEditYarnForm: View {
                         isSockSet: isSockSet,
                         order: index,
                         totalCount: weightAndYardages.count,
-                        addAction: {addWeightAndYardage()},
-                        removeAction: {removeWeightAndYardage(weightAndYardages[index])}
+                        addAction: { addWeightAndYardage() },
+                        removeAction: { removeWeightAndYardage(weightAndYardages[index]) }
                     )
                 }
                 
-                if !composition.isEmpty {
-                    VStack {
-                        CompositionChart(composition: composition, yarnColors: colorPickers.map(\.color))
-                        CompositionText(composition: composition)
-                    }
-                    .customFormSection()
-                    
-                    
-                }
+                compositionSection
                 
-                Section(header: Text("What is this yarn made of?")) {
-                    NavigationLink {
-                        EditComposition(composition: $composition, photos: images.map(\.image))
-                            .onDisappear { compositionLinkID = UUID() }
-                    } label: {
-                        Label("Composition", systemImage : "chart.pie")
-                    }
-                    .id(compositionLinkID)
-                }
+                detailsSection
                 
-                Section(header: Text("Additional Information")) {
-                    Toggle("Mini", isOn: $isMini)
-                    Toggle("Caked", isOn: $caked)
-                    Toggle("Archive", isOn: $archive)
-                }
+                notesSection
                 
-                Section(header: Text("Anything else you'd like to note?")) {
-                    TextEditor(text: $notes)
-                        .frame(height: 100)
+                if !saveHintText.isEmpty {
+                    saveHintSection
                 }
-                
-                Button(isCreatingNewYarn ? "Add" : "Save", action: save)
-                    .disabled(name.isEmpty || images.isEmpty || isSaving)
             }
             .overlay {
                 if !images.isEmpty {
@@ -277,6 +265,9 @@ struct AddOrEditYarnForm: View {
                 }
             }
             .onChange(of: images) {
+                imagesChanged = true
+                checkNewPhotosForLabel()
+                
                 guard let firstImage = images.first else {
                     analyzedImageID = nil
                     processingColor = false
@@ -290,11 +281,7 @@ struct AddOrEditYarnForm: View {
                 }
             }
             .onChange(of: colorPickers) {
-                if colorPickers.count > 1 {
-                    colorType = ColorType.variegated
-                } else {
-                    colorType = ColorType.tonal
-                }
+                colorType = colorPickers.count > 1 ? .variegated : .tonal
             }
             .navigationTitle(isCreatingNewYarn ? "New Yarn" : "Edit Yarn")
             .navigationBarTitleDisplayMode(.inline)
@@ -311,17 +298,21 @@ struct AddOrEditYarnForm: View {
                         ProgressView()
                     } else {
                         Button(isCreatingNewYarn ? "Add" : "Save", action: save)
-                            .disabled(name.isEmpty || images.isEmpty)
+                            .disabled(!canSave)
                     }
                 }
             }
-            .onChange(of: images) {
-                imagesChanged = true
-                checkNewPhotosForLabel()
+            .alert("Couldn't Save", isPresented: $saveFailed) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Something went wrong saving this yarn. Please try again.")
             }
             .fullScreenCover(isPresented: $showLabelScanner) {
-                LabelScannerSheet(knownDyers: uniqueDyers) { label, fields, photo in
-                    applyScannedLabel(label, fields: fields, photo: photo)
+                LabelScannerSheet(knownDyers: uniqueDyers) { label, image, rescan in
+                    LabelScanReview(label: label, image: image, onApply: { editedLabel, fields, includePhoto in
+                        applyScannedLabel(editedLabel, fields: fields, photo: includePhoto ? image : nil)
+                        showLabelScanner = false
+                    }, onRescan: rescan)
                 }
             }
             .sheet(isPresented: $showPhotoLabelReview) {
@@ -332,20 +323,34 @@ struct AddOrEditYarnForm: View {
                 if duplicateConfirmed {
                     duplicateConfirmed = false
                     performSave()
+                } else if let skeinsAdded {
+                    self.skeinsAdded = nil
+                    
+                    if let onAddSkeins {
+                        onAddSkeins(skeinsAdded.yarn, skeinsAdded.count)
+                    } else {
+                        dismiss()
+                    }
                 }
             }) { check in
                 DuplicateYarnSheet(
                     name: name.trimmingCharacters(in: .whitespacesAndNewlines),
                     dyer: dyer.trimmingCharacters(in: .whitespacesAndNewlines),
                     matches: check.matches,
-                    isEditing: !isCreatingNewYarn
-                ) {
-                    duplicateConfirmed = true
-                }
+                    isEditing: !isCreatingNewYarn,
+                    newSkeins: weightAndYardages.first?.skeins ?? 1,
+                    onContinue: { duplicateConfirmed = true },
+                    onAddSkeins: { yarn, count in skeinsAdded = SkeinsAdded(yarn: yarn, count: count) }
+                )
             }
             .onAppear {
                 if initialSnapshot == nil {
                     initialSnapshot = snapshot
+                    
+                    // After the snapshot, so leaving a form filled from a label still asks first
+                    if let scannedLabel {
+                        applyScannedLabel(scannedLabel, fields: Set(LabelField.found(in: scannedLabel)), photo: labelPhoto)
+                    }
                 }
             }
         }
@@ -371,7 +376,7 @@ struct AddOrEditYarnForm: View {
         
         isSaving = true
         
-        Task {
+        Task { @MainActor in
             encodedPhotos = await StoredImage.encodeNewPhotos(images)
             createOrUpdateYarn()
         }
@@ -382,31 +387,29 @@ struct AddOrEditYarnForm: View {
     private var possibleDuplicates : [Yarn] {
         guard !isCopy else { return [] }
         
-        let nameKey = Self.matchKey(name)
-        let dyerKey = Self.matchKey(dyer)
+        let nameKey = YarnMatching.key(name)
+        let dyerKey = YarnMatching.key(dyer)
         
-        if let yarnToEdit, Self.matchKey(yarnToEdit.name ?? "") == nameKey, Self.matchKey(yarnToEdit.dyer ?? "") == dyerKey {
+        if let yarnToEdit, YarnMatching.key(yarnToEdit.name) == nameKey, YarnMatching.key(yarnToEdit.dyer) == dyerKey {
             return []
         }
         
         return yarns.filter { yarn in
             yarn != yarnToEdit
                 && !yarn.isDeleted
-                && Self.matchKey(yarn.name ?? "") == nameKey
-                && Self.matchKey(yarn.dyer ?? "") == dyerKey
+                && YarnMatching.key(yarn.name) == nameKey
+                && YarnMatching.key(yarn.dyer) == dyerKey
         }
-    }
-    
-    private static func matchKey(_ value: String) -> String {
-        value
-            .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
-            .split(whereSeparator: \.isWhitespace)
-            .joined(separator: " ")
     }
     
     private func createOrUpdateYarn() {
         let yarn = isCreatingNewYarn ? Yarn(context: managedObjectContext) : yarnToEdit!
-        let newYarn = persistYarn(yarn: yarn)
+        
+        guard let newYarn = persistYarn(yarn: yarn) else {
+            isSaving = false
+            saveFailed = true
+            return
+        }
         
         if let onAdd {
             onAdd(newYarn)
@@ -481,27 +484,199 @@ struct AddOrEditYarnForm: View {
         }
     }
     
+    // MARK: - Sections
+    
+    private var scanSection: some View {
+        Section {
+            Button {
+                showLabelScanner = true
+            } label: {
+                HStack(spacing: 14) {
+                    Image(systemName: "text.viewfinder")
+                        .font(.body.bold())
+                        .foregroundStyle(Color.accentColor)
+                        .frame(width: 36, height: 36)
+                        .background(Color.accentColor.opacity(0.15), in: RoundedRectangle(cornerRadius: 8))
+                        .accessibilityHidden(true)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Scan Yarn Label")
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(Color.primary)
+                        
+                        Text("Name, weight, yardage, and fiber")
+                            .font(.caption)
+                            .foregroundStyle(Color.secondary)
+                    }
+                    
+                    Spacer(minLength: 0)
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(Color(UIColor.tertiaryLabel))
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        } footer: {
+            Text("Point the camera at a ball band, or fill everything in by hand.")
+        }
+    }
+    
+    private var photosSection: some View {
+        Section {
+            ImageCarousel(
+                images: $images,
+                editMode: true,
+                editExistingImages: yarnToEdit != nil && !isCopy,
+                allowsZoom: true
+            )
+            .customFormSection()
+            .onAppear { photosOnScreen = true }
+            .onDisappear { photosOnScreen = false }
+        } header: {
+            Text("Photos")
+        } footer: {
+            Text(hasPhoto ? "The first photo is used to suggest colors." : "Start with a photo of the skein or label.")
+        }
+    }
+    
+    private var saveHintSection: some View {
+        Section {
+            Label(saveHintText, systemImage: "info.circle")
+                .font(.subheadline)
+                .foregroundStyle(Color.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+    
+    private var identitySection: some View {
+        Section {
+            TextField("Name", text: $name)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.words)
+            
+            TextFieldTypeahead(field: $dyer, label: "Dyer", allResults: uniqueDyers)
+            
+            Toggle("Sock set", isOn: $isSockSet.animation())
+                .onChange(of: isSockSet) {
+                    if weightAndYardages.isEmpty {
+                        addWeightAndYardage()
+                    }
+                    
+                    if isSockSet && weightAndYardages[0].weight == Weight.none {
+                        weightAndYardages[0].weight = Weight.one
+                    } else if !isSockSet && weightAndYardages[0].weight == Weight.one {
+                        weightAndYardages[0].weight = Weight.none
+                    }
+                    
+                    if isSockSet && weightAndYardages.count == 1 {
+                        addWeightAndYardage()
+                    } else if !isSockSet && weightAndYardages.count > 1 {
+                        weightAndYardages = [weightAndYardages[0]]
+                    }
+                }
+        } header: {
+            Text("Yarn")
+        } footer: {
+            if isSockSet {
+                Text("Sock sets keep one main skein plus mini skeins.")
+            }
+        }
+    }
+    
+    private var compositionSection: some View {
+        Section {
+            if !composition.isEmpty {
+                VStack(spacing: 10) {
+                    CompositionChart(composition: composition, yarnColors: colorPickers.map(\.color))
+                    CompositionText(composition: composition)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 4)
+                .customFormSection()
+            }
+            
+            NavigationLink {
+                EditComposition(
+                    composition: $composition,
+                    photos: images.map(\.image),
+                    yarnColors: colorPickers.map(\.color)
+                )
+                .onDisappear { compositionLinkID = UUID() }
+            } label: {
+                Label(
+                    composition.isEmpty ? "Add Composition" : "Edit Composition",
+                    systemImage: "chart.bar.xaxis"
+                )
+            }
+            .id(compositionLinkID)
+        } header: {
+            Text("Composition")
+        } footer: {
+            if composition.isEmpty {
+                Text("Fiber content from the ball band, like 80% Merino / 20% Nylon.")
+            }
+        }
+    }
+    
+    private var detailsSection: some View {
+        Section {
+            DisclosureGroup(isExpanded: $showMoreDetails) {
+                Toggle("Mini skein", isOn: $isMini)
+                Toggle("Wound into a cake", isOn: $caked)
+                Toggle("Archive", isOn: $archive)
+            } label: {
+                Label("More Details", systemImage: "slider.horizontal.3")
+            }
+        } footer: {
+            if showMoreDetails {
+                Text("Archived yarn stays in your stash but is hidden from the active list.")
+            }
+        }
+    }
+    
+    private var notesSection: some View {
+        Section {
+            TextEditor(text: $notes)
+                .frame(minHeight: 100)
+                .overlay(alignment: .topLeading) {
+                    if notes.isEmpty {
+                        Text("Dye lot, colorway, shop, gifts…")
+                            .foregroundStyle(Color(UIColor.placeholderText))
+                            .padding(.top, 8)
+                            .padding(.leading, 4)
+                            .allowsHitTesting(false)
+                    }
+                }
+        } header: {
+            Text("Notes")
+        }
+    }
+    
     @ViewBuilder
     private var photoLabelPrompt: some View {
         if let photoLabel {
             Section {
                 HStack(spacing: 12) {
-                    Image(systemName: "text.viewfinder")
-                        .font(.title2)
+                    Image(systemName: "sparkles")
+                        .font(.body.bold())
                         .foregroundStyle(Color.accentColor)
+                        .frame(width: 36, height: 36)
+                        .background(Color.accentColor.opacity(0.15), in: RoundedRectangle(cornerRadius: 8))
                         .accessibilityHidden(true)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Found label info in your photo")
-                            .font(.subheadline)
-                            .bold()
+                        Text("Label info in your photo")
+                            .font(.subheadline.weight(.semibold))
                         
                         Text(LabelField.found(in: photoLabel.label).map(\.shortTitle).joined(separator: ", "))
                             .font(.caption)
                             .foregroundStyle(Color.secondary)
+                            .lineLimit(2)
                     }
                     
-                    Spacer()
+                    Spacer(minLength: 0)
                     
                     Button("Review") {
                         showPhotoLabelReview = true
@@ -514,12 +689,13 @@ struct AddOrEditYarnForm: View {
                             self.photoLabel = nil
                         }
                     } label: {
-                        Image(systemName: "xmark")
-                            .foregroundStyle(Color.secondary)
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(Color(UIColor.tertiaryLabel))
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Dismiss")
                 }
+                .padding(.vertical, 2)
             }
             .transition(.opacity)
         }
@@ -577,7 +753,7 @@ struct AddOrEditYarnForm: View {
     }
     
     private var colorSection: some View {
-        Section(header: Text(colorPickers.count == 1 ? "Color" : "Colors")) {
+        Section {
             ForEach($colorPickers) { $item in
                 ColorRow(item: $item, photos: images.map(\.image)) {
                     withAnimation {
@@ -612,6 +788,13 @@ struct AddOrEditYarnForm: View {
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
+                .padding(.vertical, 2)
+            }
+        } header: {
+            Text(colorPickers.count == 1 ? "Color" : "Colors")
+        } footer: {
+            if colorPickers.count > 1 {
+                Text("Variegated means more than one distinct color on the skein.")
             }
         }
     }
@@ -667,41 +850,52 @@ struct AddOrEditYarnForm: View {
     @ViewBuilder
     private var colorSuggestion: some View {
         if processingColor {
-            Section(header: Text("Color")) {
+            Section {
                 HStack(spacing: 12) {
                     ProgressView()
                     
-                    Text("Finding colors in your photo...")
+                    Text("Finding colors in your photo…")
                         .foregroundStyle(Color.secondary)
                 }
+                .padding(.vertical, 4)
+            } header: {
+                Text("Colors")
             }
         } else if let suggestedColors {
-            Section(header: Text("Color")) {
+            Section {
                 VStack(alignment: .leading, spacing: 12) {
                     Label(
-                        suggestedColors.count == 1 ? "Found a color in your photo" : "Found \(suggestedColors.count) colors in your photo",
+                        suggestedColors.count == 1
+                            ? "Found a color in your photo"
+                            : "Found \(suggestedColors.count) colors in your photo",
                         systemImage: "sparkles"
                     )
-                    .font(.subheadline.bold())
+                    .font(.subheadline.weight(.semibold))
                     
                     if suggestedColors.count > 1 {
-                        Text("Tap a color to leave it out.")
+                        Text("Tap a swatch to leave it out.")
                             .font(.caption)
                             .foregroundStyle(Color.secondary)
                     }
                     
                     HStack(spacing: 10) {
                         ForEach(suggestedColors.indices, id: \.self) { index in
-                            suggestionSwatch(suggestedColors[index], index: index, isToggleable: suggestedColors.count > 1)
+                            suggestionSwatch(
+                                suggestedColors[index],
+                                index: index,
+                                isToggleable: suggestedColors.count > 1
+                            )
                         }
+                        
+                        Spacer(minLength: 0)
                     }
                     
-                    HStack {
+                    HStack(spacing: 10) {
                         Button(addSuggestionsTitle, action: useSuggestedColors)
                             .buttonStyle(.borderedProminent)
                             .disabled(selectedSuggestions.isEmpty)
                         
-                        Button("No Thanks") {
+                        Button("Skip") {
                             withAnimation {
                                 self.suggestedColors = nil
                             }
@@ -709,14 +903,14 @@ struct AddOrEditYarnForm: View {
                         .buttonStyle(.bordered)
                     }
                     .controlSize(.small)
-                    
-                    if !colorPickers.isEmpty {
-                        Text("Replaces the yarn's current colors.")
-                            .font(.caption)
-                            .foregroundStyle(Color.secondary)
-                    }
                 }
                 .padding(.vertical, 4)
+            } header: {
+                Text("Colors")
+            } footer: {
+                if !colorPickers.isEmpty {
+                    Text("Accepting these replaces the yarn’s current colors.")
+                }
             }
         }
     }
@@ -758,18 +952,18 @@ struct AddOrEditYarnForm: View {
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
     
-    func persistYarn(yarn: Yarn) -> Yarn {
+    func persistYarn(yarn: Yarn) -> Yarn? {
         let isEdit = yarnToEdit != nil && !isCopy
         
         yarn.id = isEdit ? yarn.id : UUID()
-        yarn.name = name
-        yarn.dyer = dyer
+        yarn.name = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        yarn.dyer = dyer.trimmingCharacters(in: .whitespacesAndNewlines)
         yarn.isSockSet = isSockSet
         yarn.isMini = isMini
         yarn.colorType = colorType?.rawValue ?? ""
         yarn.isCaked = caked
         yarn.isArchived = archive
-        yarn.notes = notes
+        yarn.notes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
         
         if isEdit, let yarnToEdit {
             deleteRemovedChildren(for: yarnToEdit)
@@ -782,9 +976,10 @@ struct AddOrEditYarnForm: View {
         // New / copied yarns always persist whatever images are on the form
         if imagesChanged || isCopy {
             yarn.images = NSSet(array: buildStoredImages())
+            StoredImage.invalidateThumbnailCache()
         }
         
-        PersistenceController.shared.save()
+        guard PersistenceController.shared.save() else { return nil }
         return yarn
     }
     

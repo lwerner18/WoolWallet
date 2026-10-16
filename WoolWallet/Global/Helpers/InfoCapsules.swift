@@ -10,9 +10,10 @@ import SwiftUI
 
 struct InfoCapsules : View {
     var detailProps : [DetailProp]
+    var alignment : HorizontalAlignment = .leading
     
     var body : some View {
-        FlexView(data: detailProps, spacing: 6) { prop in
+        FlexView(data: detailProps, spacing: 6, alignment: alignment) { prop in
             HStack {
                 if prop.useImage {
                     Image(prop.icon)

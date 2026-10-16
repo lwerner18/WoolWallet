@@ -15,6 +15,10 @@ private struct ProjectToShowAutomaticallyKey: EnvironmentKey {
     static let defaultValue: Binding<Project?> = .constant(nil) // Default value
 }
 
+private struct ProjectTabToShowAutomaticallyKey: EnvironmentKey {
+    static let defaultValue: Binding<ProjectTab?> = .constant(nil)
+}
+
 extension EnvironmentValues {
     var mainTab: Binding<MainTab> {
         get { self[MainTabKey.self] }
@@ -24,6 +28,12 @@ extension EnvironmentValues {
     var projectToShowAutomatically: Binding<Project?> {
         get { self[ProjectToShowAutomaticallyKey.self] }
         set { self[ProjectToShowAutomaticallyKey.self] = newValue }
+    }
+    
+    /// Which Projects sub-tab to open when jumping from the dashboard (Finished, Queue, etc.)
+    var projectTabToShowAutomatically: Binding<ProjectTab?> {
+        get { self[ProjectTabToShowAutomaticallyKey.self] }
+        set { self[ProjectTabToShowAutomaticallyKey.self] = newValue }
     }
 }
 
@@ -40,6 +50,7 @@ struct WoolWalletApp: App {
     
     @State private var selectedTab = MainTab.dashboard
     @State private var projectToShowAutomatically: Project? = nil
+    @State private var projectTabToShowAutomatically: ProjectTab? = nil
     
     init() {
         // SwiftUI has no clear button option; its text fields are UITextFields underneath
@@ -76,6 +87,7 @@ struct WoolWalletApp: App {
             .environment(\.managedObjectContext, persistenceController.container.viewContext)
             .environment(\.mainTab, $selectedTab)
             .environment(\.projectToShowAutomatically, $projectToShowAutomatically)
+            .environment(\.projectTabToShowAutomatically, $projectTabToShowAutomatically)
         }
     }
 }

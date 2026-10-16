@@ -197,8 +197,9 @@ struct ImageCarousel: View {
             if editMode && !selectedImages.isEmpty {
                 let items = selectedImages
                 isLoadingPhotos = true
+                selectedImages = []
                 
-                Task {
+                Task { @MainActor in
                     let loaded = await loadImages(from: items)
                     
                     if !editExistingImages {
@@ -211,12 +212,19 @@ struct ImageCarousel: View {
         }
         .onChange(of: capturedImage) {
             if editMode, let capturedImage {
-                Task {
+                let photo = capturedImage
+                self.capturedImage = nil
+                
+                Task { @MainActor in
+                    let scaled = await Task.detached(priority: .userInitiated) {
+                        photo.scaledDown(toMaxPixelSize: StoredImage.displayMaxPixelSize)
+                    }.value
+                    
                     if !editExistingImages {
                         images.removeAll()
                     }
                     
-                    images.append(ImageData(image: capturedImage))
+                    images.append(ImageData(image: scaled))
                 }
             }
         }
@@ -259,7 +267,7 @@ struct ImageCarousel: View {
         // The form shows a smaller copy of saved photos, so rotate the full-size original instead
         let source = turns.isMultiple(of: 4) ? item.image : item.existingItem?.image.flatMap(UIImage.init(data:)) ?? item.image
         
-        Task {
+        Task { @MainActor in
             let rotated = await Task.detached(priority: .userInitiated) { source.rotatedClockwise(quarterTurns: turns) }.value
             renderingImageIDs.remove(id)
             renderedTurns[id] = (turns, rotated)
@@ -420,13 +428,18 @@ struct ImageCarousel: View {
         ProgressView(selectedImages.count > 1 ? "Loading Photos..." : "Loading Photo...")
     }
     
-    /// Loads in parallel but keeps the order the photos were picked in
+    /// Loads in parallel but keeps the order the photos were picked in; downsamples so the form stays responsive
     private func loadImages(from items: [PhotosPickerItem]) async -> [UIImage] {
-        await withTaskGroup(of: (Int, UIImage?).self) { group in
+        let maxPixelSize = StoredImage.displayMaxPixelSize
+        
+        return await withTaskGroup(of: (Int, UIImage?).self) { group in
             for (index, item) in items.enumerated() {
                 group.addTask {
                     guard let data = try? await item.loadTransferable(type: Data.self) else { return (index, nil) }
-                    return (index, UIImage(data: data))
+                    // Decode straight to a form-sized bitmap instead of a full-resolution photo
+                    let image = UIImage.downsampled(from: data, maxPixelSize: maxPixelSize)
+                        ?? UIImage(data: data)?.scaledDown(toMaxPixelSize: maxPixelSize)
+                    return (index, image)
                 }
             }
             
@@ -552,15 +565,30 @@ private struct PhotoOrderSheet: View {
         .presentationDetents([.medium, .large])
         .task {
             let pixelSide = thumbnailSide * 3
+            var prepared : [UUID: UIImage] = [:]
             
             for item in images where thumbnails[item.id] == nil {
                 let size = item.image.size
                 let scale = pixelSide / max(min(size.width, size.height), 1)
                 guard scale < 1 else { continue }
                 
-                thumbnails[item.id] = await item.image.byPreparingThumbnail(
-                    ofSize: CGSize(width: size.width * scale, height: size.height * scale)
-                )
+                let source = item.image
+                let thumbnail = await Task.detached(priority: .utility) {
+                    await source.byPreparingThumbnail(
+                        ofSize: CGSize(width: size.width * scale, height: size.height * scale)
+                    )
+                }.value
+                
+                if let thumbnail {
+                    prepared[item.id] = thumbnail
+                }
+            }
+            
+            // byPreparingThumbnail can resume off the main actor
+            await MainActor.run {
+                for (id, thumbnail) in prepared {
+                    thumbnails[id] = thumbnail
+                }
             }
         }
     }

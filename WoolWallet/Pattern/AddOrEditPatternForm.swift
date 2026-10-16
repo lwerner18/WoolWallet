@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import CoreData
+import PhotosUI
 
 struct PatternItemField: Identifiable, Equatable, Hashable {
     var id : UUID = UUID()
@@ -60,7 +61,40 @@ struct AddOrEditPatternForm: View {
     /// a new ID on every render would rebuild the row on each keystroke
     @State private var yarnSpecsLinkID          = UUID()
     @State private var isSaving                 : Bool = false
+    @State private var saveFailed               : Bool = false
     @State private var encodedPhotos            : [UUID: Data] = [:]
+    
+    // Pattern file
+    @State private var documentData             : Data? = nil
+    @State private var documentName             : String? = nil
+    /// Renewed whenever the file is added, replaced, or removed, so unsaved changes don't need the file compared byte by byte
+    @State private var documentVersion          : UUID? = nil
+    @State private var documentChanged          : Bool = false
+    @State private var documentFirstPage        : UIImage? = nil
+    @State private var documentPageCount        : Int = 0
+    /// Cover-card cache only — not added to the pattern's photo album
+    @State private var documentThumbnail        : Data? = nil
+    @State private var isReadingDocument        : Bool = false
+    @State private var documentMessage          : String? = nil
+    @State private var patternReview            : PatternReviewItem? = nil
+    @State private var showFileImporter         : Bool = false
+    @State private var showPhotoPicker          : Bool = false
+    @State private var photoSelection           : [PhotosPickerItem] = []
+    @State private var showDocumentScanner      : Bool = false
+    @State private var showDocumentPreview      : Bool = false
+    @State private var showLinkImport           : Bool = false
+    /// Held until the link sheet closes, since the review sheet can't open while it's still on screen
+    @State private var linkedFile               : PatternLink.File? = nil
+    /// Read from a web page when it was imported; not saved, so a saved pattern is read from its PDF
+    @State private var documentPageText         : PatternText? = nil
+    @State private var documentPagePhoto        : UIImage? = nil
+    
+    private struct PatternReviewItem: Identifiable {
+        let id = UUID()
+        let pattern : ScannedPattern
+        let photo : UIImage?
+        let photoIsFirstPage : Bool
+    }
     
     // Form fields
     @State private var patternType          : PatternType = PatternType.crochet
@@ -95,6 +129,7 @@ struct AddOrEditPatternForm: View {
         var images               : [ImageData]
         var notions              : [NotionItem]
         var techniques           : [TechniqueItem]
+        var documentVersion      : UUID?
     }
     
     private var snapshot: FormSnapshot {
@@ -112,7 +147,8 @@ struct AddOrEditPatternForm: View {
             notes: notes,
             images: images,
             notions: notions,
-            techniques: techniques
+            techniques: techniques,
+            documentVersion: documentVersion
         )
     }
     
@@ -140,6 +176,13 @@ struct AddOrEditPatternForm: View {
             _images               = State(initialValue : patternToEdit.uiImages)
             _notions              = State(initialValue : patternToEdit.notionItems)
             _techniques           = State(initialValue : patternToEdit.techniqueItems)
+            
+            if let document = patternToEdit.document, let data = document.data {
+                _documentData      = State(initialValue : data)
+                _documentName      = State(initialValue : document.fileName)
+                _documentVersion   = State(initialValue : UUID())
+                _documentPageCount = State(initialValue : PatternFile.pageCount(of: data))
+            }
         }
     }
     
@@ -159,6 +202,8 @@ struct AddOrEditPatternForm: View {
     var body: some View {
         NavigationStack {
             Form {
+                documentSection
+                
                 Section(header: Text("General Information")) {
                     Picker("Type", selection: $patternType) {
                         ForEach(PatternType.allCases, id: \.id) { patternType in
@@ -167,7 +212,10 @@ struct AddOrEditPatternForm: View {
                     }
                     .pickerStyle(SegmentedPickerStyle())
                     .onChange(of: patternType) {
-                        techniques = [TechniqueItem(technique: PatternTechnique.none)]
+                        // Techniques filled in from a pattern file already suit its type
+                        let available = techniqueList(for: patternType)
+                        let kept = techniques.filter { $0.technique != .none && ($0.technique == .other || available.contains($0.technique)) }
+                        techniques = kept.isEmpty ? [TechniqueItem(technique: PatternTechnique.none)] : kept
                     }
                     
                     TextField("Name", text: $name).autocorrectionDisabled()
@@ -341,13 +389,7 @@ struct AddOrEditPatternForm: View {
                     List {
                         ForEach($techniques.indices, id: \.self) { index in
                             Picker("Technique \(techniques.count > 1 ? "\(index + 1)" : "")", selection: $techniques[index].technique) {
-                                let list = patternType == PatternType.crochet
-                                    ? PatternUtils.shared.crochetTechniques()
-                                    : patternType == PatternType.knit
-                                        ? PatternUtils.shared.knitTechniques()
-                                        : PatternUtils.shared.tunisianTechniques()
-                                
-                                ForEach(list, id: \.id) { technique in
+                                ForEach(techniqueList(for: patternType), id: \.id) { technique in
                                     Text(technique.rawValue).tag(technique)
                                 }
                             }
@@ -428,13 +470,384 @@ struct AddOrEditPatternForm: View {
             .onChange(of: images) {
                 imagesChanged = true
             }
+            .alert("Couldn't Save", isPresented: $saveFailed) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Something went wrong saving this pattern. Please try again.")
+            }
             .onAppear {
                 if initialSnapshot == nil {
                     initialSnapshot = snapshot
                 }
             }
+            .task(id: documentVersion) {
+                if let documentData, documentFirstPage == nil {
+                    documentFirstPage = await PatternFile.firstPageImage(of: documentData, maxPixels: 300)
+                }
+            }
+            .fileImporter(isPresented: $showFileImporter, allowedContentTypes: [.pdf, .image], allowsMultipleSelection: true) { result in
+                switch result {
+                case .success(let urls):
+                    Task {
+                        do {
+                            let file = try await PatternFile.load(from: urls)
+                            setDocument(file.data, name: file.name)
+                        } catch {
+                            documentMessage = error.localizedDescription
+                        }
+                    }
+                case .failure(let error):
+                    documentMessage = error.localizedDescription
+                }
+            }
+            .photosPicker(isPresented: $showPhotoPicker, selection: $photoSelection, maxSelectionCount: 30, matching: .images)
+            .onChange(of: photoSelection) {
+                let selection = photoSelection
+                guard !selection.isEmpty else { return }
+                photoSelection = []
+                
+                Task {
+                    var photos : [UIImage] = []
+                    for item in selection {
+                        if let data = try? await item.loadTransferable(type: Data.self), let image = UIImage(data: data) {
+                            photos.append(image)
+                        }
+                    }
+                    
+                    guard !photos.isEmpty else {
+                        documentMessage = "Those photos couldn't be loaded."
+                        return
+                    }
+                    
+                    setDocument(await PatternFile.pdfData(from: photos), name: "Pattern Photos")
+                }
+            }
+            .fullScreenCover(isPresented: $showDocumentScanner) {
+                DocumentScanner { pages in
+                    showDocumentScanner = false
+                    
+                    Task {
+                        setDocument(await PatternFile.pdfData(from: pages), name: "Scanned Pattern")
+                    }
+                } onCancel: {
+                    showDocumentScanner = false
+                }
+                .ignoresSafeArea()
+            }
+            .sheet(isPresented: $showLinkImport) {
+                if let linkedFile {
+                    self.linkedFile = nil
+                    setDocument(linkedFile.data, name: linkedFile.name, pageText: linkedFile.text, pagePhoto: linkedFile.photo)
+                }
+            } content: {
+                PatternLinkSheet { file in
+                    linkedFile = file
+                }
+            }
+            .fullScreenCover(isPresented: $showDocumentPreview) {
+                if let documentData {
+                    PatternReader(data: documentData, title: name.isEmpty ? (documentName ?? "Pattern") : name)
+                }
+            }
+            .sheet(item: $patternReview) { review in
+                PatternFillReview(
+                    pattern: review.pattern,
+                    photo: review.photo,
+                    photoIsFirstPage: review.photoIsFirstPage,
+                    // PDF first pages stay in the file — don't copy them into pattern photos
+                    allowsAddingPhoto: !review.photoIsFirstPage && review.photo != nil,
+                    suggestsPhoto: images.isEmpty && !review.photoIsFirstPage
+                ) { pattern, fields, includePhoto in
+                    let photo = includePhoto && !review.photoIsFirstPage ? review.photo : nil
+                    applyScannedPattern(pattern, fields: fields, photo: photo)
+                }
+            }
         }
         .interactiveDismissDisabled(hasChanges || isSaving)
+    }
+    
+    // MARK: - Pattern file
+    
+    @ViewBuilder
+    private var documentSection: some View {
+        Section {
+            if let documentData {
+                Button {
+                    showDocumentPreview = true
+                } label: {
+                    HStack(spacing: 12) {
+                        Group {
+                            if let documentFirstPage {
+                                Image(uiImage: documentFirstPage)
+                                    .resizable()
+                                    .scaledToFill()
+                            } else {
+                                Image(systemName: "doc.text")
+                                    .foregroundStyle(Color.secondary)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .background(Color(UIColor.secondarySystemFill))
+                            }
+                        }
+                        .frame(width: 44, height: 58)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.secondary.opacity(0.3), lineWidth: 0.5))
+                        .accessibilityHidden(true)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(documentName ?? "Pattern")
+                                .foregroundStyle(Color.primary)
+                                .lineLimit(2)
+                            
+                            Text("\(documentPageCount) page\(documentPageCount == 1 ? "" : "s") · \(ByteCountFormatter.string(fromByteCount: Int64(documentData.count), countStyle: .file))")
+                                .font(.caption)
+                                .foregroundStyle(Color.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.caption.bold())
+                            .foregroundStyle(Color(UIColor.tertiaryLabel))
+                    }
+                }
+                .accessibilityHint("Opens the pattern")
+                
+                if isReadingDocument {
+                    HStack(spacing: 10) {
+                        ProgressView()
+                        Text("Reading the pattern…")
+                            .foregroundStyle(Color.secondary)
+                    }
+                } else {
+                    Button {
+                        readDocument(documentData)
+                    } label: {
+                        Label("Fill Form from Pattern", systemImage: "wand.and.stars")
+                    }
+                }
+                
+                Menu {
+                    addDocumentButtons
+                } label: {
+                    Label("Replace File", systemImage: "arrow.triangle.2.circlepath")
+                }
+                
+                Button(role: .destructive) {
+                    withAnimation {
+                        self.documentData = nil
+                        documentName = nil
+                        documentFirstPage = nil
+                        documentPageCount = 0
+                        documentMessage = nil
+                        documentVersion = nil
+                        documentChanged = true
+                        documentPageText = nil
+                        documentPagePhoto = nil
+                    }
+                } label: {
+                    Label("Remove File", systemImage: "trash")
+                        .foregroundStyle(Color.red)
+                }
+            } else {
+                addDocumentButtons
+            }
+        } header: {
+            Text("Pattern File")
+        } footer: {
+            if let documentMessage {
+                Text(documentMessage)
+            } else if documentData == nil {
+                Text("Add the pattern to fill in this form for you, and to read it while working on a project. Files includes Dropbox, Google Drive, and other storage apps on your phone.")
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var addDocumentButtons: some View {
+        Button {
+            showFileImporter = true
+        } label: {
+            Label("Import from Files", systemImage: "doc.badge.plus")
+        }
+        
+        Button {
+            showPhotoPicker = true
+        } label: {
+            Label("Choose from Photos", systemImage: "photo.on.rectangle")
+        }
+        
+        Button {
+            showLinkImport = true
+        } label: {
+            Label("Import from Link", systemImage: "link")
+        }
+        
+        if DocumentScanner.isSupported {
+            Button {
+                showDocumentScanner = true
+            } label: {
+                Label("Scan Paper Pattern", systemImage: "doc.viewfinder")
+            }
+        }
+    }
+    
+    private func setDocument(_ data: Data, name fileName: String, pageText: PatternText? = nil, pagePhoto: UIImage? = nil) {
+        withAnimation {
+            documentData = data
+            documentName = fileName
+            documentFirstPage = nil
+            documentPageCount = PatternFile.pageCount(of: data)
+            documentMessage = nil
+            documentVersion = UUID()
+            documentChanged = true
+            documentPageText = pageText
+            documentPagePhoto = pagePhoto
+        }
+        
+        readDocument(data, fileName: fileName)
+    }
+    
+    private func readDocument(_ data: Data, fileName: String? = nil) {
+        guard !isReadingDocument else { return }
+        isReadingDocument = true
+        documentMessage = nil
+        
+        let pageText = documentPageText
+        let pagePhoto = documentPagePhoto
+        
+        Task {
+            let text : PatternText
+            if let pageText {
+                text = pageText
+            } else {
+                text = await PatternTextExtractor.extract(from: data)
+            }
+            
+            let scanned = PatternParser.parse(text, fileName: fileName ?? documentName)
+            
+            // Preview only — a PDF page is never added as a pattern photo
+            let preview: UIImage?
+            if let pagePhoto {
+                preview = pagePhoto
+            } else {
+                preview = await PatternFile.firstPageImage(of: data)
+            }
+            
+            isReadingDocument = false
+            
+            if scanned.isEmpty {
+                documentMessage = "No pattern details could be found in this file, but it will still be saved to read while you work."
+            } else {
+                patternReview = PatternReviewItem(
+                    pattern: scanned,
+                    photo: preview,
+                    photoIsFirstPage: pagePhoto == nil
+                )
+            }
+        }
+    }
+    
+    private func applyScannedPattern(_ scanned: ScannedPattern, fields: Set<PatternField>, photo: UIImage?) {
+        if fields.contains(.type), let type = scanned.type {
+            patternType = type
+        }
+        
+        if fields.contains(.name), let scannedName = scanned.name {
+            name = scannedName
+        }
+        
+        if fields.contains(.designer), let scannedDesigner = scanned.designer {
+            designer = scannedDesigner
+        }
+        
+        if fields.contains(.items) {
+            items = merged(items, adding: scanned.items.map { PatternItemField(item: $0) }, placeholder: { $0.item == .none }, same: { $0.item == $1.item && $0.item != .other })
+        }
+        
+        if fields.contains(.tools) {
+            crochetHookSizes = merged(crochetHookSizes, adding: scanned.hooks.map { Hook(hook: $0) }, placeholder: { $0.hook == .none }, same: { $0.hook == $1.hook })
+            knittingNeedleSizes = merged(knittingNeedleSizes, adding: scanned.needles.map { Needle(needle: $0) }, placeholder: { $0.needle == .none }, same: { $0.needle == $1.needle })
+        }
+        
+        if fields.contains(.yarn) {
+            var yarn = recWeightAndYardages.first ?? WeightAndYardageData(parent: WeightAndYardageParent.pattern)
+            
+            if let weight = scanned.weight {
+                yarn.weight = weight
+            }
+            
+            if let unit = scanned.unitOfMeasure {
+                yarn.unitOfMeasure = unit
+            }
+            
+            if let yardage = scanned.yardagePerSkein {
+                yarn.yardage = yardage
+            }
+            
+            if let grams = scanned.gramsPerSkein {
+                yarn.grams = grams
+            }
+            
+            if let total = scanned.totalLength {
+                yarn.hasExactLength = 1
+                yarn.length = total
+            } else if let skeins = scanned.skeins {
+                yarn.hasExactLength = 0
+                yarn.skeins = skeins
+                yarn.length = yarn.yardage.map { $0 * skeins }
+            }
+            
+            if recWeightAndYardages.isEmpty {
+                recWeightAndYardages = [yarn]
+            } else {
+                recWeightAndYardages[0] = yarn
+            }
+        }
+        
+        if fields.contains(.size) {
+            oneSize = scanned.oneSize
+            
+            if let size = scanned.intendedSize {
+                intendedSize = size
+            }
+        }
+        
+        if fields.contains(.techniques) {
+            techniques = merged(techniques, adding: scanned.techniques.map { TechniqueItem(technique: $0) }, placeholder: { $0.technique == .none }, same: { $0.technique == $1.technique })
+        }
+        
+        if fields.contains(.notions) {
+            let found = scanned.notions.map { NotionItem(notion: $0) } + scanned.otherNotions.map { NotionItem(notion: .other, description: $0) }
+            notions = merged(notions, adding: found, placeholder: { $0.notion == .none }, same: { $0.notion == $1.notion && $0.description.lowercased() == $1.description.lowercased() })
+        }
+        
+        if fields.contains(.gauge), let gauge = scanned.gauge, !notes.contains(gauge) {
+            notes = notes.isEmpty ? "Gauge: \(gauge)" : notes + "\n\nGauge: \(gauge)"
+        }
+        
+        if let photo {
+            images.append(ImageData(image: photo))
+        }
+    }
+    
+    /// Adds what isn't there yet, dropping the empty "--" row the form starts with
+    private func merged<T>(_ current: [T], adding new: [T], placeholder: (T) -> Bool, same: (T, T) -> Bool) -> [T] {
+        guard !new.isEmpty else { return current }
+        
+        var result = current.filter { !placeholder($0) }
+        for item in new where !result.contains(where: { same($0, item) }) {
+            result.append(item)
+        }
+        
+        return result
+    }
+    
+    private func techniqueList(for type: PatternType) -> [PatternTechnique] {
+        switch type {
+        case .crochet:  return PatternUtils.shared.crochetTechniques()
+        case .knit:     return PatternUtils.shared.knitTechniques()
+        case .tunisian: return PatternUtils.shared.tunisianTechniques()
+        }
     }
     
     private func save() {
@@ -443,8 +856,11 @@ struct AddOrEditPatternForm: View {
         hideKeyboard()
         isSaving = true
         
-        Task {
+        Task { @MainActor in
             encodedPhotos = await StoredImage.encodeNewPhotos(images)
+            if documentChanged, let documentData {
+                documentThumbnail = await PatternFile.coverThumbnailData(of: documentData)
+            }
             createOrUpdatePattern()
         }
     }
@@ -459,7 +875,11 @@ struct AddOrEditPatternForm: View {
         }
         
         if !showExistingPatternAlert {
-            let newPattern = persistPattern(pattern: patternToEdit == nil ? Pattern(context: managedObjectContext) : patternToEdit!)
+            guard let newPattern = persistPattern(pattern: patternToEdit == nil ? Pattern(context: managedObjectContext) : patternToEdit!) else {
+                isSaving = false
+                saveFailed = true
+                return
+            }
             
             if onAdd != nil {
                 onAdd!(newPattern)
@@ -470,7 +890,7 @@ struct AddOrEditPatternForm: View {
         }
     }
     
-    func persistPattern(pattern : Pattern) -> Pattern {
+    func persistPattern(pattern : Pattern) -> Pattern? {
         pattern.id = pattern.id != nil ? pattern.id : UUID()
         pattern.name = name
         pattern.designer = designer
@@ -592,9 +1012,26 @@ struct AddOrEditPatternForm: View {
             }
             
             pattern.images = NSSet(array: storedImages)
+            StoredImage.invalidateThumbnailCache()
         }
         
-        PersistenceController.shared.save()
+        if documentChanged {
+            if let documentData {
+                let document = pattern.document ?? PatternDocument(context: managedObjectContext)
+                // A new ID for a replaced file so its old cover isn't shown from the cache
+                document.id = UUID()
+                document.data = documentData
+                document.fileName = documentName
+                document.lastPage = 0
+                document.pageCount = Int16(clamping: documentPageCount)
+                document.thumbnail = documentThumbnail
+                pattern.document = document
+            } else if let document = pattern.document {
+                managedObjectContext.delete(document)
+            }
+        }
+        
+        guard PersistenceController.shared.save() else { return nil }
         
         return pattern
     }

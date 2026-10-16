@@ -19,6 +19,36 @@ enum YarnTab : String, CaseIterable, Identifiable, Equatable, CustomStringConver
     }
 }
 
+enum YarnSort: String, CaseIterable, Identifiable {
+    case name          = "Name"
+    case recentlyAdded = "Recently Added"
+    case dyer          = "Dyer"
+    
+    var id: String { rawValue }
+    
+    var systemImage: String {
+        switch self {
+        case .name:          return "textformat"
+        case .recentlyAdded: return "clock"
+        case .dyer:          return "person"
+        }
+    }
+    
+    var sortDescriptors: [NSSortDescriptor] {
+        let byName = NSSortDescriptor(key: "name", ascending: true, selector: #selector(NSString.localizedCaseInsensitiveCompare(_:)))
+        
+        switch self {
+        case .name:
+            return [byName]
+        case .recentlyAdded:
+            // Yarn from before dates were tracked has none and goes last
+            return [NSSortDescriptor(key: "dateAdded", ascending: false), byName]
+        case .dyer:
+            return [NSSortDescriptor(key: "dyer", ascending: true, selector: #selector(NSString.localizedCaseInsensitiveCompare(_:))), byName]
+        }
+    }
+}
+
 enum Weight : String, CaseIterable, Identifiable, Equatable {
     var id: String { self.rawValue }
     

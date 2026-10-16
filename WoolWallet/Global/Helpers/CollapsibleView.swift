@@ -49,10 +49,8 @@ struct CollapsibleView<Label, Content>: View where Label: View, Content: View {
             }
             
             if isSecondaryViewVisible {
+                // Only the header toggles — tapping content (favorites, scroll, etc.) must not close it
                 content()
-                    .onTapGesture {
-                        isSecondaryViewVisible.toggle()
-                    }
             }
         }
         .onAppear {
@@ -73,7 +71,7 @@ struct CollapsibleViewHeader<Label>: View where Label: View {
     var body: some View {
         HStack {
             label()
-                .foregroundStyle(.black)
+                .foregroundStyle(Color.primary)
             
             if showArrows {
                 Spacer()

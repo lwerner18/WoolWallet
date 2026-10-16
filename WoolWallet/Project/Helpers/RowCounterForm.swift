@@ -47,7 +47,7 @@ struct RowCounterForm: View {
                     )
                     .onTapGesture {
                         displayedCount += 1
-                        rowCounter.count += 1 // Increment count on tap
+                        rowCounter.adjust(by: 1)
                         
                         withAnimation(.interpolatingSpring(stiffness: 300, damping: 10)) {
                             bounce = 1.2
@@ -77,8 +77,8 @@ struct RowCounterForm: View {
                 HStack {
                     if showMinus {
                         Button {
-                            displayedCount -= 1 // Reset displayed count
-                            rowCounter.count -= 1
+                            displayedCount -= 1
+                            rowCounter.adjust(by: -1)
                             
                             withAnimation(.interpolatingSpring(stiffness: 300, damping: 10)) {
                                 bounce = 0.8
@@ -128,8 +128,8 @@ struct RowCounterForm: View {
                 
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        displayedCount = 0 // Reset displayed count
-                        rowCounter.count = 0
+                        displayedCount = 0
+                        rowCounter.resetCount()
                         
                         withAnimation {
                             rotation += 360 // Complete rotation
